@@ -12,16 +12,6 @@ local UIManager = require("ui/uimanager")
 local lfs = require("libs/libkoreader-lfs")
 local Index = {}
 
--- Diagnostic lines visible in KOReader's crash.log without debug mode.
--- Loaded defensively: unit tests and odd environments run without it.
-local ok_koa_log, koa_log = pcall(require, "koassistant_logger")
-local koa_logger = ok_koa_log and type(koa_log) == "table" and koa_log or nil
-local function diag(level, msg)
-    if koa_logger and koa_logger[level] then
-        koa_logger[level]("KOAssistant marks index:", msg)
-    end
-end
-
 -- KOReader's common/json (LuaJSON) exposes decode/encode as callable
 -- TABLES (metatable __call), not plain functions; plain functions must also
 -- keep working (dkjson and other json modules).
@@ -236,14 +226,14 @@ end
 local function resolvePath(file)
     local ok_doc, DocSettings = pcall(require, "docsettings")
     if not ok_doc or type(DocSettings) ~= "table" or type(DocSettings.getSidecarDir) ~= "function" then
-        return nil, "docsettings"
+        return nil
     end
     local ok_dir, dir = pcall(DocSettings.getSidecarDir, DocSettings, file)
-    if not ok_dir or not exactString(dir, 8192) then return nil, "sidecar_dir" end
+    if not ok_dir or not exactString(dir, 8192) then return nil end
     local path = dir .. "/" .. Index.FILENAME
     local ok_registry, Registry = pcall(require, "koassistant_storage_registry")
     if not ok_registry or type(Registry) ~= "table"
-        or type(Registry.migrateSidecarFile) ~= "function" then return nil, "registry" end
+        or type(Registry.migrateSidecarFile) ~= "function" then return nil end
     if not fileAttributes(path) then
         pcall(Registry.migrateSidecarFile, file, path, Index.FILENAME)
     end
@@ -285,41 +275,40 @@ local function liveDomIdentity(document)
 end
 
 local function buildIdentityBase(opts, before, util)
-    local function fail(reason) return nil, reason end
     local document, doc_settings = opts.document, opts.doc_settings
     if type(opts.file) ~= "string" or opts.file == "" or type(document) ~= "table"
         or document.file ~= opts.file or document.provider ~= "crengine"
         or type(doc_settings) ~= "table" or type(doc_settings.readSetting) ~= "function" then
-        return fail("document_shape")
+        return nil
     end
     local ok_format, format = pcall(document.getDocumentFormat, document)
-    if not ok_format or not exactString(format, 128) then return fail("format") end
+    if not ok_format or not exactString(format, 128) then return nil end
     local ok_dom, dom = pcall(doc_settings.readSetting, doc_settings, "cre_dom_version")
-    if not ok_dom or not finiteInteger(dom) then return fail("cre_dom_version") end
+    if not ok_dom or not finiteInteger(dom) then return nil end
     local ok_open_md5, open_md5 = pcall(doc_settings.readSetting,
         doc_settings, "partial_md5_checksum")
-    if not ok_open_md5 or not exactString(open_md5, 128) then return fail("open_partial_md5") end
+    if not ok_open_md5 or not exactString(open_md5, 128) then return nil end
     local ok_disk_md5, disk_md5 = pcall(util.partialMD5, opts.file)
-    if not ok_disk_md5 or disk_md5 ~= open_md5 then return fail("partial_md5_mismatch") end
+    if not ok_disk_md5 or disk_md5 ~= open_md5 then return nil end
     local opened_dom = domIdentity(opts.dom_open_identity)
-    if not opened_dom then return fail("dom_open_identity") end
+    if not opened_dom then return nil end
     local current_dom = liveDomIdentity(document)
-    if current_dom ~= opened_dom then return fail("dom_hash_mismatch") end
+    if current_dom ~= opened_dom then return nil end
     -- Document:_readMetadata captures this from the source used to open the
     -- live DOM. CRE exposes it on supported KOReader revisions; requiring its
     -- exact agreement closes the same-path replacement gap before hashing.
     local open_modification = document.mod_time
     if type(open_modification) ~= "number" or open_modification ~= open_modification
         or open_modification == math.huge or open_modification == -math.huge then
-        return fail("mod_time")
+        return nil
     end
-    if open_modification ~= before.modification then return fail("mod_time_mismatch") end
+    if open_modification ~= before.modification then return nil end
     local ok_version, version = pcall(require, "version")
     local ok_revision, revision = false, nil
     if ok_version and type(version) == "table" and type(version.getCurrentRevision) == "function" then
         ok_revision, revision = pcall(version.getCurrentRevision, version)
     end
-    if not ok_revision or not exactString(revision, 256) then return fail("revision") end
+    if not ok_revision or not exactString(revision, 256) then return nil end
     return {
         schema = Index.IDENTITY_SCHEMA,
         byte_size = before.size,
@@ -399,7 +388,6 @@ local function hashTick(state)
     if not ok_read then
         closeHash(state)
         state.status, state.disposition = "disabled", "disabled"
-        diag("warn", "verification aborted (read error)")
         notifyReady(state)
         return
     end
@@ -407,7 +395,6 @@ local function hashTick(state)
         if type(chunk) ~= "string" or chunk == "" then
             closeHash(state)
             state.status, state.disposition = "disabled", "disabled"
-            diag("warn", "verification aborted (invalid chunk)")
             notifyReady(state)
             return
         end
@@ -416,7 +403,6 @@ local function hashTick(state)
         if not ok_feed or state.bytes_read > state.before.size then
             closeHash(state)
             state.status, state.disposition = "disabled", "disabled"
-            diag("warn", "verification aborted (sha feed)")
             notifyReady(state)
             return
         end
@@ -436,16 +422,12 @@ local function hashTick(state)
         or not ok_partial or after_partial ~= state.identity.open_partial_md5
         or after_dom ~= state.identity.dom_open_identity or not owns(state) then
         state.status, state.disposition = "disabled", "disabled"
-        diag("warn", "verification aborted (snapshot/identity mismatch)")
         notifyReady(state)
         return
     end
     state.identity.bytes_sha256 = digest
     state.status = "ready"
     loadVerified(state)
-    diag("info", "verified — disposition=" .. tostring(state.disposition)
-        .. ", cached_terms=" .. tostring(state.term_count)
-        .. ", book_bytes=" .. tostring(state.before.size))
     notifyReady(state)
 end
 
@@ -467,40 +449,33 @@ function Index.start(opts)
     local path, path_reason = resolvePath(opts.file)
     local before = fileAttributes(opts.file)
     if not path or not before then
-        diag("info", "unavailable (" .. tostring(path_reason or "file_attributes") .. ")")
         return nil, "disabled"
     end
     local ok_util, util = pcall(require, "util")
     if not ok_util or type(util) ~= "table" or type(util.writeToFile) ~= "function"
         or type(util.makePath) ~= "function" or type(util.partialMD5) ~= "function"
         or type(os.rename) ~= "function" then
-        diag("info", "unavailable (util_api)")
         return nil, "unsupported"
     end
     local identity, identity_reason = buildIdentityBase(opts, before, util)
     if not identity then
-        diag("info", "unavailable (identity: " .. tostring(identity_reason) .. ")")
         return nil, "disabled"
     end
     local ok_json, json = pcall(require, "json")
     if not ok_json or type(json) ~= "table" or not callableJson(json.decode)
         or not callableJson(json.encode) then
-        diag("info", "unavailable (json_api)")
         return nil, "unsupported"
     end
     local ok_sha, sha = pcall(require, "ffi/sha2")
     if not ok_sha or type(sha) ~= "table" or type(sha.sha256) ~= "function" then
-        diag("info", "unavailable (sha2_api)")
         return nil, "unsupported"
     end
     local ok_feeder, feeder = pcall(sha.sha256, nil)
     if not ok_feeder or type(feeder) ~= "function" then
-        diag("info", "unavailable (sha2_feeder)")
         return nil, "unsupported"
     end
     local handle = io.open(opts.file, "rb")
     if not handle then
-        diag("info", "unavailable (book_open)")
         return nil, "disabled"
     end
     local state = {
@@ -634,7 +609,6 @@ function Index.flush(state)
     if not ok_encode or type(serialized) ~= "string" or #serialized > Index.MAX_FILE_BYTES then
         state.write_disabled = true
         state.dirty = nil
-        diag("warn", "write aborted (encode or size)")
         return false
     end
     local util = state.util
@@ -648,7 +622,6 @@ function Index.flush(state)
         removeFile(tmp)
         state.write_disabled = true
         state.dirty = nil
-        diag("warn", "write aborted (temp write)")
         return false
     end
     -- Same-directory rename is the sole atomic publication point. On failure
@@ -658,12 +631,9 @@ function Index.flush(state)
     if not rename_call or not ok_rename then
         state.write_disabled = true
         state.dirty = nil
-        diag("warn", "write aborted (rename)")
         return false
     end
     state.dirty = nil
-    diag("info", "wrote " .. tostring(state.term_count) .. " terms ("
-        .. tostring(#serialized) .. " bytes)")
     return true
 end
 

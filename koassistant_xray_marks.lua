@@ -584,13 +584,13 @@ end
 
 local function persistedPlainRangeMatches(document, term, hit)
   if term.regex or type(document.getTextFromXPointers) ~= "function" then
-    return false, "unsupported"
+    return false
   end
   local ok_text, pointed_text = pcall(document.getTextFromXPointers,
       document, hit.start, hit.e)
   local pointed, expected = comparablePlainText(pointed_text), comparablePlainText(term.text)
   if not ok_text or not pointed or not expected or pointed ~= expected then
-    return false, "text"
+    return false
   end
   -- Re-apply the exact whole-word policy used when the hit was found: the
   -- persisted prefix/suffix are CRE's own matched_word_* leftovers, so a
@@ -599,10 +599,10 @@ local function persistedPlainRangeMatches(document, term, hit)
   -- those APIs skip whitespace and report the neighbouring WORD's letters,
   -- which would reject every correctly bounded hit (device 2026-09-06).
   if edgeIsWordChar(term.text, "prefix") and blockingAffix(hit.prefix) then
-    return false, "prefix"
+    return false
   end
   if edgeIsWordChar(term.text, "suffix") and blockingAffix(hit.suffix) then
-    return false, "suffix"
+    return false
   end
   return true
 end
@@ -618,17 +618,13 @@ local function mapTerm(document, term, th, layout)
     local ok, page = pcall(document.getPageFromXPointer, document, h.start)
     local oke, end_page = pcall(document.getPageFromXPointer, document, h.e)
     local okc, order = pcall(document.compareXPointers, document, h.start, h.e)
-    local text_ok, fail_reason = true, nil
-    if th.persisted then
-      text_ok, fail_reason = persistedPlainRangeMatches(document, term, h)
-    end
+    local text_ok = not th.persisted or persistedPlainRangeMatches(document, term, h)
     if not text_ok or not ok or not oke or not okc or type(page) ~= "number" or page ~= page
         or page < 1 or page == math.huge or page % 1 ~= 0
         or type(end_page) ~= "number" or end_page ~= end_page
         or end_page < page or end_page == math.huge or end_page % 1 ~= 0
         or type(order) ~= "number" or order ~= order or order < 0 then
       th.outcome, th.hits, th.by_page, th.pages = "error", nil, nil, nil
-      th.fail_reason = fail_reason
       return true
     end
     local bucket = th.by_page[page]
@@ -714,8 +710,6 @@ local function startPersistentIndex(plugin)
   st.persistence_attempted = true
   local session = st
   local disposition
-  logger.info("KOAssistant marks: persistence requested for "
-    .. tostring(#st.entities) .. " entities")
   st.persistent_index, disposition = PersistentIndex.start {
     file = st.file,
     document = st.document,
@@ -731,12 +725,11 @@ local function startPersistentIndex(plugin)
     end,
   }
   st.persistence_disposition = disposition
-  -- On-device diagnostics (crash.log visible without debug mode).
   if disposition then
-    logger.info("KOAssistant marks: persistence unavailable (" .. disposition
+    logger.dbg("KOAssistant marks: persistence unavailable (" .. disposition
       .. ") — session-native marking runs, nothing is cached")
   elseif st.persistent_index then
-    logger.info("KOAssistant marks: persistence verifying book identity...")
+    logger.dbg("KOAssistant marks: persistence verifying book identity...")
   else
     logger.warn("KOAssistant marks: persistence start returned no state and no reason")
   end
@@ -834,8 +827,6 @@ function XrayMarks._scanTick(plugin, pageno, token)
             -- A cache hit is not trusted merely because its bytes and DOM
             -- identity matched. Quarantine this descriptor for the session
             -- and evict it without a same-session cold-search fallback.
-            logger.warn("KOAssistant marks: evicted persisted descriptor ("
-              .. tostring(th.fail_reason or "verify") .. ")")
             PersistentIndex.evict(st.persistent_index, term.query_key)
           elseif th.outcome == "hits" and th.needs_persist then
             PersistentIndex.put(st.persistent_index, term.query_key, "hits", th.hits)
