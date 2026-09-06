@@ -521,16 +521,14 @@ function GroupsUI.showMoveDialog(group_id, path, opts)
     UIManager:show(book_dialog)
 end
 
---- The group's management popup (G0 round 4, maintainer): the member move
---- dialog's shape for a GROUP, a little larger — the name (one line) and the
---- current kind's description as the title, the kind RADIO on one row (a tap
---- sets the kind at once and the description re-reads in place), the move
---- arrows when opened from the Groups list (opts.arrows), Rename… + Delete
---- group…, Done. No position line, no "Move to position…" (a list of groups
---- is short). Every change closes and re-shows the popup ANCHORED at its own
---- top-left, so a longer description grows downward instead of re-centering
---- the window. Reached by HOLD on a Groups list row and by the hub's
---- title-bar hamburger.
+--- The group's management popup (G0 rounds 4+5, maintainer): the member move
+--- dialog's shape AND width — narrow (shrink_unneeded_width), one button per
+--- row, so the list behind stays readable while a group is moved. Title = the
+--- name on one line. Rows: ↑/↓ when opened from the Groups list (opts.arrows),
+--- "Kind: X…" → showKindDialog stacked on top, Rename…, Delete group…, Done.
+--- No position line, no "Move to position…" (a list of groups is short). A
+--- change re-shows the popup ANCHORED at its own top-left (opts.at). Reached
+--- by HOLD on a Groups list row and by the hub's title-bar hamburger.
 --- opts: { plugin, ui, after (the host's refresh; nil = the hub's), on_close,
 ---   arrows, at (internal: the top-left to re-show at) }
 function GroupsUI.showGroupDialog(group_id, opts)
@@ -540,7 +538,6 @@ function GroupsUI.showGroupDialog(group_id, opts)
     local BookGroups = groups()
     local group = BookGroups.byId(group_id)
     if not group then return end
-    local kind = BookGroups.kindOf(group)
     local name = BookGroups.shortName(displayName(group))
     local dialog
     local function refresh()
@@ -562,20 +559,7 @@ function GroupsUI.showGroupDialog(group_id, opts)
             fn()
         end
     end
-    local radio = {}
-    for _idx, k in ipairs({ BookGroups.KIND_SERIES, BookGroups.KIND_PROJECT,
-            BookGroups.KIND_PLAIN }) do
-        local captured = k
-        radio[#radio + 1] = {
-            text = (captured == kind and "\u{25CF} " or "\u{25CB} ") .. GroupsUI.kindLabel(captured),
-            callback = function()
-                if captured == kind then return end
-                BookGroups.setKind(group_id, captured)
-                reshow()
-            end,
-        }
-    end
-    local rows = { radio }
+    local rows = {}
     if opts.arrows then
         local i, n = BookGroups.groupIndex(group_id)
         rows[#rows + 1] = {
@@ -589,15 +573,72 @@ function GroupsUI.showGroupDialog(group_id, opts)
             end },
         }
     end
-    rows[#rows + 1] = {
-        { text = _("Rename…"), callback = flow(function() GroupsUI.renameFlow(group_id, opts) end) },
-        { text = _("Delete group…"), callback = flow(function() GroupsUI.deleteFlow(group_id, opts) end) },
-    }
+    rows[#rows + 1] = {{ text = T(_("Kind: %1…"), GroupsUI.kindLabel(BookGroups.kindOf(group))),
+        callback = function()
+            -- Stacked: this popup stays underneath and re-reads its row when
+            -- the kind popup closes (Done or tap-outside)
+            GroupsUI.showKindDialog(group_id, opts, reshow)
+        end }}
+    rows[#rows + 1] = {{ text = _("Rename…"),
+        callback = flow(function() GroupsUI.renameFlow(group_id, opts) end) }}
+    rows[#rows + 1] = {{ text = _("Delete group…"),
+        callback = flow(function() GroupsUI.deleteFlow(group_id, opts) end) }}
     rows[#rows + 1] = {{ text = _("Done"), callback = function() UIManager:close(dialog) end }}
     local at = opts.at
     dialog = ButtonDialog:new{
-        title = name .. "\n" .. GroupsUI.kindDescription(kind),
+        title = name,
         buttons = rows,
+        shrink_unneeded_width = true,
+        anchor = at and function() return Geom:new{ x = at.x, y = at.y, w = 0, h = 0 }, true end or nil,
+    }
+    UIManager:show(dialog)
+end
+
+--- The kind radio (round 5): the name and the CURRENT kind's description as
+--- the title, the three kinds on one row (●/○), Done. A tap sets the kind at
+--- once and re-shows this popup anchored at its own top-left, so the
+--- description re-reads in place and a longer sentence grows downward
+--- instead of re-centering the window. Default width (the row needs it; the
+--- management popup underneath is what stays narrow). on_done runs when the
+--- popup closes by Done or by a tap outside — the host popup re-reads its
+--- "Kind: X…" row there.
+function GroupsUI.showKindDialog(group_id, opts, on_done, at)
+    opts = opts or {}
+    local ButtonDialog = require("ui/widget/buttondialog")
+    local Geom = require("ui/geometry")
+    local BookGroups = groups()
+    local group = BookGroups.byId(group_id)
+    if not group then return end
+    local kind = BookGroups.kindOf(group)
+    local name = BookGroups.shortName(displayName(group))
+    local dialog
+    local radio = {}
+    for _idx, k in ipairs({ BookGroups.KIND_SERIES, BookGroups.KIND_PROJECT,
+            BookGroups.KIND_PLAIN }) do
+        local captured = k
+        radio[#radio + 1] = {
+            text = (captured == kind and "\u{25CF} " or "\u{25CB} ") .. GroupsUI.kindLabel(captured),
+            callback = function()
+                if captured == kind then return end
+                local d = dialog.movable and dialog.movable.dimen
+                local pos = d and { x = d.x, y = d.y } or at
+                UIManager:close(dialog)
+                BookGroups.setKind(group_id, captured)
+                if opts.after then opts.after() else GroupsUI.showGroup(group_id, opts) end
+                GroupsUI.showKindDialog(group_id, opts, on_done, pos)
+            end,
+        }
+    end
+    dialog = ButtonDialog:new{
+        title = name .. "\n" .. GroupsUI.kindDescription(kind),
+        buttons = {
+            radio,
+            {{ text = _("Done"), callback = function()
+                UIManager:close(dialog)
+                if on_done then on_done() end
+            end }},
+        },
+        tap_close_callback = on_done,
         anchor = at and function() return Geom:new{ x = at.x, y = at.y, w = 0, h = 0 }, true end or nil,
     }
     UIManager:show(dialog)
