@@ -669,6 +669,34 @@ function XrayAuto.pickPromotableRung(ladder, live_progress, position, opts)
   return best
 end
 
+--- B282 (2026-09-06): true when a built rung sits BETWEEN the live coverage
+--- and the rung the reader is crossing — the reader swung past built content
+--- (a page-by-page flip far ahead; a TOC jump never reaches the fire, the
+--- page-delta guard at the trigger catches it). Crossing the very NEXT rung
+--- after live is reading, whatever the spacing: the max-gap dial (25%) used
+--- to refuse it for good on a spacing above the dial, since it compares the
+--- reader against the installed coverage and that distance IS the spacing.
+--- Same rung filter as pickPromotableRung. No promotable rung = nothing to
+--- guard.
+--- @param ladder table Rung array (any order)
+--- @param live_progress number|nil live cache progress 0..1
+--- @param position number reading position 0..1
+--- @return boolean
+function XrayAuto.skippedBuiltRung(ladder, live_progress, position)
+  local pick = XrayAuto.pickPromotableRung(ladder, live_progress, position)
+  if not pick then return false end
+  local pick_p = tonumber(pick.progress_decimal)
+  local floor = (tonumber(live_progress) or 0) + XrayAuto.LADDER_TOLERANCE
+  for _idx, rung in ipairs(ladder or {}) do
+    local p = tonumber(rung.progress_decimal)
+    if p and not rung.full_document and p > floor
+        and p < pick_p - XrayAuto.LADDER_TOLERANCE then
+      return true
+    end
+  end
+  return false
+end
+
 --- Pick the ONE rung the identification peek may read (B269, 2026-08-25):
 --- the LOWEST built rung that is past the live coverage AND whose coverage
 --- reaches the reading position — the checkpoint covering the stretch the

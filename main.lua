@@ -14175,8 +14175,14 @@ function AskGPT:_fireXrayLadderPromotion(opts)
   -- position-following (a deliberate below-newest install said "by position")
   local hold = posture == "full"
     and require("koassistant_book_settings").xrayPromotionHold(self.ui.doc_settings)
+  -- B282 (2026-09-06): the swing guard applies only when the reader SKIPPED a
+  -- built rung. Crossing the very next rung is reading whatever the spacing;
+  -- the dial compares reader vs installed coverage, and on a spacing above
+  -- the dial that distance IS the spacing, so the crossing was refused for
+  -- good (forever with automatic off, until the next build with it on).
   if opts and opts.capped and (posture ~= "full" or hold)
-      and decimal - live_p > XrayAuto.dialsFromFeatures(features).max_gap then
+      and decimal - live_p > XrayAuto.dialsFromFeatures(features).max_gap
+      and XrayAuto.skippedBuiltRung(ladder, live_p, decimal) then
     logger.dbg("KOAssistant: ladder promotion declined - position swing above the max-gap dial")
     return false
   end
