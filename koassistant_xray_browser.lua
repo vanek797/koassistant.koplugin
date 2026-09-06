@@ -2306,6 +2306,31 @@ function XrayBrowser:showItemDetail(item, category_key, title, source, nav_conte
         detail_text = _("As of") .. " " .. self.metadata.progress .. "\n\n" .. detail_text
         chat_text = _("As of") .. " " .. self.metadata.progress .. "\n\n" .. chat_text
     end
+    -- G2 (group hub plan, 2026-09-06): what the other books of the group say
+    -- about this entry, as far as the chain reaches (earlier books; later
+    -- books only once every book before them is read or unprotected) —
+    -- under protection nothing about later books shows, not even that one
+    -- exists. The same walk the lookups run on a miss, on a hit. Display
+    -- only: "Chat about this" keeps sending this book's own entry.
+    if not self.scope and not self.metadata.checkpoint and owner_file then
+        local handles = { self.location.item_name }
+        for _idx, a in ipairs(type(item.aliases) == "table" and item.aliases or {}) do
+            if type(a) == "string" and a ~= "" then handles[#handles + 1] = a end
+        end
+        local ok_also, also = pcall(require("koassistant_action_cache").alsoInGroup,
+            owner_file, handles, category_key)
+        if ok_also and type(also) == "table" and #also > 0 then
+            local XrayCard = require("koassistant_xray_card")
+            local lines = { "", _("In other books of the group:") }
+            for _idx, b in ipairs(also) do
+                local first = XrayCard.firstSentence(XrayCard.itemText(b.item))
+                local label = b.direction == "later"
+                    and T(_("%1 (later in the series)"), b.title) or b.title
+                lines[#lines + 1] = first ~= "" and T(_("%1: %2"), label, first) or label
+            end
+            detail_text = detail_text .. "\n" .. table.concat(lines, "\n")
+        end
+    end
     local item_highlights = {}
     -- Populated by the connections block below; the More… popup is built
     -- BEFORE it, and its callbacks run after, so the closure sees the filled list

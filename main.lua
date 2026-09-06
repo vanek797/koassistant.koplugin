@@ -7250,6 +7250,11 @@ function AskGPT:_showGroupMembersPopup(file, mode, opts)
   local self_ref = self
   local dialog
   local rows = {}
+  -- G2 (group hub plan, 2026-09-06): the later books the chain holds back
+  -- from this book (the first containing group's order; X-Rayed ones, since
+  -- only an X-Ray can reveal anything). Computed once, only when a row could
+  -- open X-Ray content.
+  local held = mode == "xray" and ActionCache.heldBackLaterFiles(file) or {}
   for _g, group in ipairs(list) do
     if #list > 1 then
       rows[#rows + 1] = {{ text = GroupsUI.displayName(group), enabled = false }}
@@ -7269,50 +7274,79 @@ function AskGPT:_showGroupMembersPopup(file, mode, opts)
       elseif mode == "xray" then
         local ok, entry = pcall(ActionCache.getXrayCache, captured)
         if ok and entry and entry.result then
-          -- Entity graying (2026-08-09 round answer A): with an entity
+          -- Entity presence (2026-08-09 round answer A): with an entity
           -- context, a member whose X-Ray lacks the entity (name+aliases,
           -- entity's category preferred — findByIdentity) is disabled instead
           -- of offering a jump that could only fall back. One parse per
           -- member, only at popup-open; the → Group button itself stays
           -- ungated (per-detail gating would pay these reads on every page).
-          local present = true
-          if opts and opts.location and opts.location.item_name then
+          local function hasEntity()
+            if not (opts and opts.location and opts.location.item_name) then return true end
             local XrayParser = require("koassistant_xray_parser")
             local parsed = XrayParser.parse(entry.result)
             local names = { opts.location.item_name }
             for _i, a in ipairs(opts.location.item_aliases or {}) do
               names[#names + 1] = a
             end
-            present = (parsed and not parsed.error
+            return (parsed and not parsed.error
               and XrayParser.findByIdentity(parsed, names, opts.location.category_key)) ~= nil
           end
-          if present then
+          local function jump(book_title)
+            if opts and opts.before_open then opts.before_open() end
+            -- Round 25: land the jump where the reader was in THIS book's
+            -- X-Ray (set inside the callback, so a dismissed popup leaves no
+            -- stranded descriptor; the book stamp guards a browser that never
+            -- opens — e.g. an unparseable cache falls through to plain text)
+            if opts and opts.location then
+              require("koassistant_xray_browser")._pending_navigate_to = {
+                category_key = opts.location.category_key,
+                item_name = opts.location.item_name,
+                item_aliases = opts.location.item_aliases,
+                book_file = captured,
+                fallback = true,
+              }
+            end
+            -- Q16: the jumped-to browser's up-arrow at root returns to the
+            -- X-Ray this popup was opened from (browser callers pass it)
+            if opts and opts.return_to then
+              local rt = {}
+              for k, v in pairs(opts.return_to) do rt[k] = v end
+              rt.target = captured
+              require("koassistant_xray_browser")._pending_return_to = rt
+            end
+            self_ref:showCacheViewer({ name = _("X-Ray"), key = "_xray_cache",
+              data = entry, book_title = book_title, file = captured })
+          end
+          if held[captured] then
+            -- G2 (group hub plan, 2026-09-06; maintainer: "to know that a
+            -- character appears in a later book is already a spoiler"): a
+            -- later book the chain holds back is listed WITHOUT the presence
+            -- probe — the row reads the same whether or not the entry exists
+            -- there — behind the search reveal's named confirm; the probe
+            -- runs after it, landing on the entry or at the nearest level
+            -- with a note (the reader accepted that book's spoilers).
+            title = title .. " " .. _("(later in the series)")
             cb = function()
               UIManager:close(dialog)
-              if opts and opts.before_open then opts.before_open() end
-              -- Round 25: land the jump where the reader was in THIS book's
-              -- X-Ray (set inside the callback, so a dismissed popup leaves no
-              -- stranded descriptor; the book stamp guards a browser that never
-              -- opens — e.g. an unparseable cache falls through to plain text)
-              if opts and opts.location then
-                require("koassistant_xray_browser")._pending_navigate_to = {
-                  category_key = opts.location.category_key,
-                  item_name = opts.location.item_name,
-                  item_aliases = opts.location.item_aliases,
-                  book_file = captured,
-                  fallback = true,
-                }
-              end
-              -- Q16: the jumped-to browser's up-arrow at root returns to the
-              -- X-Ray this popup was opened from (browser callers pass it)
-              if opts and opts.return_to then
-                local rt = {}
-                for k, v in pairs(opts.return_to) do rt[k] = v end
-                rt.target = captured
-                require("koassistant_xray_browser")._pending_return_to = rt
-              end
-              self_ref:showCacheViewer({ name = _("X-Ray"), key = "_xray_cache",
-                data = entry, book_title = title, file = captured })
+              UIManager:show(require("ui/widget/confirmbox"):new{
+                text = T(_("%1 comes later in the series and can reveal what happens in the books before it. Open it anyway?"), raw_title),
+                ok_text = _("Open it"),
+                ok_callback = function()
+                  local missing = not hasEntity()
+                  jump(raw_title)
+                  if missing then
+                    UIManager:show(InfoMessage:new{
+                      text = T(_("Not in %1's X-Ray: %2"), raw_title, opts.location.item_name),
+                      timeout = 3,
+                    })
+                  end
+                end,
+              })
+            end
+          elseif hasEntity() then
+            cb = function()
+              UIManager:close(dialog)
+              jump(title)
             end
           else
             title = title .. " " .. _("(not in its X-Ray)")

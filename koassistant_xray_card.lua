@@ -114,6 +114,7 @@ local function itemText(item)
     end
     return ""
 end
+XrayCard.itemText = itemText
 
 --- "Category (Role)" — the classification half of the identity line.
 --- Role rides only when short (fiction-style "Protagonist"; the non-fiction
@@ -172,6 +173,26 @@ local function carriedLine(hit)
         end
         return line
     end
+end
+
+--- G2 (group hub plan, 2026-09-06): the other group books holding this
+--- entry (hit.also_in, the chain walk on a hit) in one clause. Later books
+--- are named as such; under protection none ride, not even their existence.
+local function alsoLine(hit)
+    local list = hit.also_in
+    if type(list) ~= "table" or #list == 0 then return nil end
+    if #list == 1 then
+        local b = list[1]
+        return b.direction == "later"
+            and T(_("Also in %1's X-Ray (later in the series)"), b.title)
+            or T(_("Also in %1's X-Ray"), b.title)
+    end
+    local names = {}
+    for _idx, b in ipairs(list) do
+        names[#names + 1] = b.direction == "later"
+            and T(_("%1 (later in the series)"), b.title) or b.title
+    end
+    return T(_("Also in the X-Rays of: %1"), table.concat(names, ", "))
 end
 
 --- True when the tapped handle differs from the entry's own name (the hit
@@ -234,7 +255,7 @@ local function cardContent(hit, opts)
     end
     local text = itemText(hit.item)
     if opts.card_length ~= "full" then text = XrayCard.firstSentence(text) end
-    return { name = hit.name or "", kind = kindLabel(hit), body = text,
+    return { name = hit.name or "", kind = kindLabel(hit), line = alsoLine(hit), body = text,
         hint = _("Tap for the full entry") }
 end
 
@@ -266,7 +287,9 @@ end
 ---   ahead_progress, query; carried hits add source_title + stub_idx;
 ---   predecessor hits add source_title (the ORIGINAL book for a transitive
 ---   ledger hit) + pred_file + pred_title (+ pred_stub); carried and
----   predecessor hits may add also_ahead (Q6 hint, 0..1) }
+---   predecessor hits may add also_ahead (Q6 hint, 0..1); live and section
+---   hits may add also_in (G2: the other group books holding the entry, as
+---   far as the chain reaches — ActionCache.alsoInGroup's rows) }
 function XrayCard.resolve(file, query, opts)
     if not file or type(query) ~= "string" or query == "" then return nil end
     local ActionCache = require("koassistant_action_cache")
@@ -294,6 +317,22 @@ function XrayCard.resolve(file, query, opts)
         }
     end
 
+    -- G2 (group hub plan, 2026-09-06): what the other group books say about
+    -- a hit this book already has — the same chain walk the lookups run on
+    -- a miss. Under protection nothing about later books rides, not even
+    -- that one exists.
+    local function withAlsoIn(hit)
+        local names = { hit.name }
+        if type(hit.item) == "table" and type(hit.item.aliases) == "table" then
+            for _idx, a in ipairs(hit.item.aliases) do
+                if type(a) == "string" and a ~= "" then names[#names + 1] = a end
+            end
+        end
+        local ok_also, also = pcall(ActionCache.alsoInGroup, file, names, hit.category_key)
+        if ok_also and type(also) == "table" and #also > 0 then hit.also_in = also end
+        return hit
+    end
+
     local live = ActionCache.getXrayCache(file)
     local live_p = 0
     local live_data
@@ -305,14 +344,14 @@ function XrayCard.resolve(file, query, opts)
                 XrayParser.mergeUserAliases(data, user_aliases)
                 live_data = data
                 local results = XrayParser.searchAll(data, query, { exact = true })
-                if results and #results > 0 then return makeHit(results[1], "live") end
+                if results and #results > 0 then return withAlsoIn(makeHit(results[1], "live")) end
             end
         end
     end
     for _idx, sec in ipairs(ActionCache.getSectionXrays(file)) do
         if sec.data and sec.data.result then
             local r = findIn(sec.data.result)
-            if r then return makeHit(r, "section") end
+            if r then return withAlsoIn(makeHit(r, "section")) end
         end
     end
     -- One probe for the ahead rung, shared by the final peek tier and the

@@ -2679,6 +2679,46 @@ local function heldBackLater(document_path, reveal)
     return out
 end
 
+--- The X-Rayed later books the chain holds back from this book, as a set
+--- { [file] = title } (G2, group hub plan 2026-09-06): the group members
+--- popup lists them WITHOUT probing for the entity — knowing that a
+--- character returns in a later volume is itself a spoiler — and probes
+--- only after the named confirm.
+--- @param document_path string
+--- @return table set (possibly empty)
+function ActionCache.heldBackLaterFiles(document_path)
+    local set = {}
+    for _idx, px in ipairs(heldBackLater(document_path, 0)) do
+        set[px.file] = px.title or px.file
+    end
+    return set
+end
+
+--- What the other books of the group say about ONE entity (G2, group hub
+--- plan 2026-09-06): every book `groupXrays` allows — earlier books, later
+--- books only as far as the chain reaches, every member of a project —
+--- holding an ACTIVE entry under any of the identity handles. The same walk
+--- the lookups run on a miss, run on a hit; under protection nothing about
+--- later books comes back, not even that one exists. Read-only, memoized
+--- upstream (parsedXrayFor per book).
+--- @param document_path string
+--- @param names table identity handles (name + aliases)
+--- @param category_key string|nil the entity's own category (searched first)
+--- @return table list { { file, title, direction, item, category_key }, ... }
+function ActionCache.alsoInGroup(document_path, names, category_key)
+    local out = {}
+    if type(names) ~= "table" or #names == 0 then return out end
+    local XrayParser = require("koassistant_xray_parser")
+    for _idx, px in ipairs(ActionCache.groupXrays(document_path)) do
+        local item, cat = XrayParser.findByIdentity(px.data, names, category_key)
+        if item then
+            out[#out + 1] = { file = px.file, title = px.title, direction = px.direction,
+                item = item, category_key = cat }
+        end
+    end
+    return out
+end
+
 --- How many later books in the series have an X-Ray neither the chain nor
 --- the `reveal` confirms so far reach from this book (S5/S6/S7, ref #90) —
 --- 0 whenever the walk already reaches them all (every book before them
