@@ -719,6 +719,8 @@ local function startPersistentIndex(plugin)
   st.persistence_attempted = true
   local session = st
   local disposition
+  logger.info("KOAssistant marks: persistence requested for "
+    .. tostring(#st.entities) .. " entities")
   st.persistent_index, disposition = PersistentIndex.start {
     file = st.file,
     document = st.document,
@@ -734,12 +736,12 @@ local function startPersistentIndex(plugin)
     end,
   }
   st.persistence_disposition = disposition
-  -- On-device diagnostics: why the index did not start (crash.log visible).
+  -- On-device diagnostics (crash.log visible without debug mode).
   if disposition then
-    logger.dbg("KOAssistant marks: persistence unavailable (" .. disposition
+    logger.info("KOAssistant marks: persistence unavailable (" .. disposition
       .. ") — session-native marking runs, nothing is cached")
   elseif st.persistent_index then
-    logger.dbg("KOAssistant marks: persistence verifying book identity...")
+    logger.info("KOAssistant marks: persistence verifying book identity...")
   else
     logger.warn("KOAssistant marks: persistence start returned no state and no reason")
   end

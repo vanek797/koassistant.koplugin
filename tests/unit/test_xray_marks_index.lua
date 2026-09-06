@@ -274,6 +274,24 @@ TestRunner:test("truncated and oversized files are removed and quarantined", fun
     end
 end)
 
+TestRunner:test("LuaJSON-style callable-table json modules are accepted", function()
+    local real = json
+    local decode_table = setmetatable({}, { __call = function(_self, ...) return real.decode(...) end })
+    local encode_table = setmetatable({}, { __call = function(_self, ...) return real.encode(...) end })
+    package.loaded["json"] = { decode = decode_table, encode = encode_table }
+    writeRaw(sidecar, valid_primary); os.remove(temp_sidecar)
+    resetQueue(); local state = assert(start()); drain()
+    TestRunner:eq(state.disposition, "valid", "callable-table decode admitted")
+    assert(Index.get(state, "plain:255:alice"), "warm entry served via callable-table json")
+    assert(Index.put(state, "plain:255:bob", "hits", { { start = "p3:1", e = "p3:4" } }))
+    drain()
+    assert(sizeOf(sidecar), "primary written via callable-table encode")
+    local data = real.decode(copyFile(sidecar, sidecar .. ".check"))
+    assert(data.terms["plain:255:bob"], "callable encode produced readable JSON")
+    Index.close(state)
+    package.loaded["json"] = real
+end)
+
 TestRunner:test("obsolete executable and predecessor companions are removed, never loaded", function()
     os.remove(sidecar); os.remove(temp_sidecar)
     writeRaw(sentinel, "present")
