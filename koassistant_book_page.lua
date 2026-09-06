@@ -259,13 +259,17 @@ local function buildItems(ctx)
         }
     end
 
-    -- Group membership (tap = members popup, hold = manage) / add to group
+    -- Group membership (tap = the book's Group Hub since G0 2026-09-06, a
+    -- chooser when it is in several; hold = memberships: join / leave /
+    -- create) / add to group
     local GroupsUI = require("koassistant_book_groups_ui")
     if plugin:_inBookGroup(file) then
         items[#items + 1] = {
             text = Constants.getEmojiText("🗂️",
                 T(_("Group: %1"), GroupsUI.rowLabel(file)), ctx.enable_emoji),
-            callback = function() plugin:_showGroupMembersPopup(file, "artifacts") end,
+            callback = function()
+                plugin:openGroupHubFor(file, { enable_emoji = ctx.enable_emoji })
+            end,
             hold_callback = function()
                 GroupsUI.showBookRow(file, { plugin = plugin, ui = ui })
             end,
@@ -461,12 +465,31 @@ function BookPage.show(opts)
         title = ui.doc_props.display_title or ui.doc_props.title
         author = author or ui.doc_props.authors
     end
+    -- Closed book (G0 round 2 — the hub's member rows, and any caller that
+    -- passes only a title): the sidecar's effective props fill the rest, so
+    -- the page reads the same whichever door it came through
+    if not is_open_book and (not title or title == "" or not author) then
+        local SafeDocSettings = require("koassistant_doc_settings")
+        local ok, ds = pcall(SafeDocSettings.resolve, file, ui)
+        if ok and ds then
+            local props = SafeDocSettings.overlayCustomProps(ds:readSetting("doc_props"), file) or {}
+            if not title or title == "" then title = props.display_title or props.title end
+            if not author then author = props.authors end
+        end
+    end
     if not title or title == "" then
         title = file:match("([^/]+)$") or file
     end
+    -- Same for the icons: nil = the icons setting (callers used to pass it or
+    -- not, and the page looked different by door)
+    local enable_emoji = opts.enable_emoji
+    if enable_emoji == nil then
+        local f = plugin.settings and plugin.settings:readSetting("features") or {}
+        enable_emoji = f.enable_emoji_icons == true
+    end
     local ctx = { plugin = plugin, ui = ui, file = file,
         title = title, author = author, is_open_book = is_open_book,
-        enable_emoji = opts.enable_emoji }
+        enable_emoji = enable_emoji }
     BookPage._ctx = ctx
     BookPage._stale = nil
     logger.dbg("KOAssistant BookHub: open", file, "open_book=", tostring(is_open_book))
@@ -488,6 +511,13 @@ function BookPage.show(opts)
         items_mandatory_font_size = 14,
         title_bar_left_icon = "appbar.menu",
         onLeftButtonTap = function() showHamburger(ctx) end,
+        -- G0 round 2: up = the book's Group Hub (a chooser when it is in
+        -- several) — the hub underneath, when this page was opened from it,
+        -- just refreshes; otherwise it opens fresh. No group = no arrow.
+        onReturn = plugin._inBookGroup and plugin:_inBookGroup(file) and function()
+            BookPage.close()
+            plugin:openGroupHubFor(file, { front = false, enable_emoji = ctx.enable_emoji })
+        end or nil,
         -- NOTE: no close_callback — Menu fires it after EVERY item tap (same
         -- trap the X-Ray browser documents); cleanup via onCloseWidget below
         onMenuSelect = function(_menu, item)
@@ -507,6 +537,12 @@ function BookPage.show(opts)
             return true
         end,
     }
+    if BookPage._menu.onReturn then
+        -- The bottom-left return arrow shows with onReturn and enables with a
+        -- non-empty path trace (the X-Ray browser's seed)
+        table.insert(BookPage._menu.paths, true)
+        BookPage._menu:updatePageInfo()
+    end
     local orig_onCloseWidget = BookPage._menu.onCloseWidget
     BookPage._menu.onCloseWidget = function(menu_self)
         if BookPage._menu == menu_self then BookPage._menu = nil end

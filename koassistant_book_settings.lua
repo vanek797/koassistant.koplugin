@@ -2488,9 +2488,17 @@ function BookSettings.show(opts)
     -- sidecar key — never counts toward "(N customized)"
     local groups_file = opts.document_path or (ui and ui.document and ui.document.file)
     if groups_file then
+        -- G0 round 2: tap = the book's Group Hub (chooser when in several,
+        -- memberships popup when in none), hold = memberships (join / create)
         addButton({ text = T(_("Group: %1"),
                 require("koassistant_book_groups_ui").rowLabel(groups_file)),
             callback = function()
+                closeDialog()
+                plugin:openGroupHubFor(groups_file, {
+                    on_close = function() BookSettings.show(opts) end,
+                })
+            end,
+            hold_callback = function()
                 closeDialog()
                 require("koassistant_book_groups_ui").showBookRow(groups_file, {
                     plugin = plugin, ui = ui,

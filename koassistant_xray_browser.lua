@@ -6389,7 +6389,7 @@ function XrayBrowser:showFullView()
         group_open = (self.metadata.plugin and self.metadata.plugin._inBookGroup
             and self.metadata.plugin:_inBookGroup(self.metadata.book_file))
             and function()
-                self.metadata.plugin:_showGroupMembersPopup(self.metadata.book_file, "artifacts")
+                self.metadata.plugin:openGroupHubFor(self.metadata.book_file)
             end or nil,
         on_launch_chat = self.metadata.plugin and self.metadata.plugin._buildLaunchChatCallback
             and self.metadata.plugin:_buildLaunchChatCallback(self.metadata.book_file, self.metadata.title, self.metadata.book_author, markdown, _("X-Ray")) or nil,

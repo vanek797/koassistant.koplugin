@@ -6700,10 +6700,11 @@ function AskGPT:_sweepCrossBookSurfaces()
   closeField("koassistant_xray_browser", "_detail_viewer")
   closeField("koassistant_xray_browser", "menu")
   closeField("koassistant_book_page", "_menu")
+  closeField("koassistant_group_page", "_menu")
+  closeField("koassistant_group_page", "_list_menu")
   closeField("koassistant_artifact_browser", "current_menu")
   closeField("koassistant_chat_history_dialog", "current_menu")
   closeField("koassistant_notebook_manager", "current_menu")
-  closeField("koassistant_book_groups_ui", "_group_dialog")
   -- The stock long-press file dialog: ReaderUI closes the FileManager itself,
   -- never this separate window (the #1 dead-guard sites' stock sibling)
   if FileManager.instance and FileManager.instance.file_dialog then
@@ -7116,13 +7117,61 @@ function AskGPT:onKOAssistantBookOverview()
   return true
 end
 
+--- Book-scoped group entry (G0 round 2, docs/group_hub_plan.md — ONE
+--- landing for every "Group" button a book carries: the Book Hub's Group
+--- row, Book Settings' Group row, the QA panel utility + gesture, the
+--- artifact viewers' "→ Group" buttons, the jump popup's "Group hub…" row):
+--- the book's Group Hub when it is in one group, a chooser when in several,
+--- the memberships popup (join / create) when in none — never a dead end.
+--- opts: { front (default true), on_close, enable_emoji }.
+function AskGPT:openGroupHubFor(file, opts)
+  if not file then return end
+  opts = opts or {}
+  local BookGroups = require("koassistant_book_groups")
+  local GroupsUI = require("koassistant_book_groups_ui")
+  local list = BookGroups.groupsFor(file)
+  local enable_emoji = opts.enable_emoji
+  if enable_emoji == nil then
+    enable_emoji = configuration and configuration.features
+      and configuration.features.enable_emoji_icons == true
+  end
+  local self_ref = self
+  local function open(group)
+    GroupsUI.showGroup(group.id, { plugin = self_ref, ui = self_ref.ui,
+      on_close = opts.on_close, front = opts.front ~= false, enable_emoji = enable_emoji })
+  end
+  if #list == 0 then
+    GroupsUI.showBookRow(file, { plugin = self, ui = self.ui, on_close = opts.on_close })
+  elseif #list == 1 then
+    open(list[1])
+  else
+    local ButtonDialog = require("ui/widget/buttondialog")
+    local dialog
+    local rows = {}
+    for _idx, group in ipairs(list) do
+      local captured = group
+      rows[#rows + 1] = {{
+        text = T(_("%1 (%2 books)"), GroupsUI.displayName(captured), #captured.books),
+        align = "left",
+        callback = function()
+          UIManager:close(dialog)
+          open(captured)
+        end,
+      }}
+    end
+    rows[#rows + 1] = {{ text = _("Cancel"), callback = function() UIManager:close(dialog) end }}
+    dialog = ButtonDialog:new{ title = _("Which group?"), buttons = rows }
+    UIManager:show(dialog)
+  end
+end
+
 --- Group entry for registry-driven surfaces (QA panel utility "book_group",
---- gestures). Members popup when this book is in a group, the manager
+--- gestures). The book's hub when it is in a group, the Groups list
 --- otherwise — so the entry is never a dead end.
 function AskGPT:onKOAssistantBookGroup()
   local file = self.ui and self.ui.document and self.ui.document.file
   if file and self:_inBookGroup(file) then
-    self:_showGroupMembersPopup(file, "artifacts")
+    self:openGroupHubFor(file)
   else
     self:showBookGroupsManager()
   end
@@ -7240,6 +7289,10 @@ function AskGPT:_scheduleGroupReseed(group_id)
   UIManager:scheduleIn(2, self._reseed_fn)
 end
 
+--- The "→ Group" jump popup (X-Ray surfaces only since G0 round 2: the old
+--- artifacts mode, which listed members as Book Hubs, is retired — the
+--- Group Hub's member rows are those destinations, and openGroupHubFor is
+--- the landing every book-scoped Group button uses). `mode` stays "xray".
 function AskGPT:_showGroupMembersPopup(file, mode, opts)
   local BookGroups = require("koassistant_book_groups")
   local GroupsUI = require("koassistant_book_groups_ui")
@@ -7278,7 +7331,7 @@ function AskGPT:_showGroupMembersPopup(file, mode, opts)
       local cb
       if captured == file then
         title = title .. " " .. _("(this book)")
-      elseif mode == "xray" then
+      else
         local ok, entry = pcall(ActionCache.getXrayCache, captured)
         if ok and entry and entry.result then
           -- Entity presence (2026-08-09 round answer A): with an entity
@@ -7404,22 +7457,6 @@ function AskGPT:_showGroupMembersPopup(file, mode, opts)
         else
           title = title .. " " .. _("(no X-Ray)")
         end
-      else
-        -- A4: a member row opens the member's Book Hub — every book has one
-        -- (chrome rows at minimum), so the old artifact gate, its disabled
-        -- "(no artifacts)" rows and the bare 1-arg selector call all retire
-        cb = function()
-          UIManager:close(dialog)
-          if opts and opts.before_open then opts.before_open() end
-          require("koassistant_book_page").show({
-            file = captured,
-            plugin = self_ref,
-            ui = self_ref.ui,
-            title = raw_title,
-            enable_emoji = configuration and configuration.features
-                and configuration.features.enable_emoji_icons == true,
-          })
-        end
       end
       rows[#rows + 1] = {{
         text = i .. ". " .. title,
@@ -7453,6 +7490,15 @@ function AskGPT:_showGroupMembersPopup(file, mode, opts)
   -- render a popup with nothing tappable and no way onward. Always offer the
   -- manager, which is where adding, reordering and the series/project switch
   -- live. (Artifacts mode stopped disabling rows with the A4 Book Hub swap.)
+  -- G0 (docs/group_hub_plan.md, 2026-09-06): the hub is where the group's
+  -- books, actions and (G1) settings live; this popup stays the jump surface
+  rows[#rows + 1] = {{
+    text = _("Group hub…"),
+    callback = function()
+      UIManager:close(dialog)
+      self_ref:openGroupHubFor(file)
+    end,
+  }}
   rows[#rows + 1] = {{
     text = _("Manage groups…"),
     callback = function()
@@ -7741,7 +7787,7 @@ function AskGPT:showCacheViewer(cache_info)
     _artifact_book_author = book_author,
     _book_open = (self.ui and self.ui.document ~= nil),
     group_open = (not cache_info.checkpoint and self:_inBookGroup(file))
-      and function() self:_showGroupMembersPopup(file, "artifacts") end or nil,
+      and function() self:openGroupHubFor(file) end or nil,
     on_launch_chat = self:_buildLaunchChatCallback(file, book_title, book_author, cache_info.data.result, cache_info.name),
   }
   UIManager:show(viewer)
@@ -13419,7 +13465,7 @@ function AskGPT:viewCachedAction(action, action_id, cached_entry, opts)
     _artifact_book_author = book_author,
     _book_open = (self.ui and self.ui.document ~= nil),
     group_open = self:_inBookGroup(file)
-      and function() self:_showGroupMembersPopup(file, "artifacts") end or nil,
+      and function() self:openGroupHubFor(file) end or nil,
     on_launch_chat = self:_buildLaunchChatCallback(file, book_title, book_author, cached_entry.result, action_name),
   }
   UIManager:show(viewer)
@@ -17722,14 +17768,14 @@ function AskGPT:onKOAssistantQuickActions()
         elseif util_id == "book_group" then
           -- Round 28: same dynamic rule as View Artifacts — the row exists only
           -- when this book actually belongs to a group, so readers who don't use
-          -- groups never see it. Opens the members popup (THE group-navigation
-          -- idiom), not the manager: from the panel you want to GO somewhere.
+          -- groups never see it. Opens the book's Group Hub (G0 round 2), not
+          -- the list: from the panel you want to GO somewhere.
           if self_ref:_inBookGroup(file) then
             addButton({
               text = Constants.getEmojiText(qa_emoji_map[util_id], _("Group"), qa_enable_emoji),
               callback = function()
                 UIManager:close(dialog)
-                self_ref:_showGroupMembersPopup(file, "artifacts")
+                self_ref:openGroupHubFor(file)
               end,
             })
           end

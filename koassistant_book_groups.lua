@@ -396,16 +396,21 @@ function BookGroups.fileExists(path)
     return lfs.attributes(path, "mode") == "file"
 end
 
---- Display title for any group member: AI metadata override > doc_props >
---- filename. Same identity rule as the merge picker.
-function BookGroups.displayTitle(path, ui)
-    local title
+--- Display title + authors for any group member (G0 round 2: the Group Hub
+--- names the members' authors in its subtitle): AI metadata override >
+--- doc_props (custom-metadata overlay) > filename for the title; authors
+--- straight from the effective doc_props, nil when unknown. ONE sidecar
+--- read serves both.
+--- @return string title, string|nil authors
+function BookGroups.displayProps(path, ui)
+    local title, authors
     local ok, ds = pcall(function()
         return require("koassistant_doc_settings").resolve(path, ui)
     end)
     if ok and ds then
         local props = require("koassistant_doc_settings").overlayCustomProps(ds:readSetting("doc_props"), path) or {}
         title = props.display_title or props.title
+        authors = props.authors
         local ok_ov, ov_title = pcall(function()
             return require("koassistant_book_settings").getMetadataOverride(ds)
         end)
@@ -414,7 +419,14 @@ function BookGroups.displayTitle(path, ui)
     if not title or title == "" then
         title = path:match("([^/]+)%.[^.]+$") or path:match("([^/]+)$") or path
     end
-    return title
+    if type(authors) ~= "string" or authors == "" then authors = nil end
+    return title, authors
+end
+
+--- Display title for any group member: AI metadata override > doc_props >
+--- filename. Same identity rule as the merge picker.
+function BookGroups.displayTitle(path, ui)
+    return (BookGroups.displayProps(path, ui))
 end
 
 --- Members as {title, authors, file} rows for the library machinery
