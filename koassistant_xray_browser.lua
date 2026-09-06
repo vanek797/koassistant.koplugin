@@ -2516,6 +2516,10 @@ function XrayBrowser:showItemDetail(item, category_key, title, source, nav_conte
                 local jump_location = self_ref.location
                 plugin_ref:_showGroupMembersPopup(group_file, "xray", {
                     location = jump_location,
+                    -- G2 round 2: rows open the member's entry as the
+                    -- read-only entry view over this page; the switch lives
+                    -- inside it (before_open + return_to serve that switch)
+                    entry_view = true,
                     -- Q16: the other X-Ray's up-arrow at root returns here
                     return_to = { book_file = group_file, title = self_ref.metadata.title,
                         location = jump_location },

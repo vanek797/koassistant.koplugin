@@ -10834,7 +10834,11 @@ end
 -- predecessor results list and the earlier-books sweep.
 -- @param opts table { ui, config, plugin, book_metadata, cleanup_widgets,
 --   document_path (CURRENT book), hit { name, item, category_key,
---   category_label, source_title, pred_file, pred_title, pred_stub } }
+--   category_label, source_title, pred_file, pred_title, pred_stub },
+--   before_open (fn, G2 round 2: run before "Open in <title>'s X-Ray"
+--   switches — the group members popup retires the origin browser there,
+--   the browser being a singleton), return_to (Q16 descriptor for that
+--   switch: the other X-Ray's up-arrow at root reopens the origin) }
 local function showPredecessorEntity(opts)
     local ActionCache = require("koassistant_action_cache")
     local XrayCard = require("koassistant_xray_card")
@@ -10864,6 +10868,13 @@ local function showPredecessorEntity(opts)
                         book_file = hit.pred_file,
                         fallback = true,
                     }
+                end
+                if opts.before_open then opts.before_open() end
+                if opts.return_to then
+                    local rt = {}
+                    for k, v in pairs(opts.return_to) do rt[k] = v end
+                    rt.target = hit.pred_file
+                    require("koassistant_xray_browser")._pending_return_to = rt
                 end
                 opts.plugin:showCacheViewer({ name = _("X-Ray"), key = "_xray_cache",
                     data = pred_entry, book_title = hit.pred_title, file = hit.pred_file })

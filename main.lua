@@ -7252,9 +7252,16 @@ function AskGPT:_showGroupMembersPopup(file, mode, opts)
   local rows = {}
   -- G2 (group hub plan, 2026-09-06): the later books the chain holds back
   -- from this book (the first containing group's order; X-Rayed ones, since
-  -- only an X-Ray can reveal anything). Computed once, only when a row could
-  -- open X-Ray content.
-  local held = mode == "xray" and ActionCache.heldBackLaterFiles(file) or {}
+  -- only an X-Ray can reveal anything) + each member's direction for the
+  -- entry view's provenance line. Computed once, only when a row could open
+  -- X-Ray content.
+  local held, dirs = {}, {}
+  if mode == "xray" then
+    held = ActionCache.heldBackLaterFiles(file)
+    for _idx, row in ipairs(BookGroups.lookupBooksFor(file, true)) do
+      dirs[row.file] = row.direction
+    end
+  end
   for _g, group in ipairs(list) do
     if #list > 1 then
       rows[#rows + 1] = {{ text = GroupsUI.displayName(group), enabled = false }}
@@ -7277,19 +7284,32 @@ function AskGPT:_showGroupMembersPopup(file, mode, opts)
           -- Entity presence (2026-08-09 round answer A): with an entity
           -- context, a member whose X-Ray lacks the entity (name+aliases,
           -- entity's category preferred — findByIdentity) is disabled instead
-          -- of offering a jump that could only fall back. One parse per
-          -- member, only at popup-open; the → Group button itself stays
+          -- of offering a jump that could only fall back. One memoized parse
+          -- per member, only at popup-open; the → Group button itself stays
           -- ungated (per-detail gating would pay these reads on every page).
-          local function hasEntity()
+          -- entryHit() = that entry in the read-only entry view's hit shape;
+          -- nil = not in its X-Ray; true = no entity context at all.
+          local function entryHit()
             if not (opts and opts.location and opts.location.item_name) then return true end
+            local px = ActionCache.parsedXrayFor(captured)
+            if not px then return nil end
             local XrayParser = require("koassistant_xray_parser")
-            local parsed = XrayParser.parse(entry.result)
             local names = { opts.location.item_name }
             for _i, a in ipairs(opts.location.item_aliases or {}) do
               names[#names + 1] = a
             end
-            return (parsed and not parsed.error
-              and XrayParser.findByIdentity(parsed, names, opts.location.category_key)) ~= nil
+            local item, cat_key = XrayParser.findByIdentity(px.data, names, opts.location.category_key)
+            if not item then return nil end
+            return {
+              name = XrayParser.getItemName(item, cat_key),
+              item = item,
+              category_key = cat_key,
+              category_label = XrayParser.categoryLabel(px.data, cat_key),
+              source_title = raw_title,
+              pred_file = captured,
+              pred_title = raw_title,
+              direction = dirs[captured],
+            }
           end
           local function jump(book_title)
             if opts and opts.before_open then opts.before_open() end
@@ -7317,14 +7337,37 @@ function AskGPT:_showGroupMembersPopup(file, mode, opts)
             self_ref:showCacheViewer({ name = _("X-Ray"), key = "_xray_cache",
               data = entry, book_title = book_title, file = captured })
           end
+          -- G2 round 2 (maintainer: the full switch was "very unintuitive to
+          -- get back from"): from an ENTITY page a member's entry opens as
+          -- the read-only entry view OVER this page — read it, close it, or
+          -- switch from inside ("Open in <title>'s X-Ray", which retires
+          -- this browser first and returns through the Q16 up-arrow: the
+          -- browser is a singleton, two cannot stack). The hamburger's
+          -- "→ Group" (category level, no entry in hand) keeps the switch.
+          local entry_view = (opts and opts.entry_view and opts.location
+            and opts.location.item_name) and true or false
+          local function openEntry(hit)
+            require("koassistant_dialogs").showPredecessorEntity{
+              ui = self_ref.ui, config = configuration, plugin = self_ref,
+              document_path = file, hit = hit,
+              before_open = opts and opts.before_open or nil,
+              return_to = opts and opts.return_to or nil,
+            }
+          end
+          local function notInXray()
+            UIManager:show(InfoMessage:new{
+              text = T(_("Not in %1's X-Ray: %2"), raw_title, opts.location.item_name),
+              timeout = 3,
+            })
+          end
           if held[captured] then
             -- G2 (group hub plan, 2026-09-06; maintainer: "to know that a
             -- character appears in a later book is already a spoiler"): a
             -- later book the chain holds back is listed WITHOUT the presence
             -- probe — the row reads the same whether or not the entry exists
             -- there — behind the search reveal's named confirm; the probe
-            -- runs after it, landing on the entry or at the nearest level
-            -- with a note (the reader accepted that book's spoilers).
+            -- runs after it: the entry view (or just the note) from an entity
+            -- page, the switch (plus the note on a miss) from the hamburger.
             title = title .. " " .. _("(later in the series)")
             cb = function()
               UIManager:close(dialog)
@@ -7332,24 +7375,31 @@ function AskGPT:_showGroupMembersPopup(file, mode, opts)
                 text = T(_("%1 comes later in the series and can reveal what happens in the books before it. Open it anyway?"), raw_title),
                 ok_text = _("Open it"),
                 ok_callback = function()
-                  local missing = not hasEntity()
-                  jump(raw_title)
-                  if missing then
-                    UIManager:show(InfoMessage:new{
-                      text = T(_("Not in %1's X-Ray: %2"), raw_title, opts.location.item_name),
-                      timeout = 3,
-                    })
+                  local hit = entryHit()
+                  if entry_view then
+                    if hit and hit ~= true then openEntry(hit) else notInXray() end
+                    return
                   end
+                  jump(raw_title)
+                  if not hit then notInXray() end
                 end,
               })
             end
-          elseif hasEntity() then
-            cb = function()
-              UIManager:close(dialog)
-              jump(title)
-            end
           else
-            title = title .. " " .. _("(not in its X-Ray)")
+            local hit = entryHit()
+            if hit == true or (hit and not entry_view) then
+              cb = function()
+                UIManager:close(dialog)
+                jump(title)
+              end
+            elseif hit then
+              cb = function()
+                UIManager:close(dialog)
+                openEntry(hit)
+              end
+            else
+              title = title .. " " .. _("(not in its X-Ray)")
+            end
           end
         else
           title = title .. " " .. _("(no X-Ray)")
