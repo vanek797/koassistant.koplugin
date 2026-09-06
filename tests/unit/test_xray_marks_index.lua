@@ -283,11 +283,15 @@ TestRunner:test("LuaJSON-style callable-table json modules are accepted", functi
     resetQueue(); local state = assert(start()); drain()
     TestRunner:eq(state.disposition, "valid", "callable-table decode admitted")
     assert(Index.get(state, "plain:255:alice"), "warm entry served via callable-table json")
-    assert(Index.put(state, "plain:255:bob", "hits", { { start = "p3:1", e = "p3:4" } }))
+    assert(Index.put(state, "plain:255:bob", "hits",
+        { { start = "p3:1", e = "p3:4", prefix = "x", suffix = "'s" } }))
     drain()
     assert(sizeOf(sidecar), "primary written via callable-table encode")
     local data = real.decode(copyFile(sidecar, sidecar .. ".check"))
     assert(data.terms["plain:255:bob"], "callable encode produced readable JSON")
+    local roundtrip = data.terms["plain:255:bob"].hits[1]
+    TestRunner:eq(roundtrip.prefix, "x", "prefix roundtrip")
+    TestRunner:eq(roundtrip.suffix, "'s", "suffix roundtrip")
     Index.close(state)
     package.loaded["json"] = real
 end)
@@ -373,6 +377,13 @@ TestRunner:test("empty outcomes and malformed bounds are never persistent", func
     base.terms[string.rep("q", Index.MAX_QUERY_KEY_BYTES + 1)] = {
         outcome = "hits", hits = { { start = "p1:1", e = "p1:2" } } }
     assert(not Index._validateCache(base, state.identity), "query key bound")
+    base.terms[string.rep("q", Index.MAX_QUERY_KEY_BYTES + 1)] = nil
+    base.terms["plain:255:badfix"] = { outcome = "hits",
+        hits = { { start = "p1:1", e = "p1:2", prefix = 42 } } }
+    assert(not Index._validateCache(base, state.identity), "non-string prefix bound")
+    base.terms["plain:255:badfix"] = { outcome = "hits",
+        hits = { { start = "p1:1", e = "p1:2", suffix = string.rep("s", 65) } } }
+    assert(not Index._validateCache(base, state.identity), "oversized suffix bound")
     Index.close(state)
 end)
 

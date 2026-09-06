@@ -566,7 +566,8 @@ local function searchTerm(document, term)
     if term.regex or not (
         (edgeIsWordChar(term.text, "prefix") and blockingAffix(r.matched_word_prefix))
         or (edgeIsWordChar(term.text, "suffix") and blockingAffix(r.matched_word_suffix))) then
-      hits[#hits + 1] = { start = r.start, e = r["end"] }
+      hits[#hits + 1] = { start = r.start, e = r["end"],
+        prefix = r.matched_word_prefix, suffix = r.matched_word_suffix }
     end
   end
   -- Only a non-capped, structurally complete result reaches these terminal
@@ -582,36 +583,26 @@ local function comparablePlainText(text)
 end
 
 local function persistedPlainRangeMatches(document, term, hit)
-  if term.regex or type(document.getTextFromXPointers) ~= "function" then return false end
+  if term.regex or type(document.getTextFromXPointers) ~= "function" then
+    return false, "unsupported"
+  end
   local ok_text, pointed_text = pcall(document.getTextFromXPointers,
       document, hit.start, hit.e)
   local pointed, expected = comparablePlainText(pointed_text), comparablePlainText(term.text)
   if not ok_text or not pointed or not expected or pointed ~= expected then
-    return false
+    return false, "text"
   end
-  -- Re-check the same whole-word policy used for live findAllText results.
-  -- A corrupted but addressable range could otherwise point at "Alice" in
-  -- "Malice" and pass the exact-range text check. CRE's adjacent-character
-  -- XPointer APIs let us fail closed without running another native search.
-  if edgeIsWordChar(term.text, "prefix") then
-    if type(document.getPrevVisibleChar) ~= "function" then return false end
-    local ok_prev, prev = pcall(document.getPrevVisibleChar, document, hit.start)
-    if not ok_prev then return false end
-    if prev then
-      local ok_prefix, prefix = pcall(document.getTextFromXPointers,
-          document, prev, hit.start)
-      if not ok_prefix or type(prefix) ~= "string" or blockingAffix(prefix) then return false end
-    end
+  -- Re-apply the exact whole-word policy used when the hit was found: the
+  -- persisted prefix/suffix are CRE's own matched_word_* leftovers, so a
+  -- corrupted or stale range pointing into a larger word still fails closed.
+  -- Walking getPrevVisibleChar/getNextVisibleChar instead is NOT equivalent:
+  -- those APIs skip whitespace and report the neighbouring WORD's letters,
+  -- which would reject every correctly bounded hit (device 2026-09-06).
+  if edgeIsWordChar(term.text, "prefix") and blockingAffix(hit.prefix) then
+    return false, "prefix"
   end
-  if edgeIsWordChar(term.text, "suffix") then
-    if type(document.getNextVisibleChar) ~= "function" then return false end
-    local ok_next, next_pos = pcall(document.getNextVisibleChar, document, hit.e)
-    if not ok_next then return false end
-    if next_pos then
-      local ok_suffix, suffix = pcall(document.getTextFromXPointers,
-          document, hit.e, next_pos)
-      if not ok_suffix or type(suffix) ~= "string" or blockingAffix(suffix) then return false end
-    end
+  if edgeIsWordChar(term.text, "suffix") and blockingAffix(hit.suffix) then
+    return false, "suffix"
   end
   return true
 end
@@ -627,13 +618,17 @@ local function mapTerm(document, term, th, layout)
     local ok, page = pcall(document.getPageFromXPointer, document, h.start)
     local oke, end_page = pcall(document.getPageFromXPointer, document, h.e)
     local okc, order = pcall(document.compareXPointers, document, h.start, h.e)
-    local text_ok = not th.persisted or persistedPlainRangeMatches(document, term, h)
+    local text_ok, fail_reason = true, nil
+    if th.persisted then
+      text_ok, fail_reason = persistedPlainRangeMatches(document, term, h)
+    end
     if not text_ok or not ok or not oke or not okc or type(page) ~= "number" or page ~= page
         or page < 1 or page == math.huge or page % 1 ~= 0
         or type(end_page) ~= "number" or end_page ~= end_page
         or end_page < page or end_page == math.huge or end_page % 1 ~= 0
         or type(order) ~= "number" or order ~= order or order < 0 then
       th.outcome, th.hits, th.by_page, th.pages = "error", nil, nil, nil
+      th.fail_reason = fail_reason
       return true
     end
     local bucket = th.by_page[page]
@@ -839,6 +834,8 @@ function XrayMarks._scanTick(plugin, pageno, token)
             -- A cache hit is not trusted merely because its bytes and DOM
             -- identity matched. Quarantine this descriptor for the session
             -- and evict it without a same-session cold-search fallback.
+            logger.warn("KOAssistant marks: evicted persisted descriptor ("
+              .. tostring(th.fail_reason or "verify") .. ")")
             PersistentIndex.evict(st.persistent_index, term.query_key)
           elseif th.outcome == "hits" and th.needs_persist then
             PersistentIndex.put(st.persistent_index, term.query_key, "hits", th.hits)

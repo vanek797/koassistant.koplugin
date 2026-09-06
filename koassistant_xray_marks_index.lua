@@ -47,7 +47,7 @@ Index.OBSOLETE_FILENAMES = {
     "koassistant_xray_marks_index.lua.old",
     "koassistant_xray_marks_index.lua.old.tmp",
 }
-Index.SCHEMA = 2
+Index.SCHEMA = 3
 Index.IDENTITY_SCHEMA = 2
 Index.SEARCH_SCHEMA = 2
 Index.SEARCH_CAP = 2000
@@ -93,6 +93,10 @@ end
 
 local function exactString(value, max_bytes)
     return type(value) == "string" and value ~= "" and #value <= max_bytes
+end
+
+local function boundedString(value, max_bytes)
+    return type(value) == "string" and #value <= max_bytes
 end
 
 local function searchIdentity()
@@ -150,11 +154,17 @@ local function cleanTerms(terms)
             if type(hit) ~= "table"
                 or not exactString(hit.start, Index.MAX_XPOINTER_BYTES)
                 or not exactString(hit.e, Index.MAX_XPOINTER_BYTES) then return nil end
+            local prefix, suffix = hit.prefix, hit.suffix
+            if (prefix ~= nil and not boundedString(prefix, 64))
+                or (suffix ~= nil and not boundedString(suffix, 64)) then return nil end
             for hit_field in pairs(hit) do
-                if hit_field ~= "start" and hit_field ~= "e" then return nil end
+                if hit_field ~= "start" and hit_field ~= "e"
+                    and hit_field ~= "prefix" and hit_field ~= "suffix" then return nil end
             end
-            copied[i] = { start = hit.start, e = hit.e }
+            copied[i] = { start = hit.start, e = hit.e,
+                prefix = prefix, suffix = suffix }
             aggregate = aggregate + #hit.start + #hit.e + 80
+                + (prefix and #prefix or 0) + (suffix and #suffix or 0)
             if aggregate > Index.MAX_AGGREGATE_BYTES then return nil end
         end
         -- Reject sparse arrays and unexpected fields: both indicate a malformed
@@ -534,7 +544,10 @@ function Index.get(state, key)
     local entry = state.terms[key]
     if not entry then return nil end
     local hits = {}
-    for i, hit in ipairs(entry.hits or {}) do hits[i] = { start = hit.start, e = hit.e } end
+    for i, hit in ipairs(entry.hits or {}) do
+        hits[i] = { start = hit.start, e = hit.e,
+            prefix = hit.prefix, suffix = hit.suffix }
+    end
     return { outcome = entry.outcome, hits = hits, persisted = true }
 end
 
@@ -559,7 +572,10 @@ end
 
 local function entryCost(key, entry)
     local bytes = #key + 64
-    for _, hit in ipairs(entry.hits or {}) do bytes = bytes + #hit.start + #hit.e + 80 end
+    for _, hit in ipairs(entry.hits or {}) do
+        bytes = bytes + #hit.start + #hit.e + 80
+            + (hit.prefix and #hit.prefix or 0) + (hit.suffix and #hit.suffix or 0)
+    end
     return bytes
 end
 
@@ -573,7 +589,11 @@ function Index.put(state, key, outcome, hits)
         local hit = hits[i]
         if type(hit) ~= "table" or not exactString(hit.start, Index.MAX_XPOINTER_BYTES)
             or not exactString(hit.e, Index.MAX_XPOINTER_BYTES) then return false end
-        copied[i] = { start = hit.start, e = hit.e }
+        local prefix, suffix = hit.prefix, hit.suffix
+        if (prefix ~= nil and not boundedString(prefix, 64))
+            or (suffix ~= nil and not boundedString(suffix, 64)) then return false end
+        copied[i] = { start = hit.start, e = hit.e,
+            prefix = prefix, suffix = suffix }
     end
     local entry = { outcome = outcome, hits = copied }
     local old = state.terms[key]

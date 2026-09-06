@@ -158,7 +158,9 @@ function PersistentIndex.get(state, key)
     local entry = state and state.terms[key]
     if not entry then return nil end
     local hits = {}
-    for i, h in ipairs(entry.hits or {}) do hits[i] = { start = h.start, e = h.e } end
+    for i, h in ipairs(entry.hits or {}) do
+        hits[i] = { start = h.start, e = h.e, prefix = h.prefix, suffix = h.suffix }
+    end
     return { outcome = entry.outcome, hits = hits, persisted = true }
 end
 function PersistentIndex.put(state, key, outcome, hits)
@@ -603,7 +605,7 @@ end)
 TestRunner:test("persisted plain XPointer inside a larger word fails the live boundary check", function()
     local persistence = { status = "ready", disposition = "valid", terms = {
         ["plain:255:alice"] = { outcome = "hits",
-            hits = { { start = "p2:30", e = "p2:35" } } },
+            hits = { { start = "p2:30", e = "p2:35", prefix = "M" } } },
     } }
     reset({
         hay = "Malice", persistence = persistence,
