@@ -37,10 +37,10 @@ local SPECIAL_KEYS = {
     ["__LIBRARY_CHATS__"] = true,
 }
 
--- Plugin files that mark a sidecar as "has KOAssistant data" (used to report
--- sidecars that couldn't be mapped back to a local book). Registry-driven
--- since Track 37 (the two per-book store files joined the list).
-local PLUGIN_SIDECAR_FILES = require("koassistant_storage_registry").sidecarFiles()
+-- Content-bearing plugin files that mark a sidecar as "has KOAssistant data"
+-- (used to report sidecars that couldn't be mapped back to a local book).
+-- Rebuildable machine caches are deliberately excluded by the registry.
+local PLUGIN_SIDECAR_FILES = require("koassistant_storage_registry").contentSidecarFiles()
 
 --- Does this book have a sidecar dir at ANY candidate location?
 -- Checking only the current storage mode would miss data stranded by a

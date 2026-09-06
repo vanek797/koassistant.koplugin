@@ -724,6 +724,22 @@ TestRunner:test("book-stat gate: foreign sidecar path not indexed, reported as u
     TestRunner:assertEqual(report.unmapped_sidecars, 1, "sidecar with data reported")
 end)
 
+TestRunner:test("cache-only sidecar is not reported as unmapped user data", function()
+    storage_mode = "dir"
+    mock_files["/tmp/koreader/docsettings"] = { mode = "directory" }
+    mock_dirs["/tmp/koreader/docsettings"] = { "books" }
+    mock_files["/tmp/koreader/docsettings/books"] = { mode = "directory" }
+    mock_dirs["/tmp/koreader/docsettings/books"] = { "cacheonly.sdr" }
+    local sdr = "/tmp/koreader/docsettings/books/cacheonly.sdr"
+    mock_files[sdr] = { mode = "directory" }
+    mock_dirs[sdr] = { "metadata.epub.lua", "koassistant_xray_marks_index.json" }
+    mock_files[sdr .. "/koassistant_xray_marks_index.json"] = { mode = "file" }
+
+    local report = IndexRebuilder.run(nil, {})
+    TestRunner:assertEqual(report.unmapped_sidecars, 0,
+        "rebuildable index must not masquerade as user data")
+end)
+
 TestRunner:test("fast-skip checks alternate sidecar locations (doc mode, dir-location data)", function()
     storage_mode = "doc"
     addBookWithChats("/books/w.epub", { "w1" })

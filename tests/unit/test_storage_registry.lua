@@ -155,11 +155,15 @@ TestRunner:test("updateDirs() == old USER_DIRS", function()
     assertListEqual(Registry.updateDirs(), { "behaviors", "domains" }, "updateDirs")
 end)
 
-TestRunner:test("sidecarFiles() == the six original files + the two Track 37 per-book store files", function()
+TestRunner:test("sidecarFiles() includes the rebuildable passive X-Ray index", function()
     assertListEqual(Registry.sidecarFiles(), {
         "koassistant_notebook.md", "koassistant_cache.lua",
         "koassistant_user_aliases.lua", "koassistant_pinned.lua",
         "koassistant_xray_checkpoints.lua", "koassistant_xray_ladder.lua",
+        "koassistant_xray_marks_index.json", "koassistant_xray_marks_index.json.tmp",
+        "koassistant_xray_marks_index.json.old", "koassistant_xray_marks_index.json.old.tmp",
+        "koassistant_xray_marks_index.lua", "koassistant_xray_marks_index.lua.tmp",
+        "koassistant_xray_marks_index.lua.old", "koassistant_xray_marks_index.lua.old.tmp",
         "koassistant_book_settings.lua", "koassistant_chats.lua",
     }, "sidecarFiles")
 end)
@@ -187,6 +191,10 @@ local REQUIRED_IDS = {
     "chat_index", "notebook_index", "artifact_index", "pinned_index",
     "artifact_index_version", "chat_storage_version", "chat_migration_in_progress",
     "sidecar_notebook", "sidecar_cache", "sidecar_user_aliases", "sidecar_pinned",
+    "sidecar_xray_marks_index", "sidecar_xray_marks_index_tmp",
+    "sidecar_xray_marks_index_old", "sidecar_xray_marks_index_old_tmp",
+    "sidecar_xray_marks_index_lua", "sidecar_xray_marks_index_lua_tmp",
+    "sidecar_xray_marks_index_lua_old", "sidecar_xray_marks_index_lua_old_tmp",
     "sidecar_book_settings", "sidecar_chats",
     "apikeys", "configuration", "custom_actions", "behaviors_dir", "domains_dir",
     "chats_v1_dir", "chats_backup_dir", "backups_dir", "exports_dir",
@@ -199,6 +207,43 @@ TestRunner:test("all required entry ids exist", function()
     for _, id in ipairs(REQUIRED_IDS) do
         TestRunner:assertTrue(by_id[id], "missing required registry entry: " .. id)
     end
+end)
+
+TestRunner:test("passive X-Ray index is rebuildable, relocated, and never backup/update user data", function()
+    local found
+    for _, e in ipairs(Registry.all()) do
+        if e.id == "sidecar_xray_marks_index" then found = e end
+    end
+    TestRunner:assertTrue(found ~= nil, "index entry")
+    TestRunner:assertEqual(found.location, "sidecar_file", "index location")
+    TestRunner:assertEqual(found.category, "index", "index category")
+    TestRunner:assertTrue(found.rebuildable == true, "index must be rebuildable")
+    TestRunner:assertTrue(found.backup == false, "index must not be backed up")
+    TestRunner:assertTrue(found.uninstall == true, "machine index belongs to complete-wipe metadata")
+    local content_seen = false
+    local index_companions = 0
+    for _, ref in ipairs(Registry.contentSidecarFiles()) do
+        if ref:find("koassistant_xray_marks_index", 1, true) then content_seen = true end
+    end
+    for _, e in ipairs(Registry.all()) do
+        if e.location == "sidecar_file"
+                and e.ref:find("koassistant_xray_marks_index", 1, true) then
+            index_companions = index_companions + 1
+            TestRunner:assertTrue(e.rebuildable == true and e.backup == false,
+                "every index companion must be cache-only")
+        end
+    end
+    TestRunner:assertEqual(index_companions, 8, "registered primary/recovery/legacy companions")
+    TestRunner:assertTrue(not content_seen, "rebuildable index files are not content evidence")
+    local update_seen, backup_seen = false, false
+    for _, ref in ipairs(Registry.updateFiles()) do
+        if ref == found.ref then update_seen = true end
+    end
+    for _, ref in ipairs(Registry.backupSettingsFiles()) do
+        if ref == found.ref then backup_seen = true end
+    end
+    TestRunner:assertTrue(not update_seen, "sidecar index must not be update-preserved plugin data")
+    TestRunner:assertTrue(not backup_seen, "sidecar index must not enter settings backups")
 end)
 
 TestRunner:test("backups dir is never auto-deleted (invariant)", function()

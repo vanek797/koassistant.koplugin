@@ -18,8 +18,8 @@ WAITED on it, device: "page turns very slow"):
   schedule's token). The scan resolves terms — steady state
   is pure memo lookups (NO page-text read, NO searches); a term never yet
   searched costs one whole-book `findAllText`, so at most ONE runs per tick
-  with the rest chained on scheduleIn (UI stays responsive while a
-  first-encounter page warms up) — then boxes for current-page hits via
+  with the rest chained on scheduleIn (the native call still blocks the UI;
+  this is NOT an asynchronous search backend) — then boxes for current-page hits via
   `getScreenBoxesFromPositions` → dedupe/merge → ONE partial refresh sized
   to the strips, skipped entirely on mark-free pages.
 - EPUB page mode only in v1: scroll mode clears (boxes go stale mid-scroll
@@ -36,17 +36,108 @@ range-free, for the same one-truth reason. The entity index rebuilds only
 when the cache or user-alias sidecar changes on disk (mtime+size stamps —
 stats per turn, parses only on change).
 
-State is module-resident and single-book (reader-scoped, like the
-Attachments staging list); a different file swaps it wholesale.
+State is module-resident and owned by one open ReaderUI/document session
+(reader-scoped, like the Attachments staging list). Teardown retires that
+session; callbacks from an older session cannot replace or mutate a newer one.
 ]]
 
 local UIManager = require("ui/uimanager")
 local logger = require("koassistant_logger")
 local lfs = require("libs/libkoreader-lfs")
+local PersistentIndex = require("koassistant_xray_marks_index")
 
 local XrayMarks = {}
 
 local MODULE_NAME = "koassistant_xray_marks"
+
+-- Plain native search is case-insensitive over Unicode, while Lua's
+-- string.lower folds ASCII only. Descriptor keys and persisted-hit text
+-- verification must share one Unicode-aware, strict 1:1 lowercase so a
+-- valid cached hit for "Élodie" pointing at "élodie" is not rejected.
+local Utf8Proc
+local function validUtf8(s)
+  local i, n = 1, #s
+  while i <= n do
+    local c = s:byte(i)
+    if c < 0x80 then
+      i = i + 1
+    else
+      local len
+      if c >= 0xC2 and c <= 0xDF then len = 2
+      elseif c >= 0xE0 and c <= 0xEF then len = 3
+      elseif c >= 0xF0 and c <= 0xF4 then len = 4
+      else return false end
+      if i + len - 1 > n then return false end
+      local b2 = s:byte(i + 1)
+      -- RFC 3629: reject overlong forms (E0 80..9F, F0 80..8F), UTF-16
+      -- surrogate code points (ED A0..BF), and code points above U+10FFFF
+      -- (F4 90..BF) that a generic continuation check would accept.
+      if len == 3 and c == 0xE0 and b2 < 0xA0 then return false end
+      if len == 3 and c == 0xED and b2 > 0x9F then return false end
+      if len == 4 and c == 0xF0 and b2 < 0x90 then return false end
+      if len == 4 and c == 0xF4 and b2 > 0x8F then return false end
+      for j = i + 1, i + len - 1 do
+        local b = s:byte(j)
+        if b < 0x80 or b > 0xBF then return false end
+      end
+      i = i + len
+    end
+  end
+  return true
+end
+--- @return string|nil lowercased text; nil when the text is not valid UTF-8
+---   (utf8proc truncates at invalid bytes, which could make two different
+---   strings compare equal — fail closed instead)
+local function lowercaseText(text)
+  if type(text) ~= "string" then return nil end
+  if not validUtf8(text) then return nil end
+  if Utf8Proc == nil then
+    local ok, mod = pcall(require, "ffi/utf8proc")
+    Utf8Proc = ok and type(mod) == "table" and type(mod.lowercase) == "function" and mod or false
+  end
+  if Utf8Proc then
+    local ok, lowered = pcall(Utf8Proc.lowercase, text, false)
+    if ok and type(lowered) == "string" then return lowered end
+    return nil
+  end
+  return text:lower()
+end
+
+--- Verification-side fold: mirror the native 0x00FF search folding as far
+--- as Lua can — NFKC compatibility+casefold, soft hyphens and zero-width
+--- format characters removed, NBSP and whitespace collapsed. KOReader's
+--- readersearch.lua documents 0x00FF as NORMALIZE_CANONICAL (0x0004) +
+--- NORMALIZE_COMPATIBILITY (0x0008) + FOLD_*/IGNORE_FORMAT_CONTROL_CHARS,
+--- so the NFKC fold is the deliberate Lua approximation of the flags the
+--- native search actually runs with. Descriptor keys stay strict 1:1
+--- (lowercaseText, normalize=false = simple per-codepoint tolower) so
+--- unrelated strings never share a cache entry.
+local function foldText(text)
+  if type(text) ~= "string" or not validUtf8(text) then return nil end
+  if Utf8Proc == nil then
+    local ok, mod = pcall(require, "ffi/utf8proc")
+    Utf8Proc = ok and type(mod) == "table" and type(mod.lowercase) == "function" and mod or false
+  end
+  local folded
+  if Utf8Proc then
+    local ok, f = pcall(Utf8Proc.lowercase, text, true)
+    if not ok or type(f) ~= "string" then return nil end
+    folded = f
+  else
+    folded = text:lower()
+  end
+  return folded:gsub("\194\173", "")      -- soft hyphen (U+00AD)
+      :gsub("\226\128[\139-\143]", "")   -- U+200B..U+200F format controls
+      :gsub("\226\129\160", "")          -- U+2060 WORD JOINER
+      :gsub("\45", "")                     -- U+002D hyphen-minus
+      :gsub("\226\128[\144-\149]", "")    -- U+2010..U+2015 hyphens
+      :gsub("\226\136\146", "")           -- U+2212 minus
+      :gsub("'", "")                       -- U+0027 apostrophe
+      :gsub("\226\128[\152\153]", "")     -- U+2018/U+2019 quotes
+      :gsub("\202\188", "")               -- U+02BC modifier apostrophe
+      :gsub("\194\160", " ")             -- NBSP (NFKC folds it too)
+      :gsub("%s+", " "):match("^%s*(.-)%s*$")
+end
 
 -- Marks draw only after the reader SETTLES on a page (round 9, maintainer:
 -- rushing through pages shouldn't pay a scan-and-draw per page). Every turn
@@ -54,6 +145,9 @@ local MODULE_NAME = "koassistant_xray_marks"
 -- so fast flipping costs nothing — and the page's own repaint always lands
 -- well before the marks pass.
 local SCAN_SETTLE_S = 0.3
+local SEARCH_CAP = 2000
+-- Bounds Lua/native-call count, not the duration of an individual mapping call.
+local MAP_BATCH = 100
 
 -- st = {
 --   file, families (nil = all),
@@ -65,20 +159,18 @@ local SCAN_SETTLE_S = 0.3
 --                      -- book position, not from what the reader viewed)
 --   debug,             -- features.debug captured at sync
 --   scan_token,        -- bumped per turn; stale deferred ticks abort
---   hits_page_count,   -- doc page count the memo was built against (a
---                      -- re-render, e.g. font change, renumbers pages —
---                      -- wipe the memo, xpointers stay valid)
+--   hits_page_count,   -- last observed page count; a changed count and the
+--                      -- explicit rerender hook both invalidate page buckets,
+--                      -- while same-session raw xpointers remain available
 --   stamps,            -- cache+aliases disk stamp gating the reloads
 --   live,              -- in-memory live entry, reloaded on stamp change
---   sections,          -- { {key, sp, ep, stamp, data} } ranges resolved on
---                      -- stamp change; in-range filter per turn is pure
---                      -- arithmetic (round 3: section-only entities were
---                      -- invisible to marking)
+--   sections,          -- { {key, stamp, data} }; marking is range-free like
+--                      -- lookup and never resolves section page ranges
 --   artifact_key,      -- identity of the artifacts the entity index came from
---   entities,          -- XrayParser.buildMarkEntities output (main + in-range sections)
---   term_hits = {},    -- term text (lower) -> { by_page = {[page] = {{start, e},...}},
---                      -- pages = sorted unique page list } — whole-book,
---                      -- searched at most once per term per session
+--   entities,          -- XrayParser.buildMarkEntities output (main + range-free sections)
+--   term_hits = {},    -- query descriptor -> session outcome plus raw hits
+--                      -- and layout-specific page buckets; every descriptor
+--                      -- is searched at most once per document session
 --   page_marks,        -- current page: { {x,y,w,h, name, text}, ... } — FULL word
 --                      -- boxes, the tap targets (round 2, d2)
 --   paint_boxes,       -- same-line-merged union rects the strips paint from
@@ -89,40 +181,77 @@ local SCAN_SETTLE_S = 0.3
 -- }
 local st = nil
 
--- The paint widget: registerViewModule injects .view/.ui; paintTo runs on
--- every view repaint, so it must only READ prepared state. Style: gray
--- DOTTED underline (maintainer round 7) — quiet enough to live on every
--- page, distinct from KOReader's solid-underline highlight style, and
--- paintRect (unlike the old invertRect) never self-cancels on overlap.
--- AHEAD-ONLY entities (known only to the newest built checkpoint — round
--- 16) paint short DASHES instead: same gray, same weight, visibly "new /
--- identification only", so the reader knows the full entry sits behind the
--- spoiler gate before tapping.
-local paint_widget = {
-  paintTo = function(_w, bb, _x, _y)
-    local boxes = st and st.paint_boxes
-    if not boxes then return end
-    local Screen = require("device").screen
-    local Blitbuffer = require("ffi/blitbuffer")
-    local strip = math.max(2, Screen:scaleBySize(2))
-    local dot = math.max(3, Screen:scaleBySize(3))
-    local dash = math.max(7, Screen:scaleBySize(7))
-    local gap = math.max(2, Screen:scaleBySize(2))
-    for _i, box in ipairs(boxes) do
-      if box.x and box.y and box.w and box.h and box.w > 0 and box.h > strip then
-        local seg = box.ahead and dash or dot
-        local y = box.y + box.h - strip
-        local x_end = box.x + box.w
-        local x = box.x
-        while x < x_end do
-          bb:paintRect(x, y, math.min(seg, x_end - x), strip,
-            Blitbuffer.COLOR_DARK_GRAY)
-          x = x + seg + gap
+local function ownsDocument(plugin)
+  local ui = plugin and plugin.ui
+  return st and ui and st.ui == ui and st.document == ui.document
+      and ui.document.file == st.file
+end
+
+local function searchActive(ui)
+  local search = ui.search
+  return search and (search._koassistant_search_session
+      or (search.search_dialog and UIManager:isWidgetShown(search.search_dialog)))
+end
+
+local function withdraw()
+  if not st then return end
+  local had_boxes = st.paint_boxes ~= nil
+  st.page_marks, st.paint_boxes = nil, nil
+  if had_boxes and st.ui.dialog then UIManager:setDirty(st.ui.dialog, "ui") end
+end
+
+local function cancelScan()
+  if not st then return end
+  st.scan_token = (st.scan_token or 0) + 1
+  if st.pending then UIManager:unschedule(st.pending) end
+  st.pending, st.scan = nil, nil
+end
+
+local function scheduleScan(plugin, pageno, delay)
+  local session, token = st, st.scan_token
+  local callback
+  callback = function()
+    -- Table identity cannot repeat when the same path is reopened.
+    if st ~= session or st.scan_token ~= token or st.pending ~= callback then return end
+    st.pending = nil
+    XrayMarks._scanTick(plugin, pageno, token)
+  end
+  st.pending = callback
+  UIManager:scheduleIn(delay, callback)
+end
+
+-- registerViewModule injects .view/.ui. Each document session gets its own
+-- widget closure, so an already-dispatched paint from an old same-path view
+-- cannot read a reopened session's boxes. paintTo only READS prepared state.
+local function newPaintWidget(session)
+  return {
+    paintTo = function(_w, bb, _x, _y)
+      local boxes = session.paint_boxes
+      if st ~= session or not boxes or session.suspended or session.layout_unstable
+          or session.document ~= session.ui.document
+          or session.ui.view.view_mode == "scroll" or searchActive(session.ui) then return end
+      local Screen = require("device").screen
+      local Blitbuffer = require("ffi/blitbuffer")
+      local strip = math.max(2, Screen:scaleBySize(2))
+      local dot = math.max(3, Screen:scaleBySize(3))
+      local dash = math.max(7, Screen:scaleBySize(7))
+      local gap = math.max(2, Screen:scaleBySize(2))
+      for _i, box in ipairs(boxes) do
+        if box.x and box.y and box.w and box.h and box.w > 0 and box.h > strip then
+          local seg = box.ahead and dash or dot
+          local y = box.y + box.h - strip
+          local x_end = box.x + box.w
+          local x = box.x
+          while x < x_end do
+            bb:paintRect(x, y, math.min(seg, x_end - x), strip,
+              Blitbuffer.COLOR_DARK_GRAY)
+            x = x + seg + gap
+          end
         end
       end
-    end
-  end,
-}
+    end,
+  }
+end
 
 --- Disk stamp over everything the entity index depends on. Stats only.
 --- The ladder joins (point-4): the index folds the newest built checkpoint
@@ -167,20 +296,13 @@ local function ensureIndex(plugin, pageno)
   if stamps ~= st.stamps then
     st.stamps = stamps
     st.live = ActionCache.getXrayCache(st.file)
-    -- Section X-Rays (round 3): entities that live only in a section were
-    -- invisible to marking while every LOOKUP surface searches sections
-    -- too. Ranges resolve once per disk change (the real resolver — an
-    -- exclusive end xpointer and last-section/hidden-flow handling live
-    -- there); the per-turn in-range filter is pure arithmetic.
+    -- Sections are range-free, just like lookup. Native range mapping is
+    -- neither needed nor a prerequisite for a section's entities to mark.
     st.sections = {}
-    local doc = plugin.ui and plugin.ui.document
     for _idx, sec in ipairs(ActionCache.getSectionXrays(st.file)) do
       if sec.data and sec.data.result then
-        local okr, sp, ep = pcall(ActionCache.getSectionPageRange, sec.data, doc)
-        if okr and sp and ep then
-          st.sections[#st.sections + 1] = { key = sec.key, sp = sp, ep = ep,
-            stamp = tostring(sec.data.timestamp), data = sec.data }
-        end
+        st.sections[#st.sections + 1] = { key = sec.key,
+          stamp = tostring(sec.data.timestamp), data = sec.data }
       end
     end
     -- Point-4 identification peek: the newest built checkpoint AHEAD of the
@@ -346,6 +468,17 @@ local function ensureIndex(plugin, pageno)
     end
     a.longer = longer
   end
+  -- Cache exact query descriptors on this policy snapshot. Never let a
+  -- regex and a plain query with the same display text share results.
+  for _i, ent in ipairs(ents) do
+    for _j, term in ipairs(ent.terms) do
+      -- Plain searches are case-insensitive, so case-only variants share
+      -- one native search. Regex payloads stay exact: lowercasing a pattern
+      -- could change its syntax or character classes.
+      term.query_key = term.regex and ("regex:1:" .. term.regex)
+          or ("plain:255:" .. (lowercaseText(term.text) or term.text))
+    end
+  end
   st.entities = #ents > 0 and ents or nil
   st.artifact_key = key
   local function tally(t)
@@ -407,37 +540,123 @@ end
 --- the empty result memoizes. 0x00FF = stock's default-search flag set;
 --- regex rides 0x0001 exactly like stock's regex search type.
 local function searchTerm(document, term)
-  local res
-  if term.regex then
-    res = document:findAllText(term.regex, true, 1, 2000, true, 0x0001)
-  else
-    res = document:findAllText(term.text, true, 1, 2000, false, 0x00FF)
-  end
-  local by_page, pages = {}, {}
-  if res then
-    for _i, r in ipairs(res) do
-      local keep = true
-      if not term.regex
-          and ((edgeIsWordChar(term.text, "prefix") and blockingAffix(r.matched_word_prefix))
-            or (edgeIsWordChar(term.text, "suffix") and blockingAffix(r.matched_word_suffix))) then
-        keep = false
-      end
-      if keep then
-        local ok, page = pcall(document.getPageFromXPointer, document, r.start)
-        if ok and page then
-          local bucket = by_page[page]
-          if not bucket then
-            bucket = {}
-            by_page[page] = bucket
-            pages[#pages + 1] = page
-          end
-          bucket[#bucket + 1] = { start = r.start, e = r["end"] }
-        end
-      end
+  local ok, res = pcall(document.findAllText, document, term.regex or term.text,
+      true, 1, SEARCH_CAP, not not term.regex, term.regex and 0x0001 or 0x00FF)
+  if not ok then return { outcome = "error" } end
+  -- CRE's nil does not distinguish no matches from all failure paths.
+  -- Retain legacy availability of OTHER handles, without claiming coverage.
+  if res == nil then return { outcome = "unknown" } end
+  if type(res) ~= "table" then return { outcome = "error" } end
+  local count = #res
+  if count >= SEARCH_CAP then return { outcome = "partial" } end
+  for k in pairs(res) do
+    if type(k) ~= "number" or k < 1 or k > count or k % 1 ~= 0 then
+      return { outcome = "error" }
     end
   end
-  table.sort(pages)
-  return { by_page = by_page, pages = pages }
+  local hits = {}
+  for i = 1, count do
+    local r = res[i]
+    if type(r) ~= "table" or type(r.start) ~= "string" or r.start == ""
+        or type(r["end"]) ~= "string" or r["end"] == ""
+        or (r.matched_word_prefix ~= nil and type(r.matched_word_prefix) ~= "string")
+        or (r.matched_word_suffix ~= nil and type(r.matched_word_suffix) ~= "string") then
+      return { outcome = "error" }
+    end
+    if term.regex or not (
+        (edgeIsWordChar(term.text, "prefix") and blockingAffix(r.matched_word_prefix))
+        or (edgeIsWordChar(term.text, "suffix") and blockingAffix(r.matched_word_suffix))) then
+      hits[#hits + 1] = { start = r.start, e = r["end"] }
+    end
+  end
+  -- Only a non-capped, structurally complete result reaches these terminal
+  -- outcomes. The persistent layer still waits for full identity verification
+  -- and live-document XPointer mapping before publishing hits.
+  return { outcome = #hits == 0 and "empty" or "hits", hits = hits }
+end
+
+local function comparablePlainText(text)
+  local folded = foldText(text)
+  if not folded then return nil end
+  return require("koassistant_xray_parser").normalizeArabic(folded)
+end
+
+local function persistedPlainRangeMatches(document, term, hit)
+  if term.regex or type(document.getTextFromXPointers) ~= "function" then return false end
+  local ok_text, pointed_text = pcall(document.getTextFromXPointers,
+      document, hit.start, hit.e)
+  local pointed, expected = comparablePlainText(pointed_text), comparablePlainText(term.text)
+  if not ok_text or not pointed or not expected or pointed ~= expected then
+    return false
+  end
+  -- Re-check the same whole-word policy used for live findAllText results.
+  -- A corrupted but addressable range could otherwise point at "Alice" in
+  -- "Malice" and pass the exact-range text check. CRE's adjacent-character
+  -- XPointer APIs let us fail closed without running another native search.
+  if edgeIsWordChar(term.text, "prefix") then
+    if type(document.getPrevVisibleChar) ~= "function" then return false end
+    local ok_prev, prev = pcall(document.getPrevVisibleChar, document, hit.start)
+    if not ok_prev then return false end
+    if prev then
+      local ok_prefix, prefix = pcall(document.getTextFromXPointers,
+          document, prev, hit.start)
+      if not ok_prefix or type(prefix) ~= "string" or blockingAffix(prefix) then return false end
+    end
+  end
+  if edgeIsWordChar(term.text, "suffix") then
+    if type(document.getNextVisibleChar) ~= "function" then return false end
+    local ok_next, next_pos = pcall(document.getNextVisibleChar, document, hit.e)
+    if not ok_next then return false end
+    if next_pos then
+      local ok_suffix, suffix = pcall(document.getTextFromXPointers,
+          document, hit.e, next_pos)
+      if not ok_suffix or type(suffix) ~= "string" or blockingAffix(suffix) then return false end
+    end
+  end
+  return true
+end
+
+local function mapTerm(document, term, th, layout)
+  if th.layout ~= layout then
+    th.layout, th.cursor = layout, 1
+    th.by_page, th.pages = {}, {}
+  end
+  local last = math.min(#th.hits, th.cursor + MAP_BATCH - 1)
+  for i = th.cursor, last do
+    local h = th.hits[i]
+    local ok, page = pcall(document.getPageFromXPointer, document, h.start)
+    local oke, end_page = pcall(document.getPageFromXPointer, document, h.e)
+    local okc, order = pcall(document.compareXPointers, document, h.start, h.e)
+    local text_ok = not th.persisted or persistedPlainRangeMatches(document, term, h)
+    if not text_ok or not ok or not oke or not okc or type(page) ~= "number" or page ~= page
+        or page < 1 or page == math.huge or page % 1 ~= 0
+        or type(end_page) ~= "number" or end_page ~= end_page
+        or end_page < page or end_page == math.huge or end_page % 1 ~= 0
+        or type(order) ~= "number" or order ~= order or order < 0 then
+      th.outcome, th.hits, th.by_page, th.pages = "error", nil, nil, nil
+      return true
+    end
+    local bucket = th.by_page[page]
+    if not bucket then
+      bucket = {}
+      th.by_page[page] = bucket
+      th.pages[#th.pages + 1] = page
+    end
+    bucket[#bucket + 1] = h
+  end
+  th.cursor = last + 1
+  if th.cursor <= #th.hits then return false end
+  table.sort(th.pages)
+  return true
+end
+
+local function previousPage(pages, pageno)
+  local lo, hi = 1, #pages
+  while lo <= hi do
+    local mid = math.floor((lo + hi) / 2)
+    if pages[mid] < pageno then lo = mid + 1 else hi = mid - 1 end
+  end
+  return pages[hi]
 end
 
 local function dedupeMarks(marks)
@@ -495,6 +714,37 @@ local function mergeLineBoxes(marks)
   return out
 end
 
+local function startPersistentIndex(plugin)
+  if st.persistence_attempted then return end
+  st.persistence_attempted = true
+  local session = st
+  local disposition
+  st.persistent_index, disposition = PersistentIndex.start {
+    file = st.file,
+    document = st.document,
+    doc_settings = st.ui.doc_settings,
+    dom_open_identity = st.ui.rolling and st.ui.rolling.rendering_hash,
+    is_owner = function()
+      return st == session and ownsDocument(plugin)
+    end,
+    on_ready = function()
+      if st ~= session or not ownsDocument(plugin) then return end
+      local okp, pageno = pcall(session.document.getCurrentPage, session.document)
+      XrayMarks.onPageTurn(plugin, okp and pageno or nil)
+    end,
+  }
+  st.persistence_disposition = disposition
+  -- On-device diagnostics: why the index did not start (crash.log visible).
+  if disposition then
+    logger.dbg("KOAssistant marks: persistence unavailable (" .. disposition
+      .. ") — session-native marking runs, nothing is cached")
+  elseif st.persistent_index then
+    logger.dbg("KOAssistant marks: persistence verifying book identity...")
+  else
+    logger.warn("KOAssistant marks: persistence start returned no state and no reason")
+  end
+end
+
 --- One deferred scan step (round 7 — the perf split). Resolve phase: a term
 --- present on this page but never searched costs one whole-book findAllText
 --- (~100ms+ on device), so at most ONE runs per tick and the rest chain on
@@ -503,77 +753,101 @@ end
 --- memoized — the steady state): page hits are pure table lookups, boxes
 --- resolve for this page only, then ONE partial refresh sized to the strips
 --- — a mark-free page schedules nothing and refreshes nothing.
-function XrayMarks._scanTick(plugin, pageno, token, hay)
-  if not st or st.scan_token ~= token then return end
-  local ui = plugin and plugin.ui
-  if not (ui and ui.document and ui.rolling) then return end
-  if ui.document.file ~= st.file then return end
-  if ui.view and ui.view.view_mode == "scroll" then return end
-  -- A search session can OPEN between the turn and this tick (or mid-chain
-  -- during a multi-term warm-up) — our findAllText would erase its hit
-  -- highlights (the round-3 bug), so every tick re-checks
-  local search = ui.search
-  if search and (search._koassistant_search_session
-      or (search.search_dialog and UIManager:isWidgetShown(search.search_dialog))) then
+function XrayMarks._scanTick(plugin, pageno, token)
+  if not ownsDocument(plugin) or st.scan_token ~= token then return end
+  local ui = plugin.ui
+  if not ui.rolling or st.suspended or st.layout_unstable or st.scan_error
+      or (ui.view and ui.view.view_mode == "scroll") or searchActive(ui) then
+    cancelScan()
+    withdraw()
     return
   end
   local ok, err = pcall(function()
     local time = require("ui/time")
     local t0 = time.now()
-    ensureIndex(plugin, pageno)
-    if not st.entities or #st.entities == 0 then return end
-    local idx_ms = time.to_ms(time.now() - t0)
-    local hay_ms = 0
-
-    -- A re-render (font/margin change) renumbers pages; the memo's pages
-    -- were computed against the old flow. Xpointers stay valid — only the
-    -- page bucketing is stale — so wipe and let terms re-search on demand.
-    local total = ui.document.info and ui.document.info.number_of_pages
-    if total and st.hits_page_count ~= total then
-      if st.hits_page_count ~= nil then st.term_hits = {} end
-      st.hits_page_count = total
-    end
-
-    -- Resolve: first present-but-never-searched term searches now, rest of
-    -- the chain follows one tick at a time. An absent unsearched term stays
-    -- unmemoized on purpose — the page where it IS present triggers its
-    -- one-time search.
-    for _i, ent in ipairs(st.entities) do
-      if not st.families or st.families[ent.family] then
-        for _j, term in ipairs(ent.terms) do
-          local tkey = term.text:lower()
-          if not st.term_hits[tkey] then
-            if hay == nil then
-              -- Visible-page text, once per scan (page-level read, same
-              -- consent class as the page-exempt extraction). LAYOUT text:
-              -- line wraps arrive as newlines, so a wrapped "Danny\nLloyd"
-              -- must still match the single-space term — collapse all
-              -- whitespace (NBSP included) like the term norms.
-              local hay_t = time.now()
-              local ContextExtractor = require("koassistant_context_extractor")
-              local XrayParser = require("koassistant_xray_parser")
-              local page_text = ContextExtractor:new(ui):getVisiblePageText().text or ""
-              hay = XrayParser.normalizeArabic(page_text:lower())
-                  :gsub("\194\160", " "):gsub("%s+", " ")
-              hay_ms = time.to_ms(time.now() - hay_t)
-            end
-            if hay ~= "" and hay:find(term.norm, 1, true) then
-              local search_t = time.now()
-              st.term_hits[tkey] = searchTerm(ui.document, term)
-              if st.debug then
-                logger.info("KOAssistant marks dbg: searched \"" .. term.text
-                  .. "\" -> " .. tostring(#st.term_hits[tkey].pages)
-                  .. " pages in "
-                  .. string.format("%.0f", time.to_ms(time.now() - search_t)) .. "ms")
+    local idx_ms, hay_ms = 0, 0
+    if not st.scan then
+      ensureIndex(plugin, pageno)
+      idx_ms = time.to_ms(time.now() - t0)
+      if not st.entities or #st.entities == 0 then withdraw(); return end
+      -- Do not hash every opened EPUB: begin only after an actual X-Ray entity
+      -- set exists. Once begun, no cold native search may run until the
+      -- identity verifier either succeeds or safely disables persistence.
+      startPersistentIndex(plugin)
+      if PersistentIndex.isPending(st.persistent_index) then return end
+      local scan = { entities = st.entities, queue = {}, cursor = 1 }
+      st.scan = scan
+      local seen, hay = {}, nil
+      for _i, ent in ipairs(scan.entities) do
+        if not st.families or st.families[ent.family] then
+          for _j, term in ipairs(ent.terms) do
+            local key = term.query_key
+            if not seen[key] then
+              seen[key] = true
+              local th = st.term_hits[key]
+              if not term.regex and not th and PersistentIndex.isReady(st.persistent_index) then
+                th = PersistentIndex.get(st.persistent_index, key)
+                if th then st.term_hits[key] = th end
               end
-              UIManager:scheduleIn(0.05, function()
-                XrayMarks._scanTick(plugin, pageno, token, hay)
-              end)
-              return
+              if not th and hay == nil then
+                local hay_t = time.now()
+                local page_text = require("koassistant_context_extractor"):new(ui):getVisiblePageText().text or ""
+                hay = require("koassistant_xray_parser").normalizeArabic(page_text:lower())
+                    :gsub("\194\160", " "):gsub("%s+", " ")
+                hay_ms = time.to_ms(time.now() - hay_t)
+              end
+              if (th and th.hits and (th.layout ~= st.layout_generation or th.cursor <= #th.hits))
+                  or (not th and hay ~= "" and hay:find(term.norm, 1, true)) then
+                scan.queue[#scan.queue + 1] = term
+              end
             end
           end
         end
       end
+    end
+    local scan = st.scan
+    while scan.cursor <= #scan.queue do
+      local term = scan.queue[scan.cursor]
+      local th = st.term_hits[term.query_key]
+      if not th then
+        if not PersistentIndex.allowColdSearch(st.persistent_index) then
+          st.term_hits[term.query_key] = { outcome = "error", persistence_rejected = true }
+          scan.cursor = scan.cursor + 1
+          scheduleScan(plugin, pageno, 0.05)
+          return
+        end
+        th = searchTerm(ui.document, term)
+        st.term_hits[term.query_key] = th
+        if not term.regex and PersistentIndex.isReady(st.persistent_index) then
+          if th.outcome == "hits" then
+            -- Publish only after normal batched live-document mapping has
+            -- validated every returned raw XPointer.
+            th.needs_persist = true
+          end
+        end
+        -- Keep native search separate from mapping work. Failures stay
+        -- quarantined for this session, even across settings/layout changes.
+        scheduleScan(plugin, pageno, 0.05)
+        return
+      end
+      if th.hits and (th.layout ~= st.layout_generation or th.cursor <= #th.hits) then
+        local done = mapTerm(ui.document, term, th, st.layout_generation)
+        if done then
+          if th.outcome == "error" and th.persisted then
+            -- A cache hit is not trusted merely because its bytes and DOM
+            -- identity matched. Quarantine this descriptor for the session
+            -- and evict it without a same-session cold-search fallback.
+            PersistentIndex.evict(st.persistent_index, term.query_key)
+          elseif th.outcome == "hits" and th.needs_persist then
+            PersistentIndex.put(st.persistent_index, term.query_key, "hits", th.hits)
+          end
+          th.needs_persist = nil
+          scan.cursor = scan.cursor + 1
+        end
+        scheduleScan(plugin, pageno, 0.05)
+        return
+      end
+      scan.cursor = scan.cursor + 1
     end
 
     -- Paint: entity-level spacing + box resolution from the memo
@@ -584,13 +858,18 @@ function XrayMarks._scanTick(plugin, pageno, token, hay)
     -- spreads) and, for the spacing window, the entity's nearest hit page
     -- BEFORE this page
     local per_ent, hits_by_name = {}, {}
-    for _i, ent in ipairs(st.entities) do
+    local unavailable_names = {}
+    for _i, ent in ipairs(scan.entities) do
       if not st.families or st.families[ent.family] then
         local page_hits = {}
         local prev_page
         for _j, term in ipairs(ent.terms) do
-          local th = st.term_hits[term.text:lower()]
-          if th then
+          local th = st.term_hits[term.query_key]
+          if th and (th.outcome == "error" or th.outcome == "partial"
+              or th.outcome == "unknown") then
+            unavailable_names[ent.name] = true
+          end
+          if th and th.by_page and th.layout == st.layout_generation then
             for p = pageno, pageno + 1 do
               local bucket = th.by_page[p]
               if bucket then
@@ -604,13 +883,8 @@ function XrayMarks._scanTick(plugin, pageno, token, hay)
               end
             end
             if st.spacing > 1 then
-              local pgs = th.pages
-              for k = #pgs, 1, -1 do
-                if pgs[k] < pageno then
-                  if not prev_page or pgs[k] > prev_page then prev_page = pgs[k] end
-                  break
-                end
-              end
+              local prev = previousPage(th.pages, pageno)
+              if prev and (not prev_page or prev > prev_page) then prev_page = prev end
             end
           end
         end
@@ -623,6 +897,15 @@ function XrayMarks._scanTick(plugin, pageno, token, hay)
     -- the memo, no box work); then spacing + boxes
     for _i, pe in ipairs(per_ent) do
       local ent, page_hits, prev_page = pe.ent, pe.hits, pe.prev_page
+      -- A failed alias does not hide this entity's independently available
+      -- handles (legacy demand-driven availability). An unavailable LONGER
+      -- entity does hide a contained short handle: without its positions we
+      -- cannot safely decide that the short hit belongs to another entity.
+      local containment_unknown = false
+      for _l, lname in ipairs(ent.longer or {}) do
+        if unavailable_names[lname] then containment_unknown = true end
+      end
+      if containment_unknown then page_hits = {} end
       if ent.longer and #page_hits > 0 then
         local kept = {}
         for _k, ph in ipairs(page_hits) do
@@ -631,7 +914,8 @@ function XrayMarks._scanTick(plugin, pageno, token, hay)
             for _m, lh in ipairs(hits_by_name[lname] or {}) do
               local ok1, c1 = pcall(ui.document.compareXPointers, ui.document, lh.h.start, ph.h.start)
               local ok2, c2 = pcall(ui.document.compareXPointers, ui.document, ph.h.e, lh.h.e)
-              if ok1 and ok2 and c1 and c2 and c1 >= 0 and c2 >= 0 then
+              if not ok1 or not ok2 or type(c1) ~= "number" or type(c2) ~= "number"
+                  or c1 ~= c1 or c2 ~= c2 or (c1 >= 0 and c2 >= 0) then
                 inside = true
                 break
               end
@@ -677,6 +961,8 @@ function XrayMarks._scanTick(plugin, pageno, token, hay)
     if #marks > 0 then
       st.page_marks = dedupeMarks(marks)
       st.paint_boxes = mergeLineBoxes(st.page_marks)
+    else
+      withdraw()
     end
     -- Phase-split timing line (the round-9 device-slowness arbiter). The
     -- old full-hay dump is GONE — multi-KB synchronous log writes per page
@@ -693,13 +979,9 @@ function XrayMarks._scanTick(plugin, pageno, token, hay)
         .. "ms paint=" .. string.format("%.0f", time.to_ms(time.now() - paint_t))
         .. "ms total=" .. string.format("%.0f", time.to_ms(time.now() - t0)) .. "ms")
     end
-    -- One targeted partial refresh over the union of the strips — except
-    -- after a settings change (sync sets full_refresh), where the whole
-    -- page repaints once so removed marks can't linger outside the region
-    if st.full_refresh and ui.dialog then
-      st.full_refresh = nil
-      UIManager:setDirty(ui.dialog, "ui")
-    elseif st.paint_boxes and ui.dialog then
+    -- One targeted partial refresh over the union of the current strips.
+    -- Withdrawals already request a full UI redraw for removed geometry.
+    if st.paint_boxes and ui.dialog then
       local Geom = require("ui/geometry")
       local first = st.paint_boxes[1]
       local rx, ry = first.x, first.y
@@ -719,8 +1001,9 @@ function XrayMarks._scanTick(plugin, pageno, token, hay)
   end)
   if not ok then
     logger.warn("KOAssistant marks: scan failed:", err)
-    st.page_marks = nil
-    st.paint_boxes = nil
+    st.scan_error = true -- circuit breaker until explicit sync/reopen
+    cancelScan()
+    withdraw()
   end
 end
 
@@ -732,12 +1015,17 @@ end
 --- 7 moved it off the dispatch — the turn waited on searches and boxes;
 --- round 9 added the settle so rapid flipping pays nothing per page).
 function XrayMarks.onPageTurn(plugin, pageno)
-  if not st then return end
-  local ui = plugin and plugin.ui
-  if not (ui and ui.document and ui.rolling and pageno) then return end
-  if ui.document.file ~= st.file then return end
-  st.page_marks = nil
-  st.paint_boxes = nil
+  if not ownsDocument(plugin) then return end
+  cancelScan()
+  withdraw()
+  local ui = plugin.ui
+  if not (ui.rolling and pageno) or st.suspended or st.layout_unstable
+      or st.scan_error or PersistentIndex.isPending(st.persistent_index) then return end
+  local total = ui.document.info and ui.document.info.number_of_pages
+  if total ~= st.hits_page_count then
+    st.layout_generation = st.layout_generation + 1
+    st.hits_page_count = total
+  end
   if ui.view and ui.view.view_mode == "scroll" then return end
 
   -- A live search session owns the page visuals: our findAllText shares
@@ -751,24 +1039,68 @@ function XrayMarks.onPageTurn(plugin, pageno)
   local sd = search and search.search_dialog
   if sd and UIManager:isWidgetShown(sd) then
     search._koassistant_search_session = "shown"
-    -- Invalidate any in-flight scan chain too
-    st.scan_token = (st.scan_token or 0) + 1
     return
   end
   local sess = search and search._koassistant_search_session
   if sess == true then
-    st.scan_token = (st.scan_token or 0) + 1
     return
   elseif sess then
     -- Was shown, now closed: session over
     search._koassistant_search_session = nil
   end
 
-  st.scan_token = (st.scan_token or 0) + 1
-  local token = st.scan_token
-  UIManager:scheduleIn(SCAN_SETTLE_S, function()
-    XrayMarks._scanTick(plugin, pageno, token, nil)
-  end)
+  scheduleScan(plugin, pageno, SCAN_SETTLE_S)
+end
+
+--- Reflow can leave the page count unchanged. Keep only same-DOM raw hits;
+--- remapping is demand-driven and batched, never a new whole-book search.
+function XrayMarks.onLayoutChanged(plugin, unstable)
+  if not ownsDocument(plugin) then return end
+  st.layout_generation = st.layout_generation + 1
+  st.layout_unstable = unstable and true or nil
+  local ok, page = pcall(st.document.getCurrentPage, st.document)
+  XrayMarks.onPageTurn(plugin, ok and page or nil)
+end
+
+function XrayMarks.onViewModeChanged(plugin)
+  if not ownsDocument(plugin) then return end
+  if plugin.ui.view.view_mode == "scroll" then
+    XrayMarks.pause(plugin)
+  else
+    -- Entering scroll mode pauses hashing/writes; explicitly resume them
+    -- before remapping when page mode returns.
+    PersistentIndex.resume(st.persistent_index)
+    -- Returning to page mode changes viewport geometry and may follow a
+    -- reflow. Remap retained positions before publishing fresh targets.
+    XrayMarks.onLayoutChanged(plugin)
+  end
+end
+
+function XrayMarks.pause(plugin, suspended)
+  if not ownsDocument(plugin) then return end
+  if suspended then st.suspended = true end
+  PersistentIndex.pause(st.persistent_index)
+  cancelScan()
+  withdraw()
+end
+
+function XrayMarks.resume(plugin)
+  if not ownsDocument(plugin) then return end
+  st.suspended = nil
+  PersistentIndex.resume(st.persistent_index)
+  local ok, page = pcall(st.document.getCurrentPage, st.document)
+  XrayMarks.onPageTurn(plugin, ok and page or nil)
+end
+
+--- Fence the search-dialog close callback too: an old dialog must not sync
+--- a reopened document (even with the same path and reader instance).
+function XrayMarks.resumeCallback(plugin)
+  local session = st
+  return function()
+    if session and st == session and ownsDocument(plugin) then
+      XrayMarks.resume(plugin)
+    end
+  end
 end
 
 --- d2 tap layer (round 2): entity name under a tap, or nil. The FULL word
@@ -780,7 +1112,12 @@ end
 --- @return table|nil word box {x, y, w, h} (screen coords, fresh copy) —
 ---   anchors the floating-popup card style
 function XrayMarks.tapTarget(plugin, ges)
-  local marks = st and st.page_marks
+  if not ownsDocument(plugin) then return nil end
+  if st.suspended or plugin.ui.view.view_mode == "scroll" or searchActive(plugin.ui) then
+    XrayMarks.pause(plugin)
+    return nil
+  end
+  local marks = st.page_marks
   if not (marks and ges and ges.pos) then return nil end
   local features = plugin and plugin.settings
       and plugin.settings:readSetting("features") or {}
@@ -788,7 +1125,7 @@ function XrayMarks.tapTarget(plugin, ges)
   -- book layer; sidecar reads are memory-cached, so this stays a cheap tap)
   local marking = require("koassistant_book_settings").resolveXrayMarking(
       plugin and plugin.ui and plugin.ui.doc_settings, features)
-  if not marking.tap then return nil end
+  if not marking.enabled or not marking.tap then return nil end
   local Screen = require("device").screen
   local pad = Screen:scaleBySize(3)
   local tx, ty = ges.pos.x, ges.pos.y
@@ -805,8 +1142,26 @@ end
 
 --- Install/refresh/remove per settings + book state. Call on reader ready,
 --- setting changes, and whenever a surface wants marks to reflect NOW.
+local function teardownCurrent()
+  if not st then return end
+  local session, ui = st, st.ui
+  cancelScan()
+  withdraw()
+  -- Flush only a verified dirty index, while its owning document/session
+  -- fence still holds; a pending hash is simply cancelled and discarded.
+  PersistentIndex.close(session.persistent_index)
+  st = nil
+  if ui and ui.view and ui.view.view_modules
+      and ui.view.view_modules[MODULE_NAME] == session.paint_widget then
+    ui.view.view_modules[MODULE_NAME] = nil
+  end
+end
+
 function XrayMarks.sync(plugin)
   local ui = plugin and plugin.ui
+  -- Public sync is session-owned. A delayed callback from another ReaderUI
+  -- must be a true no-op before it reads settings or mutates any state.
+  if st and st.ui ~= ui then return end
   local features = plugin and plugin.settings
       and plugin.settings:readSetting("features") or {}
   -- Opt-out since round 10 (default ON — read pattern must match the schema
@@ -818,13 +1173,25 @@ function XrayMarks.sync(plugin)
   local eligible = marking.enabled
       and ui and ui.document and ui.rolling and ui.view
   if not eligible then
-    XrayMarks.teardown(plugin)
+    -- A delayed callback from a closed ReaderUI must not tear down a newer
+    -- session. The owning UI may already have cleared its document, so UI
+    -- identity (rather than ownsDocument) is the teardown fence here.
+    if st and st.ui == ui then teardownCurrent() end
     return
   end
 
-  if not (st and st.file == ui.document.file) then
-    st = { file = ui.document.file, term_hits = {} }
+  if st and not ownsDocument(plugin) then
+    -- Replacing a document in the same owning UI is intentional and may
+    -- retire that UI's old state.
+    teardownCurrent()
   end
+  if not st then
+    st = { file = ui.document.file, document = ui.document, ui = ui,
+      term_hits = {}, layout_generation = 0 }
+  end
+  cancelScan()
+  withdraw()
+  st.scan_error = nil
   -- Density → spacing (round 7): "all" marks every occurrence, "first" once
   -- per page, "10"/"25" only after that many pages unseen, "once" only the
   -- first appearance in the book. Default flipped to "10" round 9 —
@@ -838,10 +1205,6 @@ function XrayMarks.sync(plugin)
     st.spacing = tonumber(density) or 1
   end
   st.debug = features.debug and true or nil
-  -- Settings changed: the next completed scan must repaint the WHOLE page —
-  -- its region refresh is sized to the NEW marks, and a mode change that
-  -- shrinks the set would leave removed marks visible outside it
-  st.full_refresh = true
   local fam = marking.families
   if fam == "people" then
     st.families = { people = true }
@@ -858,7 +1221,8 @@ function XrayMarks.sync(plugin)
   st.stamps = nil
 
   if not ui.view.view_modules[MODULE_NAME] then
-    ui.view:registerViewModule(MODULE_NAME, paint_widget)
+    st.paint_widget = st.paint_widget or newPaintWidget(st)
+    ui.view:registerViewModule(MODULE_NAME, st.paint_widget)
   end
   local okp, pageno = pcall(ui.document.getCurrentPage, ui.document)
   XrayMarks.onPageTurn(plugin, okp and pageno or nil)
@@ -868,16 +1232,9 @@ function XrayMarks.sync(plugin)
 end
 
 function XrayMarks.teardown(plugin)
-  local ui = plugin and plugin.ui
-  local was_painting = st and st.paint_boxes
-  st = nil
-  if ui and ui.view and ui.view.view_modules
-      and ui.view.view_modules[MODULE_NAME] then
-    ui.view.view_modules[MODULE_NAME] = nil
-    if was_painting and ui.dialog then
-      UIManager:setDirty(ui.dialog, "ui")
-    end
-  end
+  -- Close notifications from an old ReaderUI can arrive after a new book
+  -- has installed its state, including for the same path.
+  if st and plugin and st.ui == plugin.ui then teardownCurrent() end
 end
 
 return XrayMarks

@@ -7231,6 +7231,9 @@ function AskGPT:_scheduleGroupReseed(group_id)
         elseif (written or 0) > 0 then
           logger.info("KOAssistant: group seeding wrote", written, "carried list(s) of",
             checked, "checked")
+          -- XrayMarks.sync owns the document-session fence: a delayed
+          -- reseed may finish after book close, but it cannot touch the
+          -- state of a replacement ReaderUI.
           if self_ref.syncXrayMarks then pcall(function() self_ref:syncXrayMarks() end) end
         end
       end
@@ -13551,10 +13554,33 @@ end
 function AskGPT:onPageUpdate(pageno)
   self:_quizOnPageUpdate(pageno)
   self:_xrayAutoOnPageUpdate(pageno)
-  -- Ambient X-Ray marks (slice 2): scanning INSIDE the dispatch lets the
-  -- marks ride the page's own repaint — no extra e-ink refresh. Nil state
-  -- short-circuits when marking is off.
+  -- Passive marking only clears/schedules here; native search stays in a
+  -- settled deferred tick (and may still block that tick on a cold term).
   require("koassistant_xray_marks").onPageTurn(self, pageno)
+end
+
+-- Reader lifecycle seams for passive geometry. Raw XPointer hits belong to
+-- the still-open document session, so rerender remaps rather than re-searches.
+function AskGPT:onDocumentRerendered()
+  require("koassistant_xray_marks").onLayoutChanged(self, false)
+end
+
+-- CRE's delayed partial-rerender state reports page numbers as invalid.
+-- Keep raw positions, but publish no geometry until a full rerender event.
+function AskGPT:onDocumentPartiallyRerendered()
+  require("koassistant_xray_marks").onLayoutChanged(self, true)
+end
+
+function AskGPT:onChangeViewMode()
+  require("koassistant_xray_marks").onViewModeChanged(self)
+end
+
+function AskGPT:onSuspend()
+  require("koassistant_xray_marks").pause(self, true)
+end
+
+function AskGPT:onResume()
+  require("koassistant_xray_marks").resume(self)
 end
 
 function AskGPT:_quizOnPageUpdate(pageno)
@@ -19333,6 +19359,11 @@ function AskGPT:syncXrayMarks()
     local marks_self = self
     search.onShowSearchDialog = function(s_self, ...)
       s_self._koassistant_search_session = true
+      local marks = require("koassistant_xray_marks")
+      -- Search owns CRE selection and the viewport until its dialog closes.
+      -- Withdraw paint and tap targets before its initial native search.
+      marks.pause(marks_self)
+      local resume_marks = marks.resumeCallback(marks_self)
       local ret = search._koassistant_original_onShowSearchDialog(s_self, ...)
       -- Round 6: marks must RETURN when the session ends, not wait for the
       -- next page turn (closing the search often restores the origin page
@@ -19342,14 +19373,21 @@ function AskGPT:syncXrayMarks()
       -- buttons, the X-Ray return button's UIManager:close) — clear the
       -- flag and rescan on the next tick.
       local sd = s_self.search_dialog
+      if sd then
+        -- Refresh this on every show: disabling/re-enabling marking creates a
+        -- new state object even when KOReader reuses the same search dialog.
+        sd._koassistant_marks_resume = resume_marks
+      end
       if sd and not sd._koassistant_close_wrapped then
         sd._koassistant_close_wrapped = true
         local orig_close = sd.onCloseWidget
         sd.onCloseWidget = function(d_self, ...)
           s_self._koassistant_search_session = nil
-          UIManager:nextTick(function()
-            marks_self:syncXrayMarks()
-          end)
+          -- The callback captures the document-session object. A late close
+          -- from an old dialog cannot resume a same-path reopened document.
+          local resume = d_self._koassistant_marks_resume
+          d_self._koassistant_marks_resume = nil
+          if resume then UIManager:nextTick(resume) end
           if orig_close then return orig_close(d_self, ...) end
         end
       end

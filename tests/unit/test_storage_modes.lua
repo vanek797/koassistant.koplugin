@@ -571,6 +571,7 @@ end)
 package.loaded["libs/libkoreader-lfs"] = _saved_lfs
 package.loaded["datastorage"] = _saved_datastorage
 package.loaded["util"] = _saved_util
+os.rename = original_rename  -- luacheck: ignore 122
 
 -- ============================================================
 -- Results

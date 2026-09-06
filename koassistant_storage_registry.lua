@@ -323,6 +323,54 @@ Registry.entries = {
         opt_in_reset = true,
         notes = "Create-ahead prefix versions (rungs, ascending by progress; xray_ecosystem_plan.md §6); promotion source; deleted with the X-Ray.",
     },
+    {
+        id = "sidecar_xray_marks_index", label = "Passive X-Ray search index",
+        location = "sidecar_file", ref = "koassistant_xray_marks_index.json",
+        category = "index", rebuildable = true, backup = false, uninstall = true,
+        notes = "Machine-generated data-only raw-XPointer cache; never user-authored; safe to delete and rebuild.",
+    },
+    {
+        id = "sidecar_xray_marks_index_tmp", label = "Passive X-Ray index recovery file",
+        location = "sidecar_file", ref = "koassistant_xray_marks_index.json.tmp",
+        category = "index", rebuildable = true, backup = false, uninstall = true,
+        notes = "Atomic-write recovery companion; validated or removed on the next verified open.",
+    },
+    {
+        id = "sidecar_xray_marks_index_old", label = "Obsolete passive X-Ray JSON predecessor",
+        location = "sidecar_file", ref = "koassistant_xray_marks_index.json.old",
+        category = "index", rebuildable = true, backup = false, uninstall = true, legacy = true,
+        notes = "Experimental predecessor companion; never loaded and removed on verified-index startup.",
+    },
+    {
+        id = "sidecar_xray_marks_index_old_tmp", label = "Obsolete passive X-Ray JSON predecessor temp",
+        location = "sidecar_file", ref = "koassistant_xray_marks_index.json.old.tmp",
+        category = "index", rebuildable = true, backup = false, uninstall = true, legacy = true,
+        notes = "Experimental predecessor temp; never loaded and removed on verified-index startup.",
+    },
+    {
+        id = "sidecar_xray_marks_index_lua", label = "Obsolete executable passive X-Ray index",
+        location = "sidecar_file", ref = "koassistant_xray_marks_index.lua",
+        category = "index", rebuildable = true, backup = false, uninstall = true, legacy = true,
+        notes = "Experimental executable format; never loaded and removed on verified-index startup.",
+    },
+    {
+        id = "sidecar_xray_marks_index_lua_tmp", label = "Obsolete executable passive X-Ray index temp",
+        location = "sidecar_file", ref = "koassistant_xray_marks_index.lua.tmp",
+        category = "index", rebuildable = true, backup = false, uninstall = true, legacy = true,
+        notes = "Experimental executable temp; never loaded and removed on verified-index startup.",
+    },
+    {
+        id = "sidecar_xray_marks_index_lua_old", label = "Obsolete executable passive X-Ray predecessor",
+        location = "sidecar_file", ref = "koassistant_xray_marks_index.lua.old",
+        category = "index", rebuildable = true, backup = false, uninstall = true, legacy = true,
+        notes = "Experimental executable predecessor; never loaded and removed on verified-index startup.",
+    },
+    {
+        id = "sidecar_xray_marks_index_lua_old_tmp", label = "Obsolete executable passive X-Ray predecessor temp",
+        location = "sidecar_file", ref = "koassistant_xray_marks_index.lua.old.tmp",
+        category = "index", rebuildable = true, backup = false, uninstall = true, legacy = true,
+        notes = "Experimental executable predecessor temp; never loaded and removed on verified-index startup.",
+    },
 
     --========================= Plugin per-book files (Track 37, 2026-09-02) ===
     -- Everything the plugin used to keep INSIDE KOReader's metadata.lua (the
@@ -486,6 +534,19 @@ end
 -- Per-book sidecar filenames tracked on book move/copy/delete (KOASSISTANT_SIDECAR_FILES).
 function Registry.sidecarFiles()
     return refsForLocation("sidecar_file")
+end
+
+-- Sidecars that prove a directory contains user/content-bearing KOAssistant
+-- data. Rebuildable machine caches must not turn cache-only orphan .sdr dirs
+-- into index-rebuild candidates or unmapped-user-data reports.
+function Registry.contentSidecarFiles()
+    local out = {}
+    for _, e in ipairs(Registry.entries) do
+        if e.location == "sidecar_file" and not e.rebuildable then
+            out[#out + 1] = e.ref
+        end
+    end
+    return out
 end
 
 -- Plugin-folder config files the backup includes, as { ref, credential }. The
