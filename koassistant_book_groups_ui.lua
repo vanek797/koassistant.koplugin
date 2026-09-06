@@ -522,7 +522,10 @@ end
 --- the SAME code. Each ends where the old dialog's did — with
 --- `GroupsUI.showGroup(group_id, opts)`, which now refreshes the hub in place
 --- (or hands control back through opts.on_close once the group is gone).
---- opts: { plugin, ui, on_close } as showGroup receives them.
+--- opts: { plugin, ui, on_close } as showGroup receives them. G0 round 3:
+--- rename / kind / delete also run from the Groups LIST's hold dialog, where
+--- no hub is open — those callers pass `opts.after` (the list's refresh) and
+--- the flow ends there instead.
 
 -- Round 29: the picker hands back a SET (hash keyed by path), so a plain
 -- pairs() loop added books in ARBITRARY order — for a 30-volume folder the
@@ -672,6 +675,13 @@ function GroupsUI.foldFlow(group_id, opts)
     opts.plugin:_startCrossBookXrayFlow(target)
 end
 
+-- Where a flow lands: the hub's in-place refresh, or the caller's own
+-- refresh (the Groups list) when it passed one
+local function flowDone(group_id, opts)
+    if opts and opts.after then opts.after() return end
+    GroupsUI.showGroup(group_id, opts)
+end
+
 function GroupsUI.renameFlow(group_id, opts)
     local BookGroups = groups()
     local group = BookGroups.byId(group_id)
@@ -680,37 +690,46 @@ function GroupsUI.renameFlow(group_id, opts)
     promptName(_("Rename group"), group.name ~= "?" and group.name or "",
         function(name)
             BookGroups.rename(group_id, name)
-            GroupsUI.showGroup(group_id, opts)
-        end, function() GroupsUI.showGroup(group_id, opts) end)
+            flowDone(group_id, opts)
+        end, function() flowDone(group_id, opts) end)
 end
 
 -- Round 30's three-way KIND (series / project / plain), as a small picker
--- since G0: the hub row names the current kind, the picker's title carries
--- its consequence so the choice is visible before it is made
-function GroupsUI.kindPicker(group_id, opts)
+-- since G0. G0 round 3 (maintainer): it is a RADIO and its title carries the
+-- picked kind's description, so a tap only moves the dot and re-reads the
+-- sentence; nothing is written until Save. `pending` = the kind under the
+-- dot (nil = the stored one).
+function GroupsUI.kindPicker(group_id, opts, pending)
     local ButtonDialog = require("ui/widget/buttondialog")
     local BookGroups = groups()
     local group = BookGroups.byId(group_id)
     if not group then return end
     local kind = BookGroups.kindOf(group)
+    pending = pending or kind
     local dialog
     local rows = {}
     for _idx, k in ipairs({ BookGroups.KIND_SERIES, BookGroups.KIND_PROJECT,
             BookGroups.KIND_PLAIN }) do
         local captured = k
         rows[#rows + 1] = {{
-            text = (captured == kind and "● " or "○ ") .. GroupsUI.kindLabel(captured),
+            text = (captured == pending and "● " or "○ ") .. GroupsUI.kindLabel(captured),
             align = "left",
             callback = function()
                 UIManager:close(dialog)
-                if captured ~= kind then BookGroups.setKind(group_id, captured) end
-                GroupsUI.showGroup(group_id, opts)
+                GroupsUI.kindPicker(group_id, opts, captured)
             end,
         }}
     end
-    rows[#rows + 1] = {{ text = _("Cancel"), callback = function() UIManager:close(dialog) end }}
+    rows[#rows + 1] = {
+        { text = _("Cancel"), callback = function() UIManager:close(dialog) end },
+        { text = _("Save"), enabled = pending ~= kind, callback = function()
+            UIManager:close(dialog)
+            BookGroups.setKind(group_id, pending)
+            flowDone(group_id, opts)
+        end },
+    }
     dialog = ButtonDialog:new{
-        title = _("Group kind") .. "\n" .. GroupsUI.kindDescription(kind),
+        title = _("Group kind") .. "\n" .. GroupsUI.kindDescription(pending),
         buttons = rows,
     }
     UIManager:show(dialog)
@@ -728,8 +747,9 @@ function GroupsUI.deleteFlow(group_id, opts)
             {{ text = _("Delete"), callback = function()
                 UIManager:close(confirm)
                 BookGroups.remove(group_id)
-                -- The hub finds the group gone and hands control back (on_close)
-                GroupsUI.showGroup(group_id, opts)
+                -- The hub finds the group gone and hands control back
+                -- (on_close); the list just refreshes
+                flowDone(group_id, opts)
             end }},
             {{ text = _("Cancel"), callback = function()
                 UIManager:close(confirm)

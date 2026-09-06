@@ -212,6 +212,44 @@ function BookGroups.remove(id)
     return false
 end
 
+--- Position of a group in the list (G0 round 3: the Groups list's manual
+--- order). @return integer|nil index, integer count
+function BookGroups.groupIndex(id)
+    local list = load().groups
+    for i, group in ipairs(list) do
+        if group.id == id then return i, #list end
+    end
+    return nil, #list
+end
+
+--- Move a group to an absolute 1-based position in the list, clamped.
+--- Display order only: nothing about the books changes, so no on_change.
+--- @return boolean moved
+function BookGroups.moveGroupTo(id, pos)
+    local n = tonumber(pos)
+    if not n then return false end
+    local data = load()
+    for i, group in ipairs(data.groups) do
+        if group.id == id then
+            local j = math.max(1, math.min(#data.groups, math.floor(n)))
+            if j == i then return false end
+            table.remove(data.groups, i)
+            table.insert(data.groups, j, group)
+            save(data)
+            return true
+        end
+    end
+    return false
+end
+
+--- Move a group by delta positions (-1 = up, 1 = down), clamped.
+--- @return boolean moved
+function BookGroups.moveGroup(id, delta)
+    local i = BookGroups.groupIndex(id)
+    if not i then return false end
+    return BookGroups.moveGroupTo(id, i + (tonumber(delta) or 0))
+end
+
 local function indexOf(group, path)
     for i, p in ipairs(group.books or {}) do
         if p == path then return i end

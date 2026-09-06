@@ -10,9 +10,12 @@ singletons in the Book Hub's shape.
   holds Rename…, Kind…, Delete group…. Subtitle = the members' authors, the
   kind and the count. Up-arrow = the Groups list.
 - The GROUPS LIST: THE all-groups screen — GroupsUI.showManager opens it.
-  Rows: every group (tap = its hub), then New group…, New group from
-  folder…, and with a book open New group with this book… + the series
-  suggestion.
+  Rows: a dim hint, every group with its kind's emoji and "Kind · N books"
+  on the right (tap = its hub, hold = the move / rename / kind / delete
+  dialog), then New group…, New group from folder…, and with a book open New
+  group with this book… + the series suggestion. The title-bar hamburger
+  repeats the create rows and holds the sort pick: manual (the stored
+  order, moved by hold) or by name (`features.groups_sort`).
 
 Both are strictly VIEWS: nothing generated, nothing stored. Group settings
 (G1) and the series view (G3) arrive as hub rows.
@@ -48,6 +51,53 @@ local function emojiSetting(plugin, given)
     if given ~= nil then return given end
     local f = plugin and plugin.settings and plugin.settings:readSetting("features") or {}
     return f.enable_emoji_icons == true
+end
+
+-- One emoji per kind on the list (maintainer): a stack of books for a
+-- series, an open folder for a project, the card box for a plain list
+local function kindEmoji(kind)
+    local BookGroups = groups()
+    if kind == BookGroups.KIND_SERIES then return "\u{1F4DA}" end
+    if kind == BookGroups.KIND_PROJECT then return "\u{1F4C2}" end
+    return "\u{1F5C2}\u{FE0F}"
+end
+
+-- "Series · 3 books": the hub's subtitle tail and the list rows' right column
+local function kindCount(kind, n)
+    local label = groupsUI().kindLabel(kind)
+    if n == 1 then return T(_("%1 \u{00B7} 1 book"), label) end
+    return T(_("%1 \u{00B7} %2 books"), label, n)
+end
+
+-- The list's order: "manual" = the stored order (hold a group to move it),
+-- "name" = sorted by display name. Settings key groups_sort (registry
+-- preferences); nil = manual.
+local function sortMode(plugin)
+    local f = plugin and plugin.settings and plugin.settings:readSetting("features") or {}
+    return f.groups_sort == "name" and "name" or "manual"
+end
+
+local function setSortMode(plugin, mode)
+    if not (plugin and plugin.settings) then return end
+    local f = plugin.settings:readSetting("features") or {}
+    f.groups_sort = mode ~= "manual" and mode or nil
+    plugin.settings:saveSetting("features", f)
+    plugin.settings:flush()
+    if plugin.updateConfigFromSettings then plugin:updateConfigFromSettings() end
+end
+
+local function orderedGroups(plugin)
+    local list = {}
+    for i, g in ipairs(groups().all()) do list[i] = g end
+    if sortMode(plugin) == "name" then
+        local GroupsUI = groupsUI()
+        table.sort(list, function(a, b)
+            local na, nb = GroupsUI.displayName(a):lower(), GroupsUI.displayName(b):lower()
+            if na ~= nb then return na < nb end
+            return a.id < b.id
+        end)
+    end
+    return list
 end
 
 -- ---------------------------------------------------------------- page plumbing
@@ -227,12 +277,16 @@ local function hubBuild(ctx)
             function() GroupsUI.foldFlow(ctx.group_id, flow_opts) end)
     end
     -- Item 48(a): the group as launch surface — library chat/actions with the
-    -- members pre-selected
+    -- members pre-selected. Named after the kind (maintainer, G0 round 3),
+    -- in the Book Hub's "Book Chat/Action" shape with its 💬.
     if #group.books > 0 and ctx.plugin and ctx.plugin.openLibraryDialogForGroup then
-        row(E("\u{1F4DA}", _("Library chat…"), em),
+        local chat_label = kind == BookGroups.KIND_PROJECT and _("Project Chat/Action…")
+            or kind == BookGroups.KIND_SERIES and _("Series Chat/Action…")
+            or _("Group Chat/Action…")
+        row(E("\u{1F4AC}", chat_label, em),
             function() ctx.plugin:openLibraryDialogForGroup(ctx.group_id) end)
     end
-    local subtitle = T(_("%1 \u{00B7} %2 books"), GroupsUI.kindLabel(kind), #group.books)
+    local subtitle = kindCount(kind, #group.books)
     local by = authorsLine(authors)
     if by then subtitle = by .. " \u{00B7} " .. subtitle end
     return { title = GroupsUI.displayName(group), subtitle = subtitle, items = items }
@@ -299,23 +353,172 @@ function GroupPage.show(opts)
 end
 
 -- ---------------------------------------------------------------- the list
+local function listOpts(ctx)
+    return { plugin = ctx.plugin, ui = ctx.ui, enable_emoji = ctx.enable_emoji }
+end
+
+-- Hold on a group row: the book move dialog's shape for groups. Arrows and
+-- "Move to position…" only in manual order (sorted by name there is nothing
+-- to move); rename / kind / delete run the hub's flows with `after` = this
+-- list's refresh, since no hub is open underneath.
+local listHold
+listHold = function(ctx, group_id)
+    local ButtonDialog = require("ui/widget/buttondialog")
+    local BookGroups = groups()
+    local GroupsUI = groupsUI()
+    local group = BookGroups.byId(group_id)
+    if not group then return end
+    local name = GroupsUI.displayName(group)
+    local i, n = BookGroups.groupIndex(group_id)
+    if not i then return end
+    local manual = sortMode(ctx.plugin) == "manual"
+    local function refreshList() GroupPage.showList(listOpts(ctx)) end
+    local flow_opts = { plugin = ctx.plugin, ui = ctx.ui, after = refreshList }
+    local dialog
+    local function refreshBoth()
+        UIManager:close(dialog)
+        refreshList()
+        listHold(ctx, group_id)
+    end
+    local function flow(fn)
+        return function()
+            UIManager:close(dialog)
+            fn()
+        end
+    end
+    local rows = {}
+    if manual then
+        rows[#rows + 1] = {
+            { text = "\u{2191}", enabled = i > 1, callback = function()
+                BookGroups.moveGroup(group_id, -1)
+                refreshBoth()
+            end },
+            { text = "\u{2193}", enabled = i < n, callback = function()
+                BookGroups.moveGroup(group_id, 1)
+                refreshBoth()
+            end },
+        }
+        rows[#rows + 1] = {{ text = _("Move to position…"), callback = function()
+            UIManager:close(dialog)
+            local SpinWidget = require("ui/widget/spinwidget")
+            UIManager:show(SpinWidget:new{
+                title_text = T(_("Move \"%1\" to position"), name),
+                info_text = T(_("1-%1 (currently %2)"), n, i),
+                value = i,
+                value_min = 1,
+                value_max = n,
+                value_step = 1,
+                value_hold_step = 5,
+                ok_text = _("Move"),
+                ok_always_enabled = true,
+                callback = function(spin)
+                    BookGroups.moveGroupTo(group_id, spin.value)
+                    refreshList()
+                    listHold(ctx, group_id)
+                end,
+                cancel_callback = function() listHold(ctx, group_id) end,
+            })
+        end }}
+    end
+    rows[#rows + 1] = {{ text = _("Rename…"),
+        callback = flow(function() GroupsUI.renameFlow(group_id, flow_opts) end) }}
+    rows[#rows + 1] = {{ text = T(_("Kind: %1"), GroupsUI.kindLabel(BookGroups.kindOf(group))),
+        callback = flow(function() GroupsUI.kindPicker(group_id, flow_opts) end) }}
+    rows[#rows + 1] = {{ text = _("Delete group…"),
+        callback = flow(function() GroupsUI.deleteFlow(group_id, flow_opts) end) }}
+    rows[#rows + 1] = {{ text = _("Done"), callback = function() UIManager:close(dialog) end }}
+    dialog = ButtonDialog:new{
+        title = manual and T(_("%1: position %2 of %3"), name, i, n)
+            or (name .. "\n" .. _("Groups are sorted by name. To move them by hand, pick Manual order in the menu.")),
+        buttons = rows,
+        shrink_unneeded_width = true,
+    }
+    UIManager:show(dialog)
+end
+
+local function listSortPicker(ctx)
+    local ButtonDialog = require("ui/widget/buttondialog")
+    local mode = sortMode(ctx.plugin)
+    local dialog
+    local function pick(value, label)
+        return {{
+            text = (mode == value and "● " or "○ ") .. label,
+            align = "left",
+            callback = function()
+                UIManager:close(dialog)
+                setSortMode(ctx.plugin, value)
+                GroupPage.showList(listOpts(ctx))
+            end,
+        }}
+    end
+    dialog = ButtonDialog:new{
+        title = _("Sort groups") .. "\n" .. _("In manual order, hold a group to move it."),
+        buttons = {
+            pick("manual", _("Manual order")),
+            pick("name", _("By name")),
+            {{ text = _("Cancel"), callback = function() UIManager:close(dialog) end }},
+        },
+    }
+    UIManager:show(dialog)
+end
+
+local function listHamburger(ctx)
+    local ButtonDialog = require("ui/widget/buttondialog")
+    local GroupsUI = groupsUI()
+    local flow_opts = { plugin = ctx.plugin, ui = ctx.ui }
+    local dialog
+    local function pick(fn)
+        return function()
+            UIManager:close(dialog)
+            GroupPage._list_stale = true
+            fn()
+        end
+    end
+    local rows = {
+        {{ text = _("New group…"), callback = pick(function() GroupsUI.newGroupFlow(flow_opts) end) }},
+        {{ text = _("New group from folder…"),
+            callback = pick(function() GroupsUI.newGroupFromFolderFlow(flow_opts) end) }},
+    }
+    local open_file = ctx.ui and ctx.ui.document and ctx.ui.document.file
+    if open_file then
+        rows[#rows + 1] = {{ text = _("New group with this book…"),
+            callback = pick(function() GroupsUI.newGroupWithBookFlow(open_file, flow_opts) end) }}
+    end
+    rows[#rows + 1] = {{
+        text = T(_("Sort: %1"), sortMode(ctx.plugin) == "name" and _("By name") or _("Manual order")),
+        callback = pick(function() listSortPicker(ctx) end),
+    }}
+    dialog = ButtonDialog:new{ title = _("Groups"), buttons = rows }
+    UIManager:show(dialog)
+end
+
 local function listBuild(ctx)
     local BookGroups = groups()
     local GroupsUI = groupsUI()
     local items = {}
     local em = ctx.enable_emoji
-    for _idx, group in ipairs(BookGroups.all()) do
-        local captured = group
+    local list = orderedGroups(ctx.plugin)
+    if #list > 0 then
         items[#items + 1] = {
-            text = E("\u{1F5C2}\u{FE0F}", GroupsUI.displayName(captured), em),
-            mandatory = #captured.books == 1 and _("1 book") or T(_("%1 books"), #captured.books),
+            text = _("Tap a group for its hub. Hold it to move, rename or delete it."),
+            dim = true,
+            callback = function() end,
+        }
+    end
+    for _idx, group in ipairs(list) do
+        local captured = group
+        local kind = BookGroups.kindOf(captured)
+        items[#items + 1] = {
+            text = E(kindEmoji(kind), GroupsUI.displayName(captured), em),
+            mandatory = kindCount(kind, #captured.books),
             callback = function()
                 GroupsUI.showGroup(captured.id, { plugin = ctx.plugin, ui = ctx.ui,
                     front = true, enable_emoji = em })
             end,
+            hold_callback = function() listHold(ctx, captured.id) end,
         }
     end
-    if #items == 0 then
+    if #list == 0 then
         items[#items + 1] = {
             text = _("No groups yet. A group is an ordered set of books: a series, an author, a project."),
             dim = true,
@@ -353,7 +556,7 @@ function GroupPage.showList(opts)
         key = "list", plugin = opts.plugin, ui = opts.ui,
         on_close = opts.on_close, front = opts.front,
         enable_emoji = emojiSetting(opts.plugin, opts.enable_emoji),
-    }, listBuild)
+    }, listBuild, { hamburger = listHamburger })
 end
 
 return GroupPage

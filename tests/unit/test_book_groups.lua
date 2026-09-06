@@ -364,5 +364,42 @@ TestRunner:test("orderBySeriesIndex: numeric index first, index-less tail in nat
     TestRunner:assertEqual(sorted[5].path, "/b/vol 10.epub", "natural order: 2 before 10")
 end)
 
+print("")
+print("  [group list order]")
+
+TestRunner:test("moveGroup / moveGroupTo: list order, clamped, no on_change", function()
+    -- Fresh store: earlier tests may leave groups behind, and this one reads the whole list
+    local saved_mem = mem
+    mem = {}
+    local a = BookGroups.create("A")
+    local b = BookGroups.create("B")
+    local c = BookGroups.create("C")
+    local fired = false
+    BookGroups.on_change = function() fired = true end
+    local function ids()
+        local out = {}
+        for _idx, g in ipairs(BookGroups.all()) do out[#out + 1] = g.id end
+        return table.concat(out, ",")
+    end
+    TestRunner:assertEqual(ids(), a.id .. "," .. b.id .. "," .. c.id, "creation order")
+    local i, n = BookGroups.groupIndex(c.id)
+    TestRunner:assertEqual(i, 3, "index of the third group")
+    TestRunner:assertEqual(n, 3, "count")
+    TestRunner:assertTrue(BookGroups.moveGroup(c.id, -1), "move up")
+    TestRunner:assertEqual(ids(), a.id .. "," .. c.id .. "," .. b.id, "moved up one")
+    TestRunner:assertEqual(BookGroups.moveGroup(a.id, -1), false, "clamped at top")
+    TestRunner:assertTrue(BookGroups.moveGroupTo(b.id, 1), "to the top")
+    TestRunner:assertEqual(ids(), b.id .. "," .. a.id .. "," .. c.id, "moved to position 1")
+    TestRunner:assertEqual(BookGroups.moveGroupTo(b.id, 1), false, "same position rejected")
+    TestRunner:assertEqual(BookGroups.moveGroupTo(b.id, "x"), false, "garbage rejected")
+    TestRunner:assertEqual(BookGroups.moveGroupTo("nope", 2), false, "unknown id rejected")
+    TestRunner:assertTrue(BookGroups.moveGroupTo(b.id, 99), "clamped to the end")
+    TestRunner:assertEqual(ids(), a.id .. "," .. c.id .. "," .. b.id, "moved to the end")
+    TestRunner:assertEqual(fired, false, "display order never notifies")
+    TestRunner:assertEqual(BookGroups.groupIndex("nope"), nil, "unknown id has no index")
+    BookGroups.on_change = nil
+    mem = saved_mem
+end)
+
 local ok = TestRunner:summary()
 return ok
