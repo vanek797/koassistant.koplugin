@@ -110,7 +110,6 @@ Registry.SETTINGS_SUBKEYS = {
         "ollama_num_ctx",           -- ollama context-window cap (model menu row; nil = automatic sizing)
         "xray_default_categories",  -- global default for new X-Rays' category groups (presets v0.21)
         "xray_default_depth",       -- global default for new X-Rays' depth rung (light/standard/deep; nil = standard)
-        "groups_sort",              -- Groups list order ("name"; nil = manual, the stored order)
     },
     internal = {
         "languages_migrated", "behavior_migrated",

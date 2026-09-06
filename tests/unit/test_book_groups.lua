@@ -401,5 +401,35 @@ TestRunner:test("moveGroup / moveGroupTo: list order, clamped, no on_change", fu
     mem = saved_mem
 end)
 
+TestRunner:test("sortGroupsByName: one-shot, case-insensitive, display name canon, no on_change", function()
+    local saved_mem = mem
+    mem = {}
+    local b = BookGroups.create("beta")
+    local q = BookGroups.create("")       -- unnamed: the UI renders "(unnamed)"
+    local a = BookGroups.create("Alpha")
+    local fired = false
+    BookGroups.on_change = function() fired = true end
+    BookGroups.sortGroupsByName(function(g) return g.name == "?" and "(unnamed)" or g.name end)
+    local list = BookGroups.all()
+    TestRunner:assertEqual(list[1].id, q.id, "'(unnamed)' sorts first (punctuation before letters)")
+    TestRunner:assertEqual(list[2].id, a.id, "Alpha before beta, case-insensitive")
+    TestRunner:assertEqual(list[3].id, b.id, "beta last")
+    TestRunner:assertTrue(BookGroups.moveGroup(b.id, -2), "still movable by hand afterwards")
+    TestRunner:assertEqual(BookGroups.all()[1].id, b.id, "moved to the top")
+    TestRunner:assertEqual(fired, false, "display order never notifies")
+    BookGroups.on_change = nil
+    mem = saved_mem
+end)
+
+TestRunner:test("shortName: UTF-8 safe cap with an ellipsis", function()
+    TestRunner:assertEqual(BookGroups.shortName("short"), "short", "under the cap untouched")
+    TestRunner:assertEqual(BookGroups.shortName("abcdef", 3), "abc\u{2026}", "cut at the cap")
+    TestRunner:assertEqual(BookGroups.shortName("abc def", 4), "abc\u{2026}", "trailing space dropped")
+    TestRunner:assertEqual(BookGroups.shortName("\u{0645}\u{0631}\u{062D}\u{0628}\u{0627}", 3),
+        "\u{0645}\u{0631}\u{062D}\u{2026}", "counts characters, not bytes")
+    TestRunner:assertEqual(BookGroups.shortName("\u{0645}\u{0631}\u{062D}", 3), "\u{0645}\u{0631}\u{062D}", "exactly the cap untouched")
+    TestRunner:assertEqual(BookGroups.shortName(nil), "", "nil is empty")
+end)
+
 local ok = TestRunner:summary()
 return ok

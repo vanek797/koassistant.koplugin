@@ -9,9 +9,11 @@ Small ButtonDialog stack over koassistant_book_groups.lua:
 - showGroup: since G0 (2026-09-06, docs/group_hub_plan.md) the GROUP HUB —
   koassistant_group_page.lua, a full-screen Menu in the Book Hub's shape —
   whose rows call the flows this file exports (addBooksFlow, addFolderFlow,
-  foldFlow, renameFlow, kindPicker, deleteFlow, showMoveDialog). The old
-  ButtonDialog screen is retired; every flow still ends with
-  GroupsUI.showGroup, which refreshes the hub in place.
+  foldFlow, renameFlow, deleteFlow, showMoveDialog) and whose hamburger opens
+  showGroupDialog, the group's management popup (also the Groups list's hold;
+  G0 round 4). The old ButtonDialog screen is retired; every flow still ends
+  with GroupsUI.showGroup, which refreshes the hub in place, or with the
+  caller's own `opts.after` refresh (the list).
 - showBookRow: the Book Settings entry — this book's memberships, join/create.
 
 Entry points: main menu row (settings schema "book_groups"), Book Settings
@@ -441,7 +443,9 @@ function GroupsUI.showMoveDialog(group_id, path, opts)
     local i = group and BookGroups.positionOf(group, path)
     if not i then return end
     local n = #group.books
-    local title = BookGroups.displayTitle(path, opts.ui)
+    -- One line's worth: ButtonDialog titles wrap, and a long book title used
+    -- to push the buttons down the screen (G0 round 4)
+    local title = BookGroups.shortName(BookGroups.displayTitle(path, opts.ui))
     local book_dialog
     -- G0: showGroup refreshes the hub underneath in place
     local function refreshBoth()
@@ -515,6 +519,88 @@ function GroupsUI.showMoveDialog(group_id, path, opts)
         shrink_unneeded_width = true,
     }
     UIManager:show(book_dialog)
+end
+
+--- The group's management popup (G0 round 4, maintainer): the member move
+--- dialog's shape for a GROUP, a little larger — the name (one line) and the
+--- current kind's description as the title, the kind RADIO on one row (a tap
+--- sets the kind at once and the description re-reads in place), the move
+--- arrows when opened from the Groups list (opts.arrows), Rename… + Delete
+--- group…, Done. No position line, no "Move to position…" (a list of groups
+--- is short). Every change closes and re-shows the popup ANCHORED at its own
+--- top-left, so a longer description grows downward instead of re-centering
+--- the window. Reached by HOLD on a Groups list row and by the hub's
+--- title-bar hamburger.
+--- opts: { plugin, ui, after (the host's refresh; nil = the hub's), on_close,
+---   arrows, at (internal: the top-left to re-show at) }
+function GroupsUI.showGroupDialog(group_id, opts)
+    opts = opts or {}
+    local ButtonDialog = require("ui/widget/buttondialog")
+    local Geom = require("ui/geometry")
+    local BookGroups = groups()
+    local group = BookGroups.byId(group_id)
+    if not group then return end
+    local kind = BookGroups.kindOf(group)
+    local name = BookGroups.shortName(displayName(group))
+    local dialog
+    local function refresh()
+        if opts.after then opts.after() else GroupsUI.showGroup(group_id, opts) end
+    end
+    local function reshow()
+        local d = dialog.movable and dialog.movable.dimen
+        local at = d and { x = d.x, y = d.y } or opts.at
+        UIManager:close(dialog)
+        refresh()
+        local again = {}
+        for k, v in pairs(opts) do again[k] = v end
+        again.at = at
+        GroupsUI.showGroupDialog(group_id, again)
+    end
+    local function flow(fn)
+        return function()
+            UIManager:close(dialog)
+            fn()
+        end
+    end
+    local radio = {}
+    for _idx, k in ipairs({ BookGroups.KIND_SERIES, BookGroups.KIND_PROJECT,
+            BookGroups.KIND_PLAIN }) do
+        local captured = k
+        radio[#radio + 1] = {
+            text = (captured == kind and "\u{25CF} " or "\u{25CB} ") .. GroupsUI.kindLabel(captured),
+            callback = function()
+                if captured == kind then return end
+                BookGroups.setKind(group_id, captured)
+                reshow()
+            end,
+        }
+    end
+    local rows = { radio }
+    if opts.arrows then
+        local i, n = BookGroups.groupIndex(group_id)
+        rows[#rows + 1] = {
+            { text = "\u{2191}", enabled = i ~= nil and i > 1, callback = function()
+                BookGroups.moveGroup(group_id, -1)
+                reshow()
+            end },
+            { text = "\u{2193}", enabled = i ~= nil and i < n, callback = function()
+                BookGroups.moveGroup(group_id, 1)
+                reshow()
+            end },
+        }
+    end
+    rows[#rows + 1] = {
+        { text = _("Rename…"), callback = flow(function() GroupsUI.renameFlow(group_id, opts) end) },
+        { text = _("Delete group…"), callback = flow(function() GroupsUI.deleteFlow(group_id, opts) end) },
+    }
+    rows[#rows + 1] = {{ text = _("Done"), callback = function() UIManager:close(dialog) end }}
+    local at = opts.at
+    dialog = ButtonDialog:new{
+        title = name .. "\n" .. GroupsUI.kindDescription(kind),
+        buttons = rows,
+        anchor = at and function() return Geom:new{ x = at.x, y = at.y, w = 0, h = 0 }, true end or nil,
+    }
+    UIManager:show(dialog)
 end
 
 --- The group flows (G0, 2026-09-06 — docs/group_hub_plan.md): the old
@@ -692,47 +778,6 @@ function GroupsUI.renameFlow(group_id, opts)
             BookGroups.rename(group_id, name)
             flowDone(group_id, opts)
         end, function() flowDone(group_id, opts) end)
-end
-
--- Round 30's three-way KIND (series / project / plain), as a small picker
--- since G0. G0 round 3 (maintainer): it is a RADIO and its title carries the
--- picked kind's description, so a tap only moves the dot and re-reads the
--- sentence; nothing is written until Save. `pending` = the kind under the
--- dot (nil = the stored one).
-function GroupsUI.kindPicker(group_id, opts, pending)
-    local ButtonDialog = require("ui/widget/buttondialog")
-    local BookGroups = groups()
-    local group = BookGroups.byId(group_id)
-    if not group then return end
-    local kind = BookGroups.kindOf(group)
-    pending = pending or kind
-    local dialog
-    local rows = {}
-    for _idx, k in ipairs({ BookGroups.KIND_SERIES, BookGroups.KIND_PROJECT,
-            BookGroups.KIND_PLAIN }) do
-        local captured = k
-        rows[#rows + 1] = {{
-            text = (captured == pending and "● " or "○ ") .. GroupsUI.kindLabel(captured),
-            align = "left",
-            callback = function()
-                UIManager:close(dialog)
-                GroupsUI.kindPicker(group_id, opts, captured)
-            end,
-        }}
-    end
-    rows[#rows + 1] = {
-        { text = _("Cancel"), callback = function() UIManager:close(dialog) end },
-        { text = _("Save"), enabled = pending ~= kind, callback = function()
-            UIManager:close(dialog)
-            BookGroups.setKind(group_id, pending)
-            flowDone(group_id, opts)
-        end },
-    }
-    dialog = ButtonDialog:new{
-        title = _("Group kind") .. "\n" .. GroupsUI.kindDescription(pending),
-        buttons = rows,
-    }
-    UIManager:show(dialog)
 end
 
 function GroupsUI.deleteFlow(group_id, opts)

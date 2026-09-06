@@ -250,6 +250,37 @@ function BookGroups.moveGroup(id, delta)
     return BookGroups.moveGroupTo(id, i + (tonumber(delta) or 0))
 end
 
+--- Sort the list by name, once (G0 round 4, maintainer: sorting is an
+--- ACTION on the stored order, not a second state — groups can still be
+--- moved by hand afterwards). Case-insensitive, ties by id so the result is
+--- stable. name_fn(group) → the display name (the UI's canon; nil = raw name).
+--- Display order only: no on_change.
+function BookGroups.sortGroupsByName(name_fn)
+    local data = load()
+    table.sort(data.groups, function(a, b)
+        local na = (name_fn and name_fn(a) or a.name or ""):lower()
+        local nb = (name_fn and name_fn(b) or b.name or ""):lower()
+        if na ~= nb then return na < nb end
+        return tostring(a.id) < tostring(b.id)
+    end)
+    save(data)
+end
+
+--- One line's worth of a name for a dialog title (ButtonDialog titles WRAP,
+--- they never truncate — a long book or group name used to push the buttons
+--- down the screen). UTF-8 safe; trailing spaces dropped before the ellipsis.
+function BookGroups.shortName(text, max_chars)
+    if type(text) ~= "string" then return "" end
+    max_chars = max_chars or 40
+    local n, cut = 0, nil
+    for pos in text:gmatch("()[\1-\127\194-\244][\128-\191]*") do
+        n = n + 1
+        if n > max_chars then cut = pos break end
+    end
+    if not cut then return text end
+    return (text:sub(1, cut - 1):gsub("%s+$", "")) .. "\u{2026}"
+end
+
 local function indexOf(group, path)
     for i, p in ipairs(group.books or {}) do
         if p == path then return i end

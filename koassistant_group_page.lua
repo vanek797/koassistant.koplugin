@@ -6,16 +6,19 @@ singletons in the Book Hub's shape.
   entry point and every group flow's reopen lands here. Rows: a dim hint, the
   members in order (tap = that book's Book Hub, hold = the move / open /
   remove dialog; the open book's row says "open"), then Add books…, Add all
-  books in a folder…, the fold row, Library chat…. The title-bar hamburger
-  holds Rename…, Kind…, Delete group…. Subtitle = the members' authors, the
-  kind and the count. Up-arrow = the Groups list.
+  books in a folder…, the fold row, the kind-named Chat/Action row. The
+  title-bar hamburger opens the group's management popup (kind radio,
+  Rename…, Delete group…). Subtitle = the members' authors, the kind and the
+  count. Up-arrow = the Groups list.
 - The GROUPS LIST: THE all-groups screen — GroupsUI.showManager opens it.
   Rows: a dim hint, every group with its kind's emoji and "Kind · N books"
-  on the right (tap = its hub, hold = the move / rename / kind / delete
-  dialog), then New group…, New group from folder…, and with a book open New
-  group with this book… + the series suggestion. The title-bar hamburger
-  repeats the create rows and holds the sort pick: manual (the stored
-  order, moved by hold) or by name (`features.groups_sort`).
+  on the right (tap = its hub, hold = the group's management popup,
+  GroupsUI.showGroupDialog with the move arrows), then New group…, New group
+  from folder…, and with a book open New group with this book… + the series
+  suggestion. The title-bar hamburger
+  repeats the create rows and holds "Sort groups by name" — a one-shot
+  reorder of the stored list (groups stay movable by hand; sorting is an
+  action, not a second state).
 
 Both are strictly VIEWS: nothing generated, nothing stored. Group settings
 (G1) and the series view (G3) arrive as hub rows.
@@ -67,37 +70,6 @@ local function kindCount(kind, n)
     local label = groupsUI().kindLabel(kind)
     if n == 1 then return T(_("%1 \u{00B7} 1 book"), label) end
     return T(_("%1 \u{00B7} %2 books"), label, n)
-end
-
--- The list's order: "manual" = the stored order (hold a group to move it),
--- "name" = sorted by display name. Settings key groups_sort (registry
--- preferences); nil = manual.
-local function sortMode(plugin)
-    local f = plugin and plugin.settings and plugin.settings:readSetting("features") or {}
-    return f.groups_sort == "name" and "name" or "manual"
-end
-
-local function setSortMode(plugin, mode)
-    if not (plugin and plugin.settings) then return end
-    local f = plugin.settings:readSetting("features") or {}
-    f.groups_sort = mode ~= "manual" and mode or nil
-    plugin.settings:saveSetting("features", f)
-    plugin.settings:flush()
-    if plugin.updateConfigFromSettings then plugin:updateConfigFromSettings() end
-end
-
-local function orderedGroups(plugin)
-    local list = {}
-    for i, g in ipairs(groups().all()) do list[i] = g end
-    if sortMode(plugin) == "name" then
-        local GroupsUI = groupsUI()
-        table.sort(list, function(a, b)
-            local na, nb = GroupsUI.displayName(a):lower(), GroupsUI.displayName(b):lower()
-            if na ~= nb then return na < nb end
-            return a.id < b.id
-        end)
-    end
-    return list
 end
 
 -- ---------------------------------------------------------------- page plumbing
@@ -292,30 +264,13 @@ local function hubBuild(ctx)
     return { title = GroupsUI.displayName(group), subtitle = subtitle, items = items }
 end
 
+-- Title-bar hamburger = the group's management popup (kind radio, Rename…,
+-- Delete group…), the same popup the Groups list opens on hold — minus the
+-- arrows, which only mean something on the list. Flows land back here
+-- through their default tail (GroupsUI.showGroup = this hub's refresh).
 local function hubHamburger(ctx)
-    local ButtonDialog = require("ui/widget/buttondialog")
-    local GroupsUI = groupsUI()
-    local group = groups().byId(ctx.group_id)
-    if not group then return end
-    local flow_opts = { plugin = ctx.plugin, ui = ctx.ui, on_close = ctx.on_close }
-    local dialog
-    local function pick(fn)
-        return function()
-            UIManager:close(dialog)
-            GroupPage._stale = true
-            fn()
-        end
-    end
-    dialog = ButtonDialog:new{
-        title = GroupsUI.displayName(group),
-        buttons = {
-            {{ text = _("Rename…"), callback = pick(function() GroupsUI.renameFlow(ctx.group_id, flow_opts) end) }},
-            {{ text = T(_("Kind: %1"), GroupsUI.kindLabel(groups().kindOf(group))),
-                callback = pick(function() GroupsUI.kindPicker(ctx.group_id, flow_opts) end) }},
-            {{ text = _("Delete group…"), callback = pick(function() GroupsUI.deleteFlow(ctx.group_id, flow_opts) end) }},
-        },
-    }
-    UIManager:show(dialog)
+    GroupPage._stale = true
+    groupsUI().showGroupDialog(ctx.group_id, { plugin = ctx.plugin, ui = ctx.ui, on_close = ctx.on_close })
 end
 
 --- Close the hub. opts.silent = do not run on_close (code-driven closes).
@@ -357,109 +312,14 @@ local function listOpts(ctx)
     return { plugin = ctx.plugin, ui = ctx.ui, enable_emoji = ctx.enable_emoji }
 end
 
--- Hold on a group row: the book move dialog's shape for groups. Arrows and
--- "Move to position…" only in manual order (sorted by name there is nothing
--- to move); rename / kind / delete run the hub's flows with `after` = this
--- list's refresh, since no hub is open underneath.
-local listHold
-listHold = function(ctx, group_id)
-    local ButtonDialog = require("ui/widget/buttondialog")
-    local BookGroups = groups()
-    local GroupsUI = groupsUI()
-    local group = BookGroups.byId(group_id)
-    if not group then return end
-    local name = GroupsUI.displayName(group)
-    local i, n = BookGroups.groupIndex(group_id)
-    if not i then return end
-    local manual = sortMode(ctx.plugin) == "manual"
-    local function refreshList() GroupPage.showList(listOpts(ctx)) end
-    local flow_opts = { plugin = ctx.plugin, ui = ctx.ui, after = refreshList }
-    local dialog
-    local function refreshBoth()
-        UIManager:close(dialog)
-        refreshList()
-        listHold(ctx, group_id)
-    end
-    local function flow(fn)
-        return function()
-            UIManager:close(dialog)
-            fn()
-        end
-    end
-    local rows = {}
-    if manual then
-        rows[#rows + 1] = {
-            { text = "\u{2191}", enabled = i > 1, callback = function()
-                BookGroups.moveGroup(group_id, -1)
-                refreshBoth()
-            end },
-            { text = "\u{2193}", enabled = i < n, callback = function()
-                BookGroups.moveGroup(group_id, 1)
-                refreshBoth()
-            end },
-        }
-        rows[#rows + 1] = {{ text = _("Move to position…"), callback = function()
-            UIManager:close(dialog)
-            local SpinWidget = require("ui/widget/spinwidget")
-            UIManager:show(SpinWidget:new{
-                title_text = T(_("Move \"%1\" to position"), name),
-                info_text = T(_("1-%1 (currently %2)"), n, i),
-                value = i,
-                value_min = 1,
-                value_max = n,
-                value_step = 1,
-                value_hold_step = 5,
-                ok_text = _("Move"),
-                ok_always_enabled = true,
-                callback = function(spin)
-                    BookGroups.moveGroupTo(group_id, spin.value)
-                    refreshList()
-                    listHold(ctx, group_id)
-                end,
-                cancel_callback = function() listHold(ctx, group_id) end,
-            })
-        end }}
-    end
-    rows[#rows + 1] = {{ text = _("Rename…"),
-        callback = flow(function() GroupsUI.renameFlow(group_id, flow_opts) end) }}
-    rows[#rows + 1] = {{ text = T(_("Kind: %1"), GroupsUI.kindLabel(BookGroups.kindOf(group))),
-        callback = flow(function() GroupsUI.kindPicker(group_id, flow_opts) end) }}
-    rows[#rows + 1] = {{ text = _("Delete group…"),
-        callback = flow(function() GroupsUI.deleteFlow(group_id, flow_opts) end) }}
-    rows[#rows + 1] = {{ text = _("Done"), callback = function() UIManager:close(dialog) end }}
-    dialog = ButtonDialog:new{
-        title = manual and T(_("%1: position %2 of %3"), name, i, n)
-            or (name .. "\n" .. _("Groups are sorted by name. To move them by hand, pick Manual order in the menu.")),
-        buttons = rows,
-        shrink_unneeded_width = true,
-    }
-    UIManager:show(dialog)
-end
-
-local function listSortPicker(ctx)
-    local ButtonDialog = require("ui/widget/buttondialog")
-    local mode = sortMode(ctx.plugin)
-    local dialog
-    local function pick(value, label)
-        return {{
-            text = (mode == value and "● " or "○ ") .. label,
-            align = "left",
-            callback = function()
-                UIManager:close(dialog)
-                setSortMode(ctx.plugin, value)
-                GroupPage.showList(listOpts(ctx))
-            end,
-        }}
-    end
-    dialog = ButtonDialog:new{
-        title = _("Sort groups") .. "\n" .. _("In manual order, hold a group to move it."),
-        buttons = {
-            pick("manual", _("Manual order")),
-            pick("name", _("By name")),
-            {{ text = _("Cancel"), callback = function() UIManager:close(dialog) end }},
-        },
-    }
-    UIManager:show(dialog)
+-- Hold on a group row = the group's management popup with the move arrows
+-- (GroupsUI.showGroupDialog); its flows refresh THIS list, since no hub is
+-- open underneath
+local function listHold(ctx, group_id)
+    groupsUI().showGroupDialog(group_id, {
+        plugin = ctx.plugin, ui = ctx.ui, arrows = true,
+        after = function() GroupPage.showList(listOpts(ctx)) end,
+    })
 end
 
 local function listHamburger(ctx)
@@ -484,10 +344,20 @@ local function listHamburger(ctx)
         rows[#rows + 1] = {{ text = _("New group with this book…"),
             callback = pick(function() GroupsUI.newGroupWithBookFlow(open_file, flow_opts) end) }}
     end
-    rows[#rows + 1] = {{
-        text = T(_("Sort: %1"), sortMode(ctx.plugin) == "name" and _("By name") or _("Manual order")),
-        callback = pick(function() listSortPicker(ctx) end),
-    }}
+    -- One-shot: rewrites the stored order (a hand-arranged list is one
+    -- mis-tap from scrambled, hence the confirm); moving by hand goes on
+    -- working afterwards
+    rows[#rows + 1] = {{ text = _("Sort groups by name…"), enabled = #groups().all() > 1,
+        callback = pick(function()
+            UIManager:show(require("ui/widget/confirmbox"):new{
+                text = _("Sort all groups by name? You can still move them by hand afterwards."),
+                ok_text = _("Sort"),
+                ok_callback = function()
+                    groups().sortGroupsByName(GroupsUI.displayName)
+                    GroupPage.showList(listOpts(ctx))
+                end,
+            })
+        end) }}
     dialog = ButtonDialog:new{ title = _("Groups"), buttons = rows }
     UIManager:show(dialog)
 end
@@ -497,7 +367,7 @@ local function listBuild(ctx)
     local GroupsUI = groupsUI()
     local items = {}
     local em = ctx.enable_emoji
-    local list = orderedGroups(ctx.plugin)
+    local list = BookGroups.all()
     if #list > 0 then
         items[#items + 1] = {
             text = _("Tap a group for its hub. Hold it to move, rename or delete it."),
