@@ -235,7 +235,7 @@ See [Supported Providers](#supported-providers--settings) for full list with lin
 
 ### 3. Restart KOReader
 
-Find KOAssistant Settings in: **Tools → Page 2 → KOAssistant** and follow the Setup Wizard.
+Find KOAssistant Settings in: **Tools → KOAssistant** (the first row of the Tools menu) and follow the Setup Wizard.
 
 ### 4. Configure Privacy Settings (Optional)
 

@@ -6306,11 +6306,28 @@ function AskGPT:showDomainManager()
   manager:show()
 end
 
+-- KOReader appends plugin rows to the END of the hinted menu (after "More
+-- tools"). Naming the row in the order tables places it instead; the tables
+-- are require-cached and merged after every addToMainMenu, so this insert
+-- lands before the sort. Front of Tools, same slot as assistant.koplugin.
+local function placeMenuFirstInTools()
+  for _idx, order_path in ipairs({ "ui/elements/reader_menu_order", "ui/elements/filemanager_menu_order" }) do
+    local ok, order = pcall(require, order_path)
+    if ok and type(order) == "table" and type(order.tools) == "table" then
+      local found = false
+      for _i, id in ipairs(order.tools) do
+        if id == "koassistant" then found = true break end
+      end
+      if not found then table.insert(order.tools, 1, "koassistant") end
+    end
+  end
+end
+
 function AskGPT:addToMainMenu(menu_items)
+  placeMenuFirstInTools()
   menu_items["koassistant"] = {
     text = _("KOAssistant"),
     sorting_hint = "tools",
-    sorting_order = 1,
     sub_item_table_func = function()
       self:ensureInitialized()
       return SettingsManager:generateMenuFromSchema(self, SettingsSchema)
