@@ -100,8 +100,8 @@ end
 -- "Series · 3 books": the hub's subtitle tail and the list rows' right column
 local function kindCount(kind, n)
     local label = groupsUI().kindLabel(kind)
-    if n == 1 then return T(_("%1 \u{00B7} 1 book"), label) end
-    return T(_("%1 \u{00B7} %2 books"), label, n)
+    if n == 1 then return T(_("%1 · 1 book"), label) end
+    return T(_("%1 · %2 books"), label, n)
 end
 
 -- ---------------------------------------------------------------- page plumbing
