@@ -729,7 +729,7 @@ ModelConstraints._context_windows = {
         ["groq/compound"]  = 131072, -- compound, compound-mini
         -- Guards for the two ids a "Fetch models" run surfaces (not curated):
         ["qwen/qwen3.6-27b"] = 131072,
-        ["qwen/qwen3.8-27b"] = 131042,
+        ["qwen/qwen3.8-27b"] = 131072,
     },
 }
 

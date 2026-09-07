@@ -561,7 +561,7 @@ function XrayMarks._scanTick(plugin, pageno, token, hay)
               local search_t = time.now()
               st.term_hits[tkey] = searchTerm(ui.document, term)
               if st.debug then
-                logger.info("KOAssistant marks dbg: searched \"" .. term.text
+                logger.dbg("KOAssistant marks dbg: searched \"" .. term.text
                   .. "\" -> " .. tostring(#st.term_hits[tkey].pages)
                   .. " pages in "
                   .. string.format("%.0f", time.to_ms(time.now() - search_t)) .. "ms")
@@ -684,9 +684,11 @@ function XrayMarks._scanTick(plugin, pageno, token, hay)
     -- replay) is done. `text` covers page read+normalize, the presence
     -- finds are total minus the named phases.
     if dbg then
-      logger.info("KOAssistant marks dbg: page " .. tostring(pageno)
+      -- dbg level (#104: info is for one-shots, this fires per page turn) and
+      -- a COUNT, never the entity names (book content stays out of crash.log)
+      logger.dbg("KOAssistant marks dbg: page " .. tostring(pageno)
         .. " ents=" .. tostring(#st.entities)
-        .. " marked=[" .. table.concat(dbg.marked, ", ") .. "]"
+        .. " marked=" .. tostring(#dbg.marked)
         .. " boxes=" .. tostring(st.page_marks and #st.page_marks or 0)
         .. " idx=" .. string.format("%.0f", idx_ms)
         .. "ms text=" .. string.format("%.0f", hay_ms)

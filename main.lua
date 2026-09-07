@@ -11363,6 +11363,15 @@ function AskGPT:_showXrayCreationChooser(action, action_id, on_update, opts, for
       self.settings and self.settings:readSetting("features"))
     local depth_value = BookSettings.resolveXrayDepth(self.ui.doc_settings,
       self.settings and self.settings:readSetting("features"))
+    -- A locked extend continues the lineage's OWN stamps (the update branch
+    -- overwrites the pick from the cache entry), so the grayed buttons show
+    -- the stamps, not the preference (2026-09-07: a Light / Characters-only
+    -- lineage read "Standard…" / "All categories…" on a locked Extend)
+    if not categories_on and base_entry then
+      local PA = require("prompts/actions")
+      cat_value = PA.normalizeXrayCategories(base_entry.xray_categories)
+      depth_value = PA.normalizeXrayDepth(base_entry.xray_depth)
+    end
     local ButtonTableO = require("ui/widget/buttontable")
     -- The row's header is its FIRST ROW inside the same table (maintainer
     -- 2026-08-25: a floating label above the frame read as part of the hint
@@ -13930,7 +13939,7 @@ function AskGPT:_xrayAutoOnPageUpdate(pageno)
     -- the log at ~25 lines/second on the 2026-08-14 device round
     if state.debug and not self._xray_auto_pending_logged then
       self._xray_auto_pending_logged = true
-      logger.info("KOAssistant: automatic X-Ray: fire already scheduled")
+      logger.dbg("KOAssistant: automatic X-Ray: fire already scheduled")
     end
     return
   end
@@ -13962,17 +13971,17 @@ function AskGPT:_xrayAutoOnPageUpdate(pageno)
   -- request (update-checker precedent; the streaming-disabled overlap is accepted,
   -- correctness preserved by the completion guard)
   if _G.KOAssistantStreaming then
-    if state.debug then logger.info("KOAssistant: automatic X-Ray declined: user request streaming") end
+    if state.debug then logger.dbg("KOAssistant: automatic X-Ray declined: user request streaming") end
     return
   end
   -- WiFi fast guard: background work never prompts (update-checker precedent)
   if not NetworkMgr:isWifiOn() then
-    if state.debug then logger.info("KOAssistant: automatic X-Ray declined: WiFi off") end
+    if state.debug then logger.dbg("KOAssistant: automatic X-Ray declined: WiFi off") end
     return
   end
   -- Round 22 (D3): an explicitly cancelled build stays cancelled this session
   if XrayAuto.isAutoSuppressed(self.ui.document.file) then
-    if state.debug then logger.info("KOAssistant: automatic X-Ray declined: cancelled this session") end
+    if state.debug then logger.dbg("KOAssistant: automatic X-Ray declined: cancelled this session") end
     return
   end
   self:_scheduleXrayAutoFire()
@@ -17118,7 +17127,7 @@ function AskGPT:onKOAssistantAISettings(on_close_callback)
       opening_subdialog = true
       UIManager:close(dialog)
       require("koassistant_book_settings").showDomainResearch({
-        plugin = self_ref, ui = self_ref.ui,
+        plugin = self_ref, ui = self_ref.ui, target_override = "book",
         on_close = reopenQuickSettings,
       })
     end or nil,

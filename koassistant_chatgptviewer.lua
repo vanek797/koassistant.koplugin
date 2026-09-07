@@ -4122,16 +4122,21 @@ function ChatGPTViewer:onShow()
   -- anchor (consumed at init) routes even viewers that would not otherwise
   -- scroll — a FIRST streamed reply opens at the top, a streamed artifact
   -- view has no transcript markers.
-  if self.scroll_to_last_question then
-    if self.scroll_text_w then
+  if self._stream_carry_anchor then
+    -- The carry exists only when the reader deliberately scrolled away
+    -- during the stream, so it outranks the exchange landing (2026-09-07:
+    -- from the second reply on, scroll_to_last_question was tested first and
+    -- the reading position was discarded while its page break stayed in
+    -- the layout). On a miss the exchange landing is the fallback when set;
+    -- a first reply keeps its natural landing (top) — this branch also
+    -- serves viewers without transcript markers, e.g. streamed artifact text.
+    if self.scroll_text_w and not self:landOnStreamPosition()
+        and self.scroll_to_last_question then
       self:scrollToLastQuestion()
     end
-  elseif self._stream_carry_anchor then
+  elseif self.scroll_to_last_question then
     if self.scroll_text_w then
-      -- Carry only — on a miss the viewer keeps its natural landing (top),
-      -- never the reply-marker fallback (this branch also serves viewers
-      -- without transcript markers, e.g. streamed artifact text)
-      self:landOnStreamPosition()
+      self:scrollToLastQuestion()
     end
   elseif self.scroll_to_bottom then
     if self.scroll_text_w then

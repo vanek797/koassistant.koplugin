@@ -51,8 +51,8 @@ local ABBREV = {
 --- Position of the first sentence terminator that really ends a sentence,
 --- or nil. Skips abbreviations ("Mr.", "H.S.", "etc."): a period whose
 --- preceding token is a single letter, an initial chain ("H.S", "U.S.A") or
---- a listed abbreviation, or whose next word starts lowercase, is not a
---- sentence end. "?"/"!" and the Arabic marks always end one.
+--- a listed abbreviation, or (for a short letters-only token) whose next
+--- word starts lowercase, is not a sentence end. "?"/"!" and the Arabic marks always end one.
 function XrayCard.sentenceEnd(s)
     local pos = 1
     while true do
@@ -75,7 +75,12 @@ function XrayCard.sentenceEnd(s)
         local abbrev = before:find("%.") ~= nil       -- initial chain "H.S" / "U.S"
             or #token == 1                            -- single initial "J."
             or ABBREV[token] ~= nil
-            or (nxt ~= nil and nxt:find("%l") ~= nil) -- next word lowercase
+            -- next word lowercase: only after a SHORT letters-only token
+            -- ("vs.", "cf."); "built in 1892. van Gogh" is a sentence end
+            -- (2026-09-07: the bare lowercase rule swallowed every period
+            -- followed by a lowercase name and rendered the whole entry)
+            or (nxt ~= nil and nxt:find("%l") ~= nil
+                and #token <= 4 and token:find("^%a+$") ~= nil)
         if not abbrev then return cut end
         pos = cut + 1
     end
@@ -90,6 +95,10 @@ function XrayCard.firstSentence(desc)
     if type(desc) ~= "string" then return "" end
     local s = desc:match("^%s*(.-)%s*$") or ""
     if s == "" then return "" end
+    -- A non-breaking space after the terminator is not %s in Lua (ASCII
+    -- only), so "captain.\194\160He" never found its end and the whole
+    -- description rendered (device 2026-09-07: some cards full, some cut)
+    s = (s:gsub("\194\160", " "))
     local cut = XrayCard.sentenceEnd(s)
     local first = cut and s:sub(1, cut) or s
     if #first > 220 then

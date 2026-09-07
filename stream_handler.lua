@@ -794,7 +794,7 @@ The provider read about %1% of it (%2 tokens) and answered from that part. The r
         if result == "" then
             -- Log partial_data which might contain error info
             if partial_data and #partial_data > 0 then
-                logger.warn("Stream ended with no content but partial_data:", partial_data:sub(1, 500))
+                logger.dbg("Stream ended with no content but partial_data:", partial_data:sub(1, 500))
                 -- Try to extract error from partial data
                 if partial_data:sub(1, 1) == "{" then
                     local ok, j = pcall(json.decode, partial_data)

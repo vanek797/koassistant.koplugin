@@ -6946,8 +6946,11 @@ local function showChatGPTDialog(ui_instance, highlighted_text, config, prompt_t
     local refreshInputDialog
 
     -- Domain target: "book" or "global" — controls where selection is saved
-    -- Default to "book" if any book override exists (domain or research mode), otherwise "global"
-    local domain_target = (doc_settings and (book_domain_id or book_research_id ~= nil)) and "book" or "global"
+    -- Default to "book" whenever the dialog is about a book (2026-09-07: it used
+    -- to need an existing override, so the first visit opened on Global);
+    -- general and library chats keep the global target
+    local domain_target = (doc_settings and input_context ~= "general" and input_context ~= "library")
+        and "book" or "global"
 
     -- Function to show domain selector
     -- Single list with target toggle at top when a book is open

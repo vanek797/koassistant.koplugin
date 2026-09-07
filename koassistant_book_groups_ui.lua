@@ -865,7 +865,7 @@ function GroupsUI.deleteFlow(group_id, opts)
     if not group then return end
     local confirm
     confirm = ButtonDialog:new{
-        title = T(_("Delete the group \"%1\"?\nBooks and their artifacts are not touched — only the grouping is removed."), displayName(group)),
+        title = T(_("Delete the group \"%1\"?\nBooks and their artifacts are not touched. Only the grouping is removed."), displayName(group)),
         buttons = {
             {{ text = _("Delete"), callback = function()
                 UIManager:close(confirm)

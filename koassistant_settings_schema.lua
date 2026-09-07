@@ -909,7 +909,7 @@ local SettingsSchema = {
                             text = _("Automatic X-Ray (all books)"),
                             path = "features.xray_auto_update",
                             default = false,
-                            help_text = _("Keep the X-Rays you started up to date as you read (flowing formats like EPUB only): checkpoints at chapter-sized steps, always keeping the next checkpoint ready ahead of you; reaching it installs it instantly and the one after starts building. Books with no X-Ray are left alone: start one from the X-Ray popup with \"Build as I read\", or switch a book to Automatic individually (X-Ray popup or Book Settings → Automatic X-Ray), which works even with this off; a per-book Off always wins.\n\nSpend guards: at most one background build per cooldown, WiFi only, and text-extraction consent (or a trusted provider) required; background runs extract book text and use API tokens without a per-request tap. Leave off if every request should be explicit."),
+                            help_text = _("Keep the X-Rays you started up to date as you read (flowing formats like EPUB only): checkpoints at chapter-sized steps, always keeping the next checkpoint ready ahead of you; reaching it installs it instantly and the one after starts building. Books with no X-Ray are left alone: start one from the X-Ray popup with \"In checkpoints, as I read (automatic)\", or switch a book to Automatic individually (X-Ray popup or Book Settings → Automatic X-Ray), which works even with this off; a per-book Off always wins.\n\nSpend guards: a cooldown before retrying a step that was declined, failed or cancelled, WiFi only, and text-extraction consent (or a trusted provider) required; background runs extract book text and use API tokens without a per-request tap. Leave off if every request should be explicit."),
                             on_change = function(new_value, plugin)
                                 -- Round 22 (R4 / known gap (a)): flipping the master with a
                                 -- book open must reach that book immediately — refresh the
@@ -967,6 +967,7 @@ local SettingsSchema = {
                             type = "action",
                             text = _("Categories for New X-Rays"),
                             callback = "showXrayDefaultCategoriesPicker",
+                            keep_menu_open = true,
                             help_text = _("Which category groups a new X-Ray tracks by default: everything, or a narrower preset such as Reference (no timeline) or Characters only. Applies when an X-Ray is created or rebuilt; individual books can pick their own categories in Book Settings."),
                         },
                         {
@@ -974,6 +975,7 @@ local SettingsSchema = {
                             type = "action",
                             text = _("Depth of New X-Rays"),
                             callback = "showXrayDefaultDepthPicker",
+                            keep_menu_open = true,
                             help_text = _("How much each X-Ray entry carries by default. Light: one line per entry, only recurring figures and turning points, about half the cost. Standard: a few sentences per entry, everything the reader meets. Deep: longer entries, every figure and development, richer connections. Applies when an X-Ray is created or rebuilt; checkpoints and updates keep the depth the X-Ray was started with. Individual books can pick their own depth in Book Settings."),
                         },
                         {
@@ -1854,6 +1856,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("Manage Actions"),
                     callback = "showPromptsManager",
+                    keep_menu_open = true,
                 },
                 {
                     id = "manage_behaviors",
@@ -1875,6 +1878,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("Manage Domains..."),
                     callback = "showDomainManager",
+                    keep_menu_open = true,
                     info_text = _("Manage knowledge domains. Domains are selected per-chat."),
                 },
                 {
@@ -1910,6 +1914,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("Browse Notebooks..."),
                     callback = "showNotebookBrowser",
+                    keep_menu_open = true,
                     separator = true,
                 },
                 {
@@ -2210,6 +2215,7 @@ local SettingsSchema = {
                             text = _("Delete Book Artifacts"),
                             help_text = _("Delete every saved artifact for the current book: the X-Ray (with its archived versions and checkpoints), summaries, analyses and wiki entries. They regenerate from scratch next time you run the actions."),
                             callback = "clearActionCache",
+                            keep_menu_open = true,
                             depends_on = { id = "enable_book_text_extraction", value = true },
                         },
                     },
@@ -2273,6 +2279,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("Highlight Menu Actions"),
                     callback = "showHighlightMenuManager",
+                    keep_menu_open = true,
                     help_text = _("Choose which actions appear in the highlight menu. Changes take effect the next time the menu opens (up to 15 shown)."),
                     separator = true,
                 },
@@ -2295,6 +2302,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("Dictionary Popup Actions"),
                     callback = "showDictionaryPopupManager",
+                    keep_menu_open = true,
                     help_text = _("Configure which actions appear in the dictionary popup"),
                     separator = true,
                 },
@@ -2327,6 +2335,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("Input Dialog Actions"),
                     callback = "showInputActionsChooser",
+                    keep_menu_open = true,
                     help_text = _("Choose which actions appear in each input dialog (open book, closed book, highlight, X-Ray chat, library, general). Toolbar chips are configured from the input dialog's gear menu (Toolbar Buttons)."),
                     separator = true,
                 },
@@ -2428,6 +2437,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("File Browser Items"),
                     callback = "showFileBrowserActionsManager",
+                    keep_menu_open = true,
                     help_text = _("Choose which buttons and actions appear in the file browser long-press menu."),
                     separator = true,
                 },
@@ -2442,6 +2452,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("Panel Actions"),
                     callback = "showQuickActionsManager",
+                    keep_menu_open = true,
                     help_text = _("Choose which actions appear on the Quick Actions panel."),
                 },
                 {
@@ -2449,6 +2460,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("Panel Utilities"),
                     callback = "showQaUtilitiesManager",
+                    keep_menu_open = true,
                     help_text = _("Choose and order the utility buttons on the Quick Actions panel."),
                 },
                 {
@@ -2456,6 +2468,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("Quick Settings Items"),
                     callback = "showQsItemsManager",
+                    keep_menu_open = true,
                     help_text = _("Choose and order the tiles on the Quick Settings panel."),
                     separator = true,
                 },
@@ -2470,6 +2483,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("Shortcuts"),
                     callback = "showShortcutsScreen",
+                    keep_menu_open = true,
                     help_text = _("See and change the gestures bound to KOAssistant's panels and actions. Assignments apply immediately, no restart needed."),
                 },
                 {
@@ -2529,6 +2543,7 @@ local SettingsSchema = {
                     text = _("Create Backup"),
                     info_text = _("Create a backup of your settings, API keys, and custom content."),
                     callback = "showCreateBackupDialog",
+                    keep_menu_open = true,
                 },
                 {
                     id = "restore_backup",
@@ -2536,6 +2551,7 @@ local SettingsSchema = {
                     text = _("Restore from Backup"),
                     info_text = _("Restore settings from a previous backup."),
                     callback = "showRestoreBackupDialog",
+                    keep_menu_open = true,
                 },
                 {
                     id = "manage_backups",
@@ -2543,6 +2559,7 @@ local SettingsSchema = {
                     text = _("View Backups"),
                     info_text = _("View and manage existing backups."),
                     callback = "showBackupListDialog",
+                    keep_menu_open = true,
                     separator = true,
                 },
                 {
@@ -2558,6 +2575,7 @@ local SettingsSchema = {
                     text = _("Validate Data Indexes"),
                     help_text = _("Checks chat history, artifact, notebook, and pinned indexes for stale entries (books that were moved or deleted outside KOReader) and fixes count mismatches.\n\nThis runs automatically for individual entries when browsing, but you can run a full validation here if needed."),
                     callback = "validateAllIndexes",
+                    keep_menu_open = true,
                 },
                 {
                     id = "rebuild_indexes",
@@ -2565,6 +2583,7 @@ local SettingsSchema = {
                     text = _("Rebuild Data Indexes"),
                     help_text = _("Finds books whose KOAssistant data (artifacts, chats, notebooks, pinned) exists on disk but doesn't show in this device's browsers, e.g. after syncing sidecar files from another device, restoring a backup, or migrating devices.\n\nChecks your reading history, KOReader's sidecar locations, and the scan folders configured below, then removes stale entries. Books on unmounted storage get pruned; run again with the storage mounted to re-add them.\n\nMay take a while on large libraries."),
                     callback = "rebuildAllIndexes",
+                    keep_menu_open = true,
                 },
                 {
                     id = "index_scan_folders",
@@ -2987,6 +3006,7 @@ local SettingsSchema = {
                             type = "action",
                             text = _("Prompt template…"),
                             callback = "showImageGenPromptTemplate",
+                            keep_menu_open = true,
                             help_text = _("Shows the exact prompt sent to the image API, with your current framing toggles applied."),
                             separator = true,
                         },
@@ -2995,6 +3015,7 @@ local SettingsSchema = {
                             type = "action",
                             text = _("Generated images…"),
                             callback = "showImageBrowser",
+                            keep_menu_open = true,
                             help_text = _("Browse, view, and delete the images generated so far."),
                         },
                     },
@@ -3254,6 +3275,7 @@ local SettingsSchema = {
                     type = "action",
                     text = _("Test Connection"),
                     callback = "testProviderConnection",
+                    keep_menu_open = true,
                 },
                 {
                     -- Setup Wizard v2 (2026-08-11): INERT until the release
@@ -3274,6 +3296,7 @@ local SettingsSchema = {
             type = "action",
             text = _("About KOAssistant"),
             callback = "showAbout",
+            keep_menu_open = true,
         },
         {
             id = "auto_check_updates",
@@ -3287,6 +3310,7 @@ local SettingsSchema = {
             type = "action",
             text = _("Check for Updates"),
             callback = "checkForUpdates",
+            keep_menu_open = true,
         },
     },
 

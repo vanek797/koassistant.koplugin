@@ -1161,9 +1161,10 @@ function BookSettings.showDomainResearch(opts)
     local book_domain = doc_settings and doc_settings:readSetting(BookSettings.KEY_DOMAIN) or nil
     local book_research = doc_settings and doc_settings:readSetting(BookSettings.KEY_RESEARCH) or nil
 
-    -- Default to "book" only when the book already has an override, else "global".
+    -- Default to "book" whenever a book is in hand (2026-09-07: it used to
+    -- need an existing override, so the normal first visit opened on Global).
     local domain_target = opts.target_override
-        or (doc_settings and (book_domain or book_research ~= nil) and "book")
+        or (doc_settings and "book")
         or "global"
 
     local dialog
