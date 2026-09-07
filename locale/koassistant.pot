@@ -6,10 +6,10 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: KOAssistant 0.22.0\n"
+"Project-Id-Version: KOAssistant 0.22.1\n"
 "Report-Msgid-Bugs-To: https://github.com/zeeyado/koassistant.koplugin/"
 "issues\n"
-"POT-Creation-Date: 2026-09-07 16:29+0200\n"
+"POT-Creation-Date: 2026-09-07 18:46+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: _meta.lua:4 main.lua:6311
+#: _meta.lua:4 main.lua:6329
 msgid "KOAssistant"
 msgstr ""
 
@@ -27,24 +27,24 @@ msgid "A powerful AI assistant integrated into KOReader"
 msgstr ""
 
 #: koassistant_action_cache.lua:613 koassistant_action_cache.lua:946
-#: koassistant_dialogs.lua:7228 koassistant_dialogs.lua:12626 main.lua:13236
+#: koassistant_dialogs.lua:7228 koassistant_dialogs.lua:12626 main.lua:13253
 msgid "Summary"
 msgstr ""
 
 #: koassistant_action_cache.lua:614 koassistant_action_cache.lua:947
-#: koassistant_dialogs.lua:7224 koassistant_dialogs.lua:12622 main.lua:13224
+#: koassistant_dialogs.lua:7224 koassistant_dialogs.lua:12622 main.lua:13241
 msgid "Analysis"
 msgstr ""
 
-#: koassistant_action_cache.lua:615 main.lua:13550 prompts/actions.lua:1608
+#: koassistant_action_cache.lua:615 main.lua:13567 prompts/actions.lua:1631
 msgid "Recap"
 msgstr ""
 
-#: koassistant_action_cache.lua:616 prompts/actions.lua:1522
+#: koassistant_action_cache.lua:616 prompts/actions.lua:1545
 msgid "X-Ray (Simple)"
 msgstr ""
 
-#: koassistant_action_cache.lua:617 prompts/actions.lua:1318
+#: koassistant_action_cache.lua:617 prompts/actions.lua:1341
 msgid "About"
 msgstr ""
 
@@ -53,17 +53,17 @@ msgid "Notes Analysis"
 msgstr ""
 
 #: koassistant_action_cache.lua:619 koassistant_action_cache.lua:948
-#: prompts/actions.lua:1794
+#: prompts/actions.lua:1817
 msgid "Key Arguments"
 msgstr ""
 
 #: koassistant_action_cache.lua:620 koassistant_action_cache.lua:950
-#: prompts/actions.lua:1894
+#: prompts/actions.lua:1917
 msgid "Discussion Questions"
 msgstr ""
 
 #: koassistant_action_cache.lua:621 koassistant_action_cache.lua:951
-#: main.lua:13308 main.lua:15626 main.lua:15663 prompts/actions.lua:1942
+#: main.lua:13325 main.lua:15643 main.lua:15680 prompts/actions.lua:1965
 msgid "Quiz"
 msgstr ""
 
@@ -72,7 +72,7 @@ msgid "Key Insights"
 msgstr ""
 
 #: koassistant_action_cache.lua:623 koassistant_action_cache.lua:953
-#: prompts/actions.lua:2071
+#: prompts/actions.lua:2094
 msgid "Reading Guide"
 msgstr ""
 
@@ -138,21 +138,21 @@ msgid "View Section Reading Guides"
 msgstr ""
 
 #: koassistant_action_cache.lua:945 koassistant_book_page.lua:159
-#: koassistant_book_settings.lua:2702 koassistant_dialogs.lua:10895
+#: koassistant_book_settings.lua:2711 koassistant_dialogs.lua:10895
 #: koassistant_settings_schema.lua:904 koassistant_xray_browser.lua:1626
 #: koassistant_xray_browser.lua:2045 koassistant_xray_browser.lua:6395
-#: koassistant_xray_rows.lua:118 main.lua:7417 main.lua:12548 main.lua:12629
-#: prompts/actions.lua:1421
+#: koassistant_xray_rows.lua:118 main.lua:7434 main.lua:12565 main.lua:12646
+#: prompts/actions.lua:1444
 msgid "X-Ray"
 msgstr ""
 
-#: koassistant_action_cache.lua:949 prompts/actions.lua:1848
+#: koassistant_action_cache.lua:949 prompts/actions.lua:1871
 msgid "Counterarguments"
 msgstr ""
 
 #: koassistant_action_cache.lua:2279 koassistant_dialogs.lua:10718
 #: koassistant_xray_merge.lua:1666 koassistant_xray_merge.lua:1920
-#: main.lua:7754 main.lua:10357 main.lua:11869 main.lua:11963
+#: main.lua:7771 main.lua:10374 main.lua:11886 main.lua:11980
 msgid "pp %1–%2"
 msgstr ""
 
@@ -164,8 +164,8 @@ msgstr ""
 msgid "the dictionary popup"
 msgstr ""
 
-#: koassistant_action_hold.lua:36 koassistant_constants.lua:291 main.lua:17849
-#: main.lua:22278
+#: koassistant_action_hold.lua:36 koassistant_constants.lua:291 main.lua:17866
+#: main.lua:22295
 msgid "Quick Actions"
 msgstr ""
 
@@ -248,7 +248,7 @@ msgstr ""
 #: koassistant_xray_parser.lua:1193 koassistant_xray_parser.lua:1300
 #: koassistant_xray_parser.lua:1328 koassistant_xray_parser.lua:1349
 #: koassistant_xray_parser.lua:1369 koassistant_xray_parser.lua:1376
-#: main.lua:12523 main.lua:20037 koassistant_ui/behavior_manager.lua:285
+#: main.lua:12540 main.lua:20054 koassistant_ui/behavior_manager.lua:285
 #: koassistant_ui/domain_manager.lua:301 koassistant_ui/prompts_manager.lua:791
 msgid "Unknown"
 msgstr ""
@@ -298,14 +298,14 @@ msgstr ""
 #: koassistant_artifact_browser.lua:1074 koassistant_book_groups_ui.lua:60
 #: koassistant_book_groups_ui.lua:255 koassistant_book_groups_ui.lua:394
 #: koassistant_book_groups_ui.lua:746 koassistant_book_groups_ui.lua:798
-#: koassistant_book_groups_ui.lua:877 koassistant_book_picker.lua:275
-#: koassistant_book_picker.lua:875 koassistant_book_settings.lua:944
-#: koassistant_book_settings.lua:1353 koassistant_book_settings.lua:2834
-#: koassistant_book_settings.lua:3028 koassistant_book_settings.lua:3085
-#: koassistant_book_settings.lua:3287 koassistant_book_settings.lua:3374
-#: koassistant_book_settings.lua:3412 koassistant_book_settings.lua:3514
-#: koassistant_book_settings.lua:3539 koassistant_book_settings.lua:3704
-#: koassistant_book_settings.lua:3754 koassistant_chat_history_dialog.lua:898
+#: koassistant_book_groups_ui.lua:877 koassistant_book_picker.lua:277
+#: koassistant_book_picker.lua:877 koassistant_book_settings.lua:944
+#: koassistant_book_settings.lua:1353 koassistant_book_settings.lua:2843
+#: koassistant_book_settings.lua:3037 koassistant_book_settings.lua:3094
+#: koassistant_book_settings.lua:3296 koassistant_book_settings.lua:3383
+#: koassistant_book_settings.lua:3421 koassistant_book_settings.lua:3523
+#: koassistant_book_settings.lua:3548 koassistant_book_settings.lua:3713
+#: koassistant_book_settings.lua:3763 koassistant_chat_history_dialog.lua:898
 #: koassistant_chat_history_dialog.lua:1112
 #: koassistant_chat_history_dialog.lua:1578
 #: koassistant_chat_history_dialog.lua:2289
@@ -346,14 +346,14 @@ msgstr ""
 #: main.lua:2328 main.lua:2622 main.lua:3625 main.lua:3670 main.lua:3714
 #: main.lua:3785 main.lua:4055 main.lua:4428 main.lua:4904 main.lua:5123
 #: main.lua:5331 main.lua:5375 main.lua:5504 main.lua:6021 main.lua:6262
-#: main.lua:7050 main.lua:7170 main.lua:8096 main.lua:8246 main.lua:8318
-#: main.lua:8388 main.lua:9233 main.lua:9748 main.lua:10191 main.lua:10778
-#: main.lua:11474 main.lua:11693 main.lua:11797 main.lua:11835 main.lua:12073
-#: main.lua:12111 main.lua:12139 main.lua:12221 main.lua:12234 main.lua:12315
-#: main.lua:12456 main.lua:12468 main.lua:12736 main.lua:12762 main.lua:12776
-#: main.lua:12938 main.lua:13045 main.lua:13144 main.lua:13176 main.lua:13188
-#: main.lua:13318 main.lua:14529 main.lua:15030 main.lua:15869 main.lua:15938
-#: main.lua:17994 main.lua:18520 main.lua:20631 main.lua:21464 main.lua:22470
+#: main.lua:7067 main.lua:7187 main.lua:8113 main.lua:8263 main.lua:8335
+#: main.lua:8405 main.lua:9250 main.lua:9765 main.lua:10208 main.lua:10795
+#: main.lua:11491 main.lua:11710 main.lua:11814 main.lua:11852 main.lua:12090
+#: main.lua:12128 main.lua:12156 main.lua:12238 main.lua:12251 main.lua:12332
+#: main.lua:12473 main.lua:12485 main.lua:12753 main.lua:12779 main.lua:12793
+#: main.lua:12955 main.lua:13062 main.lua:13161 main.lua:13193 main.lua:13205
+#: main.lua:13335 main.lua:14546 main.lua:15047 main.lua:15886 main.lua:15955
+#: main.lua:18011 main.lua:18537 main.lua:20648 main.lua:21481 main.lua:22487
 #: koassistant_ui/behavior_manager.lua:440
 #: koassistant_ui/behavior_manager.lua:499
 #: koassistant_ui/behavior_manager.lua:578
@@ -398,8 +398,8 @@ msgid "Cancel"
 msgstr ""
 
 #: koassistant_artifact_browser.lua:511 koassistant_artifact_browser.lua:988
-#: koassistant_notebook_manager.lua:182 main.lua:12831 main.lua:13088
-#: main.lua:18196
+#: koassistant_notebook_manager.lua:182 main.lua:12848 main.lua:13105
+#: main.lua:18213
 msgid "View"
 msgstr ""
 
@@ -423,9 +423,9 @@ msgstr ""
 #: koassistant_chat_history_dialog.lua:2675 koassistant_chatgptviewer.lua:3097
 #: koassistant_chatgptviewer.lua:3135 koassistant_image_browser.lua:103
 #: koassistant_notebook_manager.lua:221 koassistant_xray_browser.lua:6580
-#: main.lua:5357 main.lua:12213 main.lua:12436 main.lua:12444 main.lua:12758
-#: main.lua:13032 main.lua:13157 main.lua:13165 main.lua:18000 main.lua:21826
-#: main.lua:21834 koassistant_ui/behavior_manager.lua:332
+#: main.lua:5357 main.lua:12230 main.lua:12453 main.lua:12461 main.lua:12775
+#: main.lua:13049 main.lua:13174 main.lua:13182 main.lua:18017 main.lua:21843
+#: main.lua:21851 koassistant_ui/behavior_manager.lua:332
 #: koassistant_ui/domain_manager.lua:342
 #: koassistant_ui/prompts_manager.lua:1168
 msgid "Delete"
@@ -442,8 +442,8 @@ msgstr ""
 #: koassistant_chat_history_dialog.lua:631
 #: koassistant_chat_history_dialog.lua:2869 koassistant_constants.lua:147
 #: koassistant_constants.lua:283 koassistant_notebook_manager.lua:280
-#: koassistant_settings_schema.lua:81 main.lua:657 main.lua:17526
-#: main.lua:22280 koassistant_ui/prompts_manager.lua:6271
+#: koassistant_settings_schema.lua:81 main.lua:657 main.lua:17543
+#: main.lua:22297 koassistant_ui/prompts_manager.lua:6271
 msgid "Chat History"
 msgstr ""
 
@@ -491,7 +491,7 @@ msgstr ""
 
 #: koassistant_artifact_browser.lua:917 koassistant_artifact_browser.lua:1375
 #: koassistant_chatgptviewer.lua:2753 koassistant_constants.lua:268
-#: koassistant_xray_browser.lua:7099 main.lua:17101
+#: koassistant_xray_browser.lua:7099 main.lua:17118
 msgid "Model"
 msgstr ""
 
@@ -539,10 +539,10 @@ msgid "Enter a new name"
 msgstr ""
 
 #: koassistant_artifact_browser.lua:1016 koassistant_book_groups_ui.lua:65
-#: koassistant_book_settings.lua:946 koassistant_book_settings.lua:3376
-#: koassistant_book_settings.lua:3706 koassistant_chatgptviewer.lua:1655
+#: koassistant_book_settings.lua:946 koassistant_book_settings.lua:3385
+#: koassistant_book_settings.lua:3715 koassistant_chatgptviewer.lua:1655
 #: koassistant_dialogs.lua:1751 main.lua:2272 main.lua:3792 main.lua:5147
-#: main.lua:5333 main.lua:6028 main.lua:6277 main.lua:18527 main.lua:20637
+#: main.lua:5333 main.lua:6028 main.lua:6277 main.lua:18544 main.lua:20654
 #: koassistant_ui/behavior_manager.lua:517
 #: koassistant_ui/domain_manager.lua:516
 #: koassistant_ui/prompts_manager.lua:2080
@@ -562,12 +562,12 @@ msgstr ""
 msgid "No Section X-Rays available."
 msgstr ""
 
-#: koassistant_artifact_browser.lua:1161 main.lua:12307
+#: koassistant_artifact_browser.lua:1161 main.lua:12324
 msgid "Merge section X-Rays…"
 msgstr ""
 
 #: koassistant_artifact_browser.lua:1211 koassistant_artifact_browser.lua:1230
-#: koassistant_chatgptviewer.lua:2672 main.lua:13344
+#: koassistant_chatgptviewer.lua:2672 main.lua:13361
 msgid "Section %1: %2"
 msgstr ""
 
@@ -635,7 +635,7 @@ msgstr ""
 msgid "This artifact has no attachable text."
 msgstr ""
 
-#: koassistant_attachments.lua:207 koassistant_dialogs.lua:12919 main.lua:7091
+#: koassistant_attachments.lua:207 koassistant_dialogs.lua:12919 main.lua:7108
 msgid "Artifact"
 msgstr ""
 
@@ -678,13 +678,13 @@ msgstr ""
 #: koassistant_book_groups_ui.lua:46 koassistant_book_settings.lua:604
 #: koassistant_book_settings.lua:1029 koassistant_book_settings.lua:1038
 #: koassistant_book_settings.lua:1051 koassistant_book_settings.lua:1260
-#: koassistant_book_settings.lua:2578 koassistant_book_settings.lua:2582
-#: koassistant_book_settings.lua:2810 koassistant_book_settings.lua:2830
+#: koassistant_book_settings.lua:2587 koassistant_book_settings.lua:2591
+#: koassistant_book_settings.lua:2819 koassistant_book_settings.lua:2839
 #: koassistant_dialogs.lua:1322 koassistant_dialogs.lua:7059
 #: koassistant_dialogs.lua:7063 koassistant_group_settings.lua:70
 #: koassistant_settings_schema.lua:647 koassistant_settings_schema.lua:1429
-#: koassistant_settings_schema.lua:1889 main.lua:6210 main.lua:17007
-#: main.lua:17009 reasoning_prefs.lua:112 koassistant_ui/prompts_manager.lua:70
+#: koassistant_settings_schema.lua:1889 main.lua:6210 main.lua:17024
+#: main.lua:17026 reasoning_prefs.lua:112 koassistant_ui/prompts_manager.lua:70
 #: koassistant_ui/prompts_manager.lua:869
 #: koassistant_ui/prompts_manager.lua:1779
 #: koassistant_ui/prompts_manager.lua:2436
@@ -766,14 +766,14 @@ msgid "Look in a folder…"
 msgstr ""
 
 #: koassistant_book_groups_ui.lua:281 koassistant_book_groups_ui.lua:702
-#: koassistant_book_groups_ui.lua:924 koassistant_book_picker.lua:441
+#: koassistant_book_groups_ui.lua:924 koassistant_book_picker.lua:443
 #: koassistant_dialogs.lua:7999
 msgid "Select Folder"
 msgstr ""
 
 #: koassistant_book_groups_ui.lua:292 koassistant_book_groups_ui.lua:713
-#: koassistant_book_groups_ui.lua:935 koassistant_book_picker.lua:323
-#: koassistant_book_picker.lua:380
+#: koassistant_book_groups_ui.lua:935 koassistant_book_picker.lua:325
+#: koassistant_book_picker.lua:382
 msgid ""
 "No books found in:\n"
 "%1"
@@ -785,7 +785,7 @@ msgstr ""
 
 #: koassistant_book_groups_ui.lua:318 koassistant_group_settings.lua:250
 #: koassistant_xray_dedup.lua:670 koassistant_xray_merge.lua:2559
-#: main.lua:12417
+#: main.lua:12434
 msgid "Not now"
 msgstr ""
 
@@ -801,7 +801,7 @@ msgid "New group from series \"%1\"…"
 msgstr ""
 
 #: koassistant_book_groups_ui.lua:377 koassistant_xray_browser.lua:3263
-#: main.lua:7485
+#: main.lua:7502
 msgid "(no X-Ray)"
 msgstr ""
 
@@ -834,7 +834,7 @@ msgid "1-%1 (currently %2)"
 msgstr ""
 
 #: koassistant_book_groups_ui.lua:458 koassistant_xray_browser.lua:3190
-#: main.lua:23243
+#: main.lua:23260
 msgid "Move"
 msgstr ""
 
@@ -847,7 +847,7 @@ msgid "Remove from group"
 msgstr ""
 
 #: koassistant_book_groups_ui.lua:490 koassistant_book_groups_ui.lua:568
-#: koassistant_book_groups_ui.lua:618 koassistant_book_settings.lua:2351
+#: koassistant_book_groups_ui.lua:618 koassistant_book_settings.lua:2360
 #: koassistant_chat_history_dialog.lua:1431
 #: koassistant_chat_history_dialog.lua:1618 koassistant_dialogs.lua:2185
 #: koassistant_dialogs.lua:8143 koassistant_setup_wizard.lua:891
@@ -881,7 +881,7 @@ msgid "Choose which…"
 msgstr ""
 
 #: koassistant_book_groups_ui.lua:769 koassistant_book_groups_ui.lua:971
-#: koassistant_book_picker.lua:376
+#: koassistant_book_picker.lua:378
 msgid "No books in the collection \"%1\"."
 msgstr ""
 
@@ -940,8 +940,8 @@ msgstr ""
 #: koassistant_dialogs.lua:11656 koassistant_xray_dedup.lua:931
 #: koassistant_xray_dedup.lua:975 koassistant_xray_merge.lua:3242
 #: koassistant_xray_merge.lua:3348 koassistant_xray_merge.lua:3455
-#: koassistant_xray_merge.lua:3493 main.lua:9462 main.lua:13059 main.lua:14801
-#: main.lua:19662
+#: koassistant_xray_merge.lua:3493 main.lua:9479 main.lua:13076 main.lua:14818
+#: main.lua:19679
 msgid "Back"
 msgstr ""
 
@@ -950,7 +950,7 @@ msgid "Groups — %1"
 msgstr ""
 
 #: koassistant_book_page.lua:43 koassistant_constants.lua:153
-#: koassistant_settings_schema.lua:57 main.lua:22277
+#: koassistant_settings_schema.lua:57 main.lua:22294
 msgid "Book Hub"
 msgstr ""
 
@@ -963,7 +963,7 @@ msgid "none"
 msgstr ""
 
 #: koassistant_book_page.lua:216 koassistant_constants.lua:144
-#: koassistant_settings_schema.lua:45 main.lua:22275
+#: koassistant_settings_schema.lua:45 main.lua:22292
 msgid "Book Chat/Action"
 msgstr ""
 
@@ -973,7 +973,7 @@ msgstr ""
 
 #: koassistant_book_page.lua:243 koassistant_chatgptviewer.lua:1621
 #: koassistant_constants.lua:148 koassistant_quiz_viewer.lua:561 main.lua:634
-#: main.lua:18192 main.lua:23396 main.lua:23484
+#: main.lua:18209 main.lua:23413 main.lua:23501
 #: koassistant_ui/prompts_manager.lua:6269
 msgid "Notebook"
 msgstr ""
@@ -982,8 +982,8 @@ msgstr ""
 msgid "Search in book"
 msgstr ""
 
-#: koassistant_book_page.lua:269 koassistant_book_settings.lua:2662
-#: main.lua:7537
+#: koassistant_book_page.lua:269 koassistant_book_settings.lua:2671
+#: main.lua:7554
 msgid "Group: %1"
 msgstr ""
 
@@ -991,7 +991,7 @@ msgstr ""
 msgid "Add to group…"
 msgstr ""
 
-#: koassistant_book_page.lua:292 koassistant_book_settings.lua:2755
+#: koassistant_book_page.lua:292 koassistant_book_settings.lua:2764
 #: koassistant_constants.lua:155 koassistant_dialogs.lua:10481 main.lua:806
 #: koassistant_ui/prompts_manager.lua:6277
 msgid "Book Settings"
@@ -1006,7 +1006,7 @@ msgid "Nothing to export."
 msgstr ""
 
 #: koassistant_book_page.lua:350 koassistant_chatgptviewer.lua:5483
-#: koassistant_chatgptviewer.lua:5831 main.lua:23425
+#: koassistant_chatgptviewer.lua:5831 main.lua:23442
 msgid "Select export folder"
 msgstr ""
 
@@ -1025,7 +1025,7 @@ msgid ""
 "This cannot be undone."
 msgstr ""
 
-#: koassistant_book_page.lua:390 main.lua:18008
+#: koassistant_book_page.lua:390 main.lua:18025
 msgid "Artifacts deleted."
 msgstr ""
 
@@ -1049,7 +1049,7 @@ msgstr ""
 msgid "Delete all artifacts…"
 msgstr ""
 
-#: koassistant_book_picker.lua:32 koassistant_book_picker.lua:147
+#: koassistant_book_picker.lua:32 koassistant_book_picker.lua:149
 msgid "All"
 msgstr ""
 
@@ -1069,100 +1069,100 @@ msgstr ""
 msgid "Finished 75%+"
 msgstr ""
 
-#: koassistant_book_picker.lua:157
+#: koassistant_book_picker.lua:159
 msgid "%1: %2 (%3 selected)"
 msgstr ""
 
-#: koassistant_book_picker.lua:228
+#: koassistant_book_picker.lua:230
 msgid "Favorites"
 msgstr ""
 
-#: koassistant_book_picker.lua:280
+#: koassistant_book_picker.lua:282
 msgid "Which collection?"
 msgstr ""
 
-#: koassistant_book_picker.lua:317
+#: koassistant_book_picker.lua:319
 msgid "Failed to load library scanner."
 msgstr ""
 
-#: koassistant_book_picker.lua:372
+#: koassistant_book_picker.lua:374
 msgid "No books in reading history."
 msgstr ""
 
-#: koassistant_book_picker.lua:390 koassistant_book_picker.lua:705
+#: koassistant_book_picker.lua:392 koassistant_book_picker.lua:707
 msgid "History"
 msgstr ""
 
-#: koassistant_book_picker.lua:416 koassistant_book_picker.lua:558
+#: koassistant_book_picker.lua:418 koassistant_book_picker.lua:560
 msgid "Failed to load folder."
 msgstr ""
 
-#: koassistant_book_picker.lua:587
+#: koassistant_book_picker.lua:589
 msgid "Please select at least 1 book."
 msgstr ""
 
-#: koassistant_book_picker.lua:689
+#: koassistant_book_picker.lua:691
 msgid "Confirm Selection (%1)"
 msgstr ""
 
-#: koassistant_book_picker.lua:699
+#: koassistant_book_picker.lua:701
 msgid "Sources:"
 msgstr ""
 
-#: koassistant_book_picker.lua:719
+#: koassistant_book_picker.lua:721
 msgid "Folder: %1"
 msgstr ""
 
-#: koassistant_book_picker.lua:735
+#: koassistant_book_picker.lua:737
 msgid "Collection: %1"
 msgstr ""
 
-#: koassistant_book_picker.lua:749 koassistant_dialogs.lua:7988
+#: koassistant_book_picker.lua:751 koassistant_dialogs.lua:7988
 msgid "Browse Folder…"
 msgstr ""
 
-#: koassistant_book_picker.lua:759
+#: koassistant_book_picker.lua:761
 msgid "Browse Collection…"
 msgstr ""
 
-#: koassistant_book_picker.lua:772
+#: koassistant_book_picker.lua:774
 msgid "Filter…"
 msgstr ""
 
-#: koassistant_book_picker.lua:781
+#: koassistant_book_picker.lua:783
 msgid "Search: \"%1\""
 msgstr ""
 
-#: koassistant_book_picker.lua:781
+#: koassistant_book_picker.lua:783
 msgid "Search…"
 msgstr ""
 
-#: koassistant_book_picker.lua:790
+#: koassistant_book_picker.lua:792
 msgid "Select All Visible"
 msgstr ""
 
-#: koassistant_book_picker.lua:802 koassistant_dialogs.lua:8053
+#: koassistant_book_picker.lua:804 koassistant_dialogs.lua:8053
 msgid "Clear Selection"
 msgstr ""
 
-#: koassistant_book_picker.lua:843
+#: koassistant_book_picker.lua:845
 msgid "Clear search"
 msgstr ""
 
-#: koassistant_book_picker.lua:854
+#: koassistant_book_picker.lua:856
 msgid "Filter by status"
 msgstr ""
 
-#: koassistant_book_picker.lua:871
+#: koassistant_book_picker.lua:873
 msgid "Search by title or author"
 msgstr ""
 
-#: koassistant_book_picker.lua:882 koassistant_group_settings.lua:414
+#: koassistant_book_picker.lua:884 koassistant_group_settings.lua:414
 #: main.lua:5130
 msgid "Clear"
 msgstr ""
 
-#: koassistant_book_picker.lua:890 koassistant_xray_browser.lua:5876
+#: koassistant_book_picker.lua:892 koassistant_xray_browser.lua:5876
 msgid "Search"
 msgstr ""
 
@@ -1173,25 +1173,25 @@ msgstr ""
 #: koassistant_book_settings.lua:1345 koassistant_book_settings.lua:1642
 #: koassistant_book_settings.lua:1645 koassistant_book_settings.lua:1682
 #: koassistant_book_settings.lua:1762 koassistant_book_settings.lua:1806
-#: koassistant_book_settings.lua:2384 koassistant_book_settings.lua:2422
-#: koassistant_book_settings.lua:2436 koassistant_book_settings.lua:2449
-#: koassistant_book_settings.lua:2515 koassistant_book_settings.lua:2571
-#: koassistant_book_settings.lua:2573 koassistant_book_settings.lua:2788
-#: koassistant_book_settings.lua:2790 koassistant_book_settings.lua:2853
-#: koassistant_book_settings.lua:2855 koassistant_book_settings.lua:2939
-#: koassistant_book_settings.lua:2941 koassistant_book_settings.lua:3265
-#: koassistant_book_settings.lua:3267 koassistant_book_settings.lua:3283
-#: koassistant_book_settings.lua:3285 koassistant_book_settings.lua:3510
-#: koassistant_book_settings.lua:3512 koassistant_book_settings.lua:3570
-#: koassistant_book_settings.lua:3572 koassistant_book_settings.lua:3594
-#: koassistant_book_settings.lua:3601 koassistant_chatgptviewer.lua:6372
+#: koassistant_book_settings.lua:2393 koassistant_book_settings.lua:2431
+#: koassistant_book_settings.lua:2445 koassistant_book_settings.lua:2458
+#: koassistant_book_settings.lua:2524 koassistant_book_settings.lua:2580
+#: koassistant_book_settings.lua:2582 koassistant_book_settings.lua:2797
+#: koassistant_book_settings.lua:2799 koassistant_book_settings.lua:2862
+#: koassistant_book_settings.lua:2864 koassistant_book_settings.lua:2948
+#: koassistant_book_settings.lua:2950 koassistant_book_settings.lua:3274
+#: koassistant_book_settings.lua:3276 koassistant_book_settings.lua:3292
+#: koassistant_book_settings.lua:3294 koassistant_book_settings.lua:3519
+#: koassistant_book_settings.lua:3521 koassistant_book_settings.lua:3579
+#: koassistant_book_settings.lua:3581 koassistant_book_settings.lua:3603
+#: koassistant_book_settings.lua:3610 koassistant_chatgptviewer.lua:6372
 #: koassistant_chatgptviewer.lua:6381 koassistant_chatgptviewer.lua:6450
 #: koassistant_chatgptviewer.lua:6480 koassistant_chatgptviewer.lua:6495
 #: koassistant_group_settings.lua:87 koassistant_group_settings.lua:89
-#: koassistant_settings_schema.lua:798 main.lua:16450 main.lua:16543
-#: main.lua:16574 main.lua:16702 main.lua:17153 main.lua:17199 main.lua:17241
-#: main.lua:17301 main.lua:17336 main.lua:17483 main.lua:19584 main.lua:19597
-#: main.lua:19607 main.lua:19622 reasoning_prefs.lua:103
+#: koassistant_settings_schema.lua:798 main.lua:16467 main.lua:16560
+#: main.lua:16591 main.lua:16719 main.lua:17170 main.lua:17216 main.lua:17258
+#: main.lua:17318 main.lua:17353 main.lua:17500 main.lua:19601 main.lua:19614
+#: main.lua:19624 main.lua:19639 reasoning_prefs.lua:103
 #: reasoning_prefs.lua:121
 msgid "On"
 msgstr ""
@@ -1203,27 +1203,27 @@ msgstr ""
 #: koassistant_book_settings.lua:1345 koassistant_book_settings.lua:1643
 #: koassistant_book_settings.lua:1645 koassistant_book_settings.lua:1683
 #: koassistant_book_settings.lua:1763 koassistant_book_settings.lua:1807
-#: koassistant_book_settings.lua:2385 koassistant_book_settings.lua:2422
-#: koassistant_book_settings.lua:2436 koassistant_book_settings.lua:2449
-#: koassistant_book_settings.lua:2515 koassistant_book_settings.lua:2572
-#: koassistant_book_settings.lua:2573 koassistant_book_settings.lua:2789
-#: koassistant_book_settings.lua:2790 koassistant_book_settings.lua:2853
-#: koassistant_book_settings.lua:2855 koassistant_book_settings.lua:2940
-#: koassistant_book_settings.lua:2941 koassistant_book_settings.lua:3266
-#: koassistant_book_settings.lua:3267 koassistant_book_settings.lua:3283
-#: koassistant_book_settings.lua:3286 koassistant_book_settings.lua:3510
-#: koassistant_book_settings.lua:3513 koassistant_book_settings.lua:3571
-#: koassistant_book_settings.lua:3572 koassistant_book_settings.lua:3594
-#: koassistant_book_settings.lua:3601 koassistant_chatgptviewer.lua:6372
+#: koassistant_book_settings.lua:2394 koassistant_book_settings.lua:2431
+#: koassistant_book_settings.lua:2445 koassistant_book_settings.lua:2458
+#: koassistant_book_settings.lua:2524 koassistant_book_settings.lua:2581
+#: koassistant_book_settings.lua:2582 koassistant_book_settings.lua:2798
+#: koassistant_book_settings.lua:2799 koassistant_book_settings.lua:2862
+#: koassistant_book_settings.lua:2864 koassistant_book_settings.lua:2949
+#: koassistant_book_settings.lua:2950 koassistant_book_settings.lua:3275
+#: koassistant_book_settings.lua:3276 koassistant_book_settings.lua:3292
+#: koassistant_book_settings.lua:3295 koassistant_book_settings.lua:3519
+#: koassistant_book_settings.lua:3522 koassistant_book_settings.lua:3580
+#: koassistant_book_settings.lua:3581 koassistant_book_settings.lua:3603
+#: koassistant_book_settings.lua:3610 koassistant_chatgptviewer.lua:6372
 #: koassistant_chatgptviewer.lua:6381 koassistant_chatgptviewer.lua:6450
 #: koassistant_chatgptviewer.lua:6480 koassistant_chatgptviewer.lua:6495
 #: koassistant_dialogs.lua:1274 koassistant_dialogs.lua:1310
 #: koassistant_dialogs.lua:8913 koassistant_group_settings.lua:87
 #: koassistant_group_settings.lua:89 koassistant_settings_schema.lua:798
-#: koassistant_settings_schema.lua:1713 main.lua:6151 main.lua:16446
-#: main.lua:16529 main.lua:16571 main.lua:16700 main.lua:17153 main.lua:17199
-#: main.lua:17241 main.lua:17301 main.lua:17336 main.lua:17483 main.lua:19584
-#: main.lua:19597 main.lua:19607 main.lua:19622 reasoning_prefs.lua:36
+#: koassistant_settings_schema.lua:1713 main.lua:6151 main.lua:16463
+#: main.lua:16546 main.lua:16588 main.lua:16717 main.lua:17170 main.lua:17216
+#: main.lua:17258 main.lua:17318 main.lua:17353 main.lua:17500 main.lua:19601
+#: main.lua:19614 main.lua:19624 main.lua:19639 reasoning_prefs.lua:36
 #: reasoning_prefs.lua:119
 msgid "Off"
 msgstr ""
@@ -1231,20 +1231,20 @@ msgstr ""
 #: koassistant_book_settings.lua:391 koassistant_book_settings.lua:1033
 #: koassistant_book_settings.lua:1080 koassistant_book_settings.lua:1340
 #: koassistant_book_settings.lua:1575 koassistant_book_settings.lua:1654
-#: koassistant_book_settings.lua:1693 koassistant_book_settings.lua:2276
-#: koassistant_book_settings.lua:2573 koassistant_book_settings.lua:2581
-#: koassistant_book_settings.lua:2790 koassistant_book_settings.lua:2828
-#: koassistant_book_settings.lua:2844 koassistant_book_settings.lua:2852
-#: koassistant_book_settings.lua:2870 koassistant_book_settings.lua:2878
-#: koassistant_book_settings.lua:2886 koassistant_book_settings.lua:2941
-#: koassistant_book_settings.lua:3103 koassistant_book_settings.lua:3125
-#: koassistant_book_settings.lua:3184 koassistant_book_settings.lua:3189
-#: koassistant_book_settings.lua:3205 koassistant_book_settings.lua:3211
-#: koassistant_book_settings.lua:3225 koassistant_book_settings.lua:3267
-#: koassistant_book_settings.lua:3283 koassistant_book_settings.lua:3510
-#: koassistant_book_settings.lua:3532 koassistant_book_settings.lua:3567
-#: koassistant_book_settings.lua:3739 koassistant_book_settings.lua:3769
-#: main.lua:16516
+#: koassistant_book_settings.lua:1693 koassistant_book_settings.lua:2285
+#: koassistant_book_settings.lua:2582 koassistant_book_settings.lua:2590
+#: koassistant_book_settings.lua:2799 koassistant_book_settings.lua:2837
+#: koassistant_book_settings.lua:2853 koassistant_book_settings.lua:2861
+#: koassistant_book_settings.lua:2879 koassistant_book_settings.lua:2887
+#: koassistant_book_settings.lua:2895 koassistant_book_settings.lua:2950
+#: koassistant_book_settings.lua:3112 koassistant_book_settings.lua:3134
+#: koassistant_book_settings.lua:3193 koassistant_book_settings.lua:3198
+#: koassistant_book_settings.lua:3214 koassistant_book_settings.lua:3220
+#: koassistant_book_settings.lua:3234 koassistant_book_settings.lua:3276
+#: koassistant_book_settings.lua:3292 koassistant_book_settings.lua:3519
+#: koassistant_book_settings.lua:3541 koassistant_book_settings.lua:3576
+#: koassistant_book_settings.lua:3748 koassistant_book_settings.lua:3778
+#: main.lua:16533
 msgid "Follow global (%1)"
 msgstr ""
 
@@ -1260,7 +1260,7 @@ msgid "Thorough"
 msgstr ""
 
 #: koassistant_book_settings.lua:532 koassistant_book_settings.lua:537
-#: koassistant_book_settings.lua:1726 koassistant_book_settings.lua:2092
+#: koassistant_book_settings.lua:1726 koassistant_book_settings.lua:2096
 #: koassistant_chatgptviewer.lua:6113 koassistant_dialogs.lua:1160
 #: koassistant_dialogs.lua:1276 koassistant_settings_schema.lua:349
 #: koassistant_settings_schema.lua:2828 koassistant_settings_schema.lua:2838
@@ -1273,7 +1273,7 @@ msgstr ""
 msgid "Standard"
 msgstr ""
 
-#: koassistant_book_settings.lua:535 koassistant_book_settings.lua:2090
+#: koassistant_book_settings.lua:535 koassistant_book_settings.lua:2094
 #: koassistant_settings_schema.lua:2827
 msgid "Light"
 msgstr ""
@@ -1294,14 +1294,14 @@ msgstr ""
 msgid "Characters"
 msgstr ""
 
-#: koassistant_book_settings.lua:608 koassistant_book_settings.lua:2814
-#: koassistant_book_settings.lua:3557 main.lua:16569 main.lua:16575
+#: koassistant_book_settings.lua:608 koassistant_book_settings.lua:2823
+#: koassistant_book_settings.lua:3566 main.lua:16586 main.lua:16592
 msgid "Follow global"
 msgstr ""
 
 #: koassistant_book_settings.lua:890 koassistant_book_settings.lua:1112
 #: koassistant_group_settings.lua:84 koassistant_setup_wizard.lua:962
-#: main.lua:22380
+#: main.lua:22397
 msgid "not set"
 msgstr ""
 
@@ -1341,17 +1341,17 @@ msgid ""
 msgstr ""
 
 #: koassistant_book_settings.lua:1011 koassistant_book_settings.lua:1535
-#: koassistant_book_settings.lua:2251
+#: koassistant_book_settings.lua:2260
 msgid "For this group"
 msgstr ""
 
 #: koassistant_book_settings.lua:1011 koassistant_book_settings.lua:1535
-#: koassistant_book_settings.lua:2251
+#: koassistant_book_settings.lua:2260
 msgid "For this book"
 msgstr ""
 
 #: koassistant_book_settings.lua:1017 koassistant_book_settings.lua:1541
-#: koassistant_book_settings.lua:2260 main.lua:16409
+#: koassistant_book_settings.lua:2269 main.lua:16426
 #: koassistant_ui/prompts_manager.lua:78 koassistant_ui/prompts_manager.lua:173
 #: koassistant_ui/prompts_manager.lua:810
 #: koassistant_ui/prompts_manager.lua:814
@@ -1381,8 +1381,8 @@ msgstr ""
 
 #: koassistant_book_settings.lua:1032 koassistant_book_settings.lua:1079
 #: koassistant_book_settings.lua:1337 koassistant_book_settings.lua:1567
-#: koassistant_book_settings.lua:2275 koassistant_book_settings.lua:3738
-#: koassistant_book_settings.lua:3768
+#: koassistant_book_settings.lua:2284 koassistant_book_settings.lua:3747
+#: koassistant_book_settings.lua:3777
 msgid "Not set (books follow global: %1)"
 msgstr ""
 
@@ -1390,16 +1390,16 @@ msgstr ""
 msgid "Research Mode"
 msgstr ""
 
-#: koassistant_book_settings.lua:1112 koassistant_book_settings.lua:2625
+#: koassistant_book_settings.lua:1112 koassistant_book_settings.lua:2634
 #: koassistant_group_settings.lua:372
 msgid "Background: %1"
 msgstr ""
 
 #: koassistant_book_settings.lua:1119 koassistant_book_settings.lua:1597
-#: koassistant_book_settings.lua:2750 koassistant_book_settings.lua:2894
-#: koassistant_book_settings.lua:3228 koassistant_book_settings.lua:3327
-#: koassistant_book_settings.lua:3439 koassistant_book_settings.lua:3657
-#: koassistant_book_settings.lua:3820 koassistant_chat_history_dialog.lua:1205
+#: koassistant_book_settings.lua:2759 koassistant_book_settings.lua:2903
+#: koassistant_book_settings.lua:3237 koassistant_book_settings.lua:3336
+#: koassistant_book_settings.lua:3448 koassistant_book_settings.lua:3666
+#: koassistant_book_settings.lua:3829 koassistant_chat_history_dialog.lua:1205
 #: koassistant_chat_history_dialog.lua:1232
 #: koassistant_chat_history_dialog.lua:1391 koassistant_chatgptviewer.lua:1782
 #: koassistant_chatgptviewer.lua:2364 koassistant_chatgptviewer.lua:2562
@@ -1416,8 +1416,8 @@ msgstr ""
 #: koassistant_xray_browser.lua:3019 koassistant_xray_browser.lua:3578
 #: koassistant_xray_dedup.lua:1125 koassistant_xray_dedup.lua:1181
 #: main.lua:2365 main.lua:2695 main.lua:2941 main.lua:3916 main.lua:5394
-#: main.lua:6182 main.lua:16337 main.lua:16480 main.lua:16633 main.lua:16671
-#: main.lua:19809 main.lua:22399 koassistant_ui/behavior_manager.lua:403
+#: main.lua:6182 main.lua:16354 main.lua:16497 main.lua:16650 main.lua:16688
+#: main.lua:19826 main.lua:22416 koassistant_ui/behavior_manager.lua:403
 #: koassistant_ui/domain_manager.lua:412
 #: koassistant_ui/settings_manager.lua:253
 #: koassistant_ui/settings_manager.lua:346
@@ -1471,7 +1471,7 @@ msgstr ""
 
 #: koassistant_book_settings.lua:1622 koassistant_xray_browser.lua:1573
 #: koassistant_xray_browser.lua:2329 koassistant_xray_dedup.lua:938
-#: main.lua:4691 main.lua:16771 main.lua:22380 main.lua:22387
+#: main.lua:4691 main.lua:16788 main.lua:22397 main.lua:22404
 #: koassistant_ui/settings_manager.lua:210
 #: koassistant_ui/settings_manager.lua:295
 msgid "%1: %2"
@@ -1481,7 +1481,7 @@ msgstr ""
 msgid "AI Book Tools"
 msgstr ""
 
-#: koassistant_book_settings.lua:1657 koassistant_book_settings.lua:2868
+#: koassistant_book_settings.lua:1657 koassistant_book_settings.lua:2877
 msgid "Lookup effort: %1"
 msgstr ""
 
@@ -1491,7 +1491,7 @@ msgstr ""
 msgid "Web Search"
 msgstr ""
 
-#: koassistant_book_settings.lua:1696 koassistant_book_settings.lua:2876
+#: koassistant_book_settings.lua:1696 koassistant_book_settings.lua:2885
 msgid "Search depth: %1"
 msgstr ""
 
@@ -1635,26 +1635,26 @@ msgstr ""
 msgid "All entities"
 msgstr ""
 
-#: koassistant_book_settings.lua:2024 koassistant_book_settings.lua:2478
+#: koassistant_book_settings.lua:2024 koassistant_book_settings.lua:2487
 msgid "Floating popup"
 msgstr ""
 
 #: koassistant_book_settings.lua:2025 koassistant_book_settings.lua:2030
-#: koassistant_book_settings.lua:2479 koassistant_book_settings.lua:2492
+#: koassistant_book_settings.lua:2488 koassistant_book_settings.lua:2501
 #: koassistant_settings_schema.lua:1079
 msgid "Full entry"
 msgstr ""
 
-#: koassistant_book_settings.lua:2026 koassistant_book_settings.lua:2477
+#: koassistant_book_settings.lua:2026 koassistant_book_settings.lua:2486
 msgid "Footnote panel"
 msgstr ""
 
 #: koassistant_book_settings.lua:2031 koassistant_book_settings.lua:2035
-#: koassistant_book_settings.lua:2491
+#: koassistant_book_settings.lua:2500
 msgid "First sentence"
 msgstr ""
 
-#: koassistant_book_settings.lua:2036 koassistant_book_settings.lua:2505
+#: koassistant_book_settings.lua:2036 koassistant_book_settings.lua:2514
 msgid "Name only, tap to show"
 msgstr ""
 
@@ -1678,421 +1678,421 @@ msgstr ""
 msgid "Timeline & development"
 msgstr ""
 
-#: koassistant_book_settings.lua:2091
+#: koassistant_book_settings.lua:2095
 msgid "Deep"
 msgstr ""
 
-#: koassistant_book_settings.lua:2102
+#: koassistant_book_settings.lua:2106
 msgid "Depth of new X-Rays"
 msgstr ""
 
-#: koassistant_book_settings.lua:2103
+#: koassistant_book_settings.lua:2107
 msgid ""
 "How much each entry carries. Applies to new builds and rebuilds; checkpoints "
 "and updates keep the depth the X-Ray was started with."
 msgstr ""
 
-#: koassistant_book_settings.lua:2115
+#: koassistant_book_settings.lua:2119
 msgid "Light (one line per entry, recurring figures and turning points only)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2116
+#: koassistant_book_settings.lua:2120
 msgid "Standard (a few sentences per entry, everything the reader meets)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2117
+#: koassistant_book_settings.lua:2121
 msgid "Deep (longer entries, every figure and development, richer connections)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2134 koassistant_book_settings.lua:2297
+#: koassistant_book_settings.lua:2138 koassistant_book_settings.lua:2306
 msgid "All categories"
 msgstr ""
 
-#: koassistant_book_settings.lua:2135 koassistant_book_settings.lua:2329
+#: koassistant_book_settings.lua:2139 koassistant_book_settings.lua:2338
 msgid "Characters only"
 msgstr ""
 
-#: koassistant_book_settings.lua:2136
+#: koassistant_book_settings.lua:2140
 msgid "Characters and story"
 msgstr ""
 
-#: koassistant_book_settings.lua:2137
+#: koassistant_book_settings.lua:2141
 msgid "Reference"
 msgstr ""
 
-#: koassistant_book_settings.lua:2140
+#: koassistant_book_settings.lua:2144
 msgid "%1 of %2"
 msgstr ""
 
-#: koassistant_book_settings.lua:2296
+#: koassistant_book_settings.lua:2305
 msgid "Presets"
 msgstr ""
 
-#: koassistant_book_settings.lua:2309
+#: koassistant_book_settings.lua:2318
 msgid "Characters and story (people, timeline)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2321
+#: koassistant_book_settings.lua:2330
 msgid "Reference (everything except the timeline)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2336
+#: koassistant_book_settings.lua:2345
 msgid "Pick one by one"
 msgstr ""
 
-#: koassistant_book_settings.lua:2342
+#: koassistant_book_settings.lua:2351
 msgid "At least one category must stay selected."
 msgstr ""
 
-#: koassistant_book_settings.lua:2356
+#: koassistant_book_settings.lua:2365
 msgid "Categories for new X-Rays (global)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2357
+#: koassistant_book_settings.lua:2366
 msgid "Categories for new X-Rays (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2358
+#: koassistant_book_settings.lua:2367
 msgid ""
 "Applies to new builds and rebuilds. Fewer categories are faster and cheaper."
 msgstr ""
 
-#: koassistant_book_settings.lua:2394
+#: koassistant_book_settings.lua:2403
 msgid "Marking Density"
 msgstr ""
 
-#: koassistant_book_settings.lua:2408
+#: koassistant_book_settings.lua:2417
 msgid "Entities to Mark"
 msgstr ""
 
-#: koassistant_book_settings.lua:2418
+#: koassistant_book_settings.lua:2427
 msgid "Tap Marked Words"
 msgstr ""
 
-#: koassistant_book_settings.lua:2432 koassistant_settings_schema.lua:1034
+#: koassistant_book_settings.lua:2441 koassistant_settings_schema.lua:1034
 msgid "Upcoming Entities"
 msgstr ""
 
-#: koassistant_book_settings.lua:2445
+#: koassistant_book_settings.lua:2454
 msgid "Matching Selections Open Entries"
 msgstr ""
 
-#: koassistant_book_settings.lua:2460
+#: koassistant_book_settings.lua:2469
 msgid "Exact Hits Open"
 msgstr ""
 
-#: koassistant_book_settings.lua:2485
+#: koassistant_book_settings.lua:2494
 msgid "Card Shows"
 msgstr ""
 
-#: koassistant_book_settings.lua:2499
+#: koassistant_book_settings.lua:2508
 msgid "Upcoming Entity Cards"
 msgstr ""
 
-#: koassistant_book_settings.lua:2506 koassistant_settings_schema.lua:1059
+#: koassistant_book_settings.lua:2515 koassistant_settings_schema.lua:1059
 msgid "First sentence right away"
 msgstr ""
 
-#: koassistant_book_settings.lua:2511 koassistant_settings_schema.lua:1002
+#: koassistant_book_settings.lua:2520 koassistant_settings_schema.lua:1002
 msgid "Passive Marking"
 msgstr ""
 
-#: koassistant_book_settings.lua:2622 koassistant_group_settings.lua:369
-#: main.lua:17117
+#: koassistant_book_settings.lua:2631 koassistant_group_settings.lua:369
+#: main.lua:17134
 msgid "Domain: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:2633 koassistant_group_settings.lua:371
+#: koassistant_book_settings.lua:2642 koassistant_group_settings.lua:371
 msgid "Research mode: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:2645
+#: koassistant_book_settings.lua:2654
 msgid "Spoiler protection: %1 (off: research mode)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2647
+#: koassistant_book_settings.lua:2656
 msgid "Spoiler protection: %1 (off: book finished)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2649 koassistant_group_settings.lua:373
+#: koassistant_book_settings.lua:2658 koassistant_group_settings.lua:373
 msgid "Spoiler protection: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:2692
+#: koassistant_book_settings.lua:2701
 msgid "%1 (%2) ▸"
 msgstr ""
 
-#: koassistant_book_settings.lua:2692
+#: koassistant_book_settings.lua:2701
 msgid "%1 ▸"
 msgstr ""
 
-#: koassistant_book_settings.lua:2711
+#: koassistant_book_settings.lua:2720
 msgid "Chat behavior"
 msgstr ""
 
-#: koassistant_book_settings.lua:2717 koassistant_setup_wizard.lua:948
+#: koassistant_book_settings.lua:2726 koassistant_setup_wizard.lua:948
 msgid "Privacy"
 msgstr ""
 
-#: koassistant_book_settings.lua:2721
+#: koassistant_book_settings.lua:2730
 msgid "Identity"
 msgstr ""
 
-#: koassistant_book_settings.lua:2724
+#: koassistant_book_settings.lua:2733
 msgid "Quiz settings"
 msgstr ""
 
-#: koassistant_book_settings.lua:2726
+#: koassistant_book_settings.lua:2735
 msgid "Languages"
 msgstr ""
 
-#: koassistant_book_settings.lua:2737
+#: koassistant_book_settings.lua:2746
 msgid "Reset book settings"
 msgstr ""
 
-#: koassistant_book_settings.lua:2740
+#: koassistant_book_settings.lua:2749
 msgid ""
 "Reset all KOAssistant settings for this book to follow the global defaults?"
 msgstr ""
 
-#: koassistant_book_settings.lua:2741
+#: koassistant_book_settings.lua:2750
 msgid "Reset"
 msgstr ""
 
-#: koassistant_book_settings.lua:2755
+#: koassistant_book_settings.lua:2764
 msgid "Book Settings (%1 customized)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2811 koassistant_book_settings.lua:2831
+#: koassistant_book_settings.lua:2820 koassistant_book_settings.lua:2840
 #: koassistant_settings_schema.lua:648
 msgid "Title only"
 msgstr ""
 
-#: koassistant_book_settings.lua:2812 koassistant_book_settings.lua:2833
+#: koassistant_book_settings.lua:2821 koassistant_book_settings.lua:2842
 #: koassistant_settings_schema.lua:650
 msgid "Title, author & position"
 msgstr ""
 
-#: koassistant_book_settings.lua:2813 koassistant_book_settings.lua:2832
+#: koassistant_book_settings.lua:2822 koassistant_book_settings.lua:2841
 #: koassistant_settings_schema.lua:649
 msgid "Title & author"
 msgstr ""
 
-#: koassistant_book_settings.lua:2837
+#: koassistant_book_settings.lua:2846
 msgid "Book info in chat (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2866
+#: koassistant_book_settings.lua:2875
 msgid "AI Book Tools: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:2873
+#: koassistant_book_settings.lua:2882
 msgid "Web search: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:2881
+#: koassistant_book_settings.lua:2890
 msgid "Quick answer default: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:2884
+#: koassistant_book_settings.lua:2893
 msgid "Book info: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:2888
+#: koassistant_book_settings.lua:2897
 msgid "Highlight context: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:2891
+#: koassistant_book_settings.lua:2900
 msgid "Dictionary context: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:2900
+#: koassistant_book_settings.lua:2909
 msgid "Chat behavior (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2971 koassistant_group_settings.lua:374
-#: main.lua:9697 main.lua:10125
+#: koassistant_book_settings.lua:2980 koassistant_group_settings.lua:374
+#: main.lua:9714 main.lua:10142
 msgid "Automatic X-Ray: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:2973
+#: koassistant_book_settings.lua:2982
 msgid "(no effect: page-based book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:2993
+#: koassistant_book_settings.lua:3002
 msgid "X-Ray updates: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:2995
+#: koassistant_book_settings.lua:3004
 msgid "Follow my position"
 msgstr ""
 
-#: koassistant_book_settings.lua:2995
+#: koassistant_book_settings.lua:3004
 msgid "Newest first"
 msgstr ""
 
-#: koassistant_book_settings.lua:3015
+#: koassistant_book_settings.lua:3024
 msgid "X-Ray updates (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3021
+#: koassistant_book_settings.lua:3030
 msgid ""
 "Spoiler protection is on: updates follow your position regardless of this "
 "pick."
 msgstr ""
 
-#: koassistant_book_settings.lua:3024
+#: koassistant_book_settings.lua:3033
 msgid "Newest first (default: install checkpoints as they are built)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3026
+#: koassistant_book_settings.lua:3035
 msgid "Follow my reading position"
 msgstr ""
 
-#: koassistant_book_settings.lua:3045
+#: koassistant_book_settings.lua:3054
 msgid "Build up to: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3046 main.lua:14957
+#: koassistant_book_settings.lua:3055 main.lua:14974
 msgid "%1%"
 msgstr ""
 
-#: koassistant_book_settings.lua:3046
+#: koassistant_book_settings.lua:3055
 msgid "Whole book"
 msgstr ""
 
-#: koassistant_book_settings.lua:3058
+#: koassistant_book_settings.lua:3067
 msgid "Whole book (default)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3063
+#: koassistant_book_settings.lua:3072
 msgid "To the end of a section… (now %1%)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3064 main.lua:11161
+#: koassistant_book_settings.lua:3073 main.lua:11178
 msgid "To the end of a section…"
 msgstr ""
 
-#: koassistant_book_settings.lua:3068
+#: koassistant_book_settings.lua:3077
 msgid "Build the X-Ray up to the end of…"
 msgstr ""
 
-#: koassistant_book_settings.lua:3087
+#: koassistant_book_settings.lua:3096
 msgid "Build the X-Ray up to (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3088
+#: koassistant_book_settings.lua:3097
 msgid ""
 "The limit for automatic building: checkpoints stop here until you raise it. "
 "It exists so a section target picked in the create/extend form keeps "
 "bounding automatic building afterwards. Whole book = no limit."
 msgstr ""
 
-#: koassistant_book_settings.lua:3090
+#: koassistant_book_settings.lua:3099
 msgid "Open the book to pick a section target."
 msgstr ""
 
-#: koassistant_book_settings.lua:3099 koassistant_group_settings.lua:377
+#: koassistant_book_settings.lua:3108 koassistant_group_settings.lua:377
 msgid "New X-Ray depth: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3121 koassistant_group_settings.lua:376
+#: koassistant_book_settings.lua:3130 koassistant_group_settings.lua:376
 msgid "New X-Ray categories: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3142
+#: koassistant_book_settings.lua:3151
 msgid "Checkpoint spacing: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3143
+#: koassistant_book_settings.lua:3152
 msgid "every %1%"
 msgstr ""
 
-#: koassistant_book_settings.lua:3143
+#: koassistant_book_settings.lua:3152
 msgid "Recommended"
 msgstr ""
 
-#: koassistant_book_settings.lua:3156 main.lua:11392
+#: koassistant_book_settings.lua:3165 main.lua:11409
 msgid "Checkpoint spacing for this book:"
 msgstr ""
 
-#: koassistant_book_settings.lua:3179
+#: koassistant_book_settings.lua:3188
 msgid "Passive marking: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3182
+#: koassistant_book_settings.lua:3191
 msgid "Marking density: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3187
+#: koassistant_book_settings.lua:3196
 msgid "Entities to mark: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3192
+#: koassistant_book_settings.lua:3201
 msgid "Tap marked words: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3198
+#: koassistant_book_settings.lua:3207
 msgid "Upcoming entities: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3203
+#: koassistant_book_settings.lua:3212
 msgid "Upcoming entity cards: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3209
+#: koassistant_book_settings.lua:3218
 msgid "Card shows: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3216
+#: koassistant_book_settings.lua:3225
 msgid "Matching selections open entries: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3223
+#: koassistant_book_settings.lua:3232
 msgid "Exact hits open: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3233
+#: koassistant_book_settings.lua:3242
 msgid "X-Ray (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3296
+#: koassistant_book_settings.lua:3305
 msgid "Highlights sharing: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3300
+#: koassistant_book_settings.lua:3309
 msgid "Highlights sharing (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3303
+#: koassistant_book_settings.lua:3312
 msgid "Annotations sharing: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3307
+#: koassistant_book_settings.lua:3316
 msgid "Annotations sharing (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3309
+#: koassistant_book_settings.lua:3318
 msgid "Notebook sharing: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3313
+#: koassistant_book_settings.lua:3322
 msgid "Notebook sharing (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3315
+#: koassistant_book_settings.lua:3324
 msgid "Text extraction: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3319
+#: koassistant_book_settings.lua:3328
 msgid "Text extraction (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3322
+#: koassistant_book_settings.lua:3331
 msgid "How overrides work…"
 msgstr ""
 
-#: koassistant_book_settings.lua:3324
+#: koassistant_book_settings.lua:3333
 msgid ""
 "These override the global privacy toggles for this book. Deny always wins — "
 "even over trusted providers. Allow satisfies only the global gate: actions "
@@ -2100,252 +2100,252 @@ msgid ""
 "highlights; denying highlights denies annotations."
 msgstr ""
 
-#: koassistant_book_settings.lua:3333
+#: koassistant_book_settings.lua:3342
 msgid "Privacy (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3372
+#: koassistant_book_settings.lua:3381
 msgid "What the AI should see for this book"
 msgstr ""
 
-#: koassistant_book_settings.lua:3404
+#: koassistant_book_settings.lua:3413
 msgid "Custom: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3404 koassistant_book_settings.lua:3752
+#: koassistant_book_settings.lua:3413 koassistant_book_settings.lua:3761
 msgid "Custom…"
 msgstr ""
 
-#: koassistant_book_settings.lua:3406
+#: koassistant_book_settings.lua:3415
 msgid "Use the book's real metadata"
 msgstr ""
 
-#: koassistant_book_settings.lua:3410
+#: koassistant_book_settings.lua:3419
 msgid "Send empty"
 msgstr ""
 
-#: koassistant_book_settings.lua:3422
+#: koassistant_book_settings.lua:3431
 msgid "using metadata"
 msgstr ""
 
-#: koassistant_book_settings.lua:3423
+#: koassistant_book_settings.lua:3432
 msgid "empty"
 msgstr ""
 
-#: koassistant_book_settings.lua:3429
+#: koassistant_book_settings.lua:3438
 msgid "AI title: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3432
+#: koassistant_book_settings.lua:3441
 msgid "AI title (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3432
+#: koassistant_book_settings.lua:3441
 msgid "Custom AI title"
 msgstr ""
 
-#: koassistant_book_settings.lua:3434
+#: koassistant_book_settings.lua:3443
 msgid "AI author: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3437
+#: koassistant_book_settings.lua:3446
 msgid "AI author (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3437
+#: koassistant_book_settings.lua:3446
 msgid "Custom AI author"
 msgstr ""
 
-#: koassistant_book_settings.lua:3445
+#: koassistant_book_settings.lua:3454
 msgid "Identity (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3452 koassistant_book_settings.lua:3615
+#: koassistant_book_settings.lua:3461 koassistant_book_settings.lua:3624
 #: koassistant_settings_schema.lua:870
 msgid "Easy"
 msgstr ""
 
-#: koassistant_book_settings.lua:3453 koassistant_book_settings.lua:3617
+#: koassistant_book_settings.lua:3462 koassistant_book_settings.lua:3626
 #: koassistant_settings_schema.lua:872
 msgid "Hard"
 msgstr ""
 
-#: koassistant_book_settings.lua:3454 koassistant_book_settings.lua:3616
+#: koassistant_book_settings.lua:3463 koassistant_book_settings.lua:3625
 #: koassistant_settings_schema.lua:871 koassistant_settings_schema.lua:2958
 #: reasoning_prefs.lua:31
 msgid "Medium"
 msgstr ""
 
-#: koassistant_book_settings.lua:3457 koassistant_book_settings.lua:3638
+#: koassistant_book_settings.lua:3466 koassistant_book_settings.lua:3647
 #: koassistant_settings_schema.lua:816
 msgid "Auto-detect"
 msgstr ""
 
-#: koassistant_book_settings.lua:3458 koassistant_book_settings.lua:3639
+#: koassistant_book_settings.lua:3467 koassistant_book_settings.lua:3648
 #: koassistant_settings_schema.lua:817
 msgid "Top level (Level 1)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3459 koassistant_book_settings.lua:3462
-#: koassistant_book_settings.lua:3640 koassistant_settings_schema.lua:818
+#: koassistant_book_settings.lua:3468 koassistant_book_settings.lua:3471
+#: koassistant_book_settings.lua:3649 koassistant_settings_schema.lua:818
 msgid "Level 2"
 msgstr ""
 
-#: koassistant_book_settings.lua:3460 koassistant_book_settings.lua:3641
+#: koassistant_book_settings.lua:3469 koassistant_book_settings.lua:3650
 #: koassistant_settings_schema.lua:819
 msgid "Level 3"
 msgstr ""
 
-#: koassistant_book_settings.lua:3461 koassistant_book_settings.lua:3642
+#: koassistant_book_settings.lua:3470 koassistant_book_settings.lua:3651
 #: koassistant_settings_schema.lua:820
 msgid "All TOC headings"
 msgstr ""
 
-#: koassistant_book_settings.lua:3578 koassistant_book_settings.lua:3582
+#: koassistant_book_settings.lua:3587 koassistant_book_settings.lua:3591
 msgid "No minimum"
 msgstr ""
 
-#: koassistant_book_settings.lua:3579
+#: koassistant_book_settings.lua:3588
 msgid "%1 pages"
 msgstr ""
 
-#: koassistant_book_settings.lua:3583
+#: koassistant_book_settings.lua:3592
 msgid "%1 min"
 msgstr ""
 
-#: koassistant_book_settings.lua:3593
+#: koassistant_book_settings.lua:3602
 msgid "Off (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3598
+#: koassistant_book_settings.lua:3607
 msgid "Chapter-end quiz: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3600
+#: koassistant_book_settings.lua:3609
 msgid "Chapter-end quiz (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3602
+#: koassistant_book_settings.lua:3611
 msgid "Off: never quiz this book"
 msgstr ""
 
-#: koassistant_book_settings.lua:3604
+#: koassistant_book_settings.lua:3613
 msgid "Question count: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3606
+#: koassistant_book_settings.lua:3615
 msgid "Question count (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3609
+#: koassistant_book_settings.lua:3618
 msgid "Difficulty: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3613
+#: koassistant_book_settings.lua:3622
 msgid "Difficulty (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3620
+#: koassistant_book_settings.lua:3629
 msgid "Multiple choice: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3622
+#: koassistant_book_settings.lua:3631
 msgid "Multiple choice (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3624
+#: koassistant_book_settings.lua:3633
 msgid "Short answer: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3626
+#: koassistant_book_settings.lua:3635
 msgid "Short answer (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3628
+#: koassistant_book_settings.lua:3637
 msgid "Discussion: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3630
+#: koassistant_book_settings.lua:3639
 msgid "Discussion (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3632
+#: koassistant_book_settings.lua:3641
 msgid "Chapter level: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3636
+#: koassistant_book_settings.lua:3645
 msgid "Quiz chapter level (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3645
+#: koassistant_book_settings.lua:3654
 msgid "Min chapter length: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3648
+#: koassistant_book_settings.lua:3657
 msgid "Min chapter length, pages (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3651
+#: koassistant_book_settings.lua:3660
 msgid "Min reading time: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3654
+#: koassistant_book_settings.lua:3663
 msgid "Min reading time, minutes (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3663
+#: koassistant_book_settings.lua:3672
 msgid "Quiz settings (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3702
+#: koassistant_book_settings.lua:3711
 msgid "Language name (e.g. Spanish)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3762
+#: koassistant_book_settings.lua:3771
 msgid "primary language"
 msgstr ""
 
-#: koassistant_book_settings.lua:3805
+#: koassistant_book_settings.lua:3814
 msgid "AI response language: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3808
+#: koassistant_book_settings.lua:3817
 msgid "AI response language (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3808
+#: koassistant_book_settings.lua:3817
 msgid "AI response language (this group)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3810
+#: koassistant_book_settings.lua:3819
 msgid "Translation language: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3813
+#: koassistant_book_settings.lua:3822
 msgid "Translation language (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3813
+#: koassistant_book_settings.lua:3822
 msgid "Translation language (this group)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3815
+#: koassistant_book_settings.lua:3824
 msgid "Dictionary language: %1"
 msgstr ""
 
-#: koassistant_book_settings.lua:3818
+#: koassistant_book_settings.lua:3827
 msgid "Dictionary language (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3818
+#: koassistant_book_settings.lua:3827
 msgid "Dictionary language (this group)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3826
+#: koassistant_book_settings.lua:3835
 msgid "Languages (this book)"
 msgstr ""
 
-#: koassistant_book_settings.lua:3826
+#: koassistant_book_settings.lua:3835
 msgid "Languages (this group)"
 msgstr ""
 
@@ -2436,12 +2436,12 @@ msgid ""
 "This action cannot be undone."
 msgstr ""
 
-#: koassistant_chat_history_dialog.lua:139 main.lua:20172
+#: koassistant_chat_history_dialog.lua:139 main.lua:20189
 msgid "Deleted %1 chat(s) from %2 book(s)"
 msgstr ""
 
 #: koassistant_chat_history_dialog.lua:306
-#: koassistant_chat_history_dialog.lua:507 main.lua:6750
+#: koassistant_chat_history_dialog.lua:507 main.lua:6767
 msgid "No saved chats found"
 msgstr ""
 
@@ -2552,12 +2552,12 @@ msgid "Error: Cannot load chat data."
 msgstr ""
 
 #: koassistant_chat_history_dialog.lua:943 koassistant_xray_browser.lua:6791
-#: koassistant_xray_browser.lua:6793 main.lua:6892
+#: koassistant_xray_browser.lua:6793 main.lua:6909
 msgid "Date:"
 msgstr ""
 
 #: koassistant_chat_history_dialog.lua:944 koassistant_xray_browser.lua:6781
-#: main.lua:6889
+#: main.lua:6906
 msgid "Model:"
 msgstr ""
 
@@ -2812,7 +2812,7 @@ msgid ""
 msgstr ""
 
 #: koassistant_chat_history_dialog.lua:2502 koassistant_chatgptviewer.lua:5404
-#: main.lua:23521
+#: main.lua:23538
 msgid "Failed to save: %1"
 msgstr ""
 
@@ -3024,7 +3024,7 @@ msgstr ""
 msgid "+Vocab"
 msgstr ""
 
-#: koassistant_chatgptviewer.lua:2080 main.lua:19114
+#: koassistant_chatgptviewer.lua:2080 main.lua:19131
 msgid "AI Dictionary lookup"
 msgstr ""
 
@@ -3067,7 +3067,7 @@ msgid "Configure languages in Settings first"
 msgstr ""
 
 #: koassistant_chatgptviewer.lua:2200 koassistant_constants.lua:279
-#: main.lua:17429 main.lua:18403
+#: main.lua:17446 main.lua:18420
 msgid "Dictionary Language"
 msgstr ""
 
@@ -3167,7 +3167,7 @@ msgid "Start a new chat about this artifact"
 msgstr ""
 
 #: koassistant_chatgptviewer.lua:3030 koassistant_xray_browser.lua:6861
-#: main.lua:21797 koassistant_ui/prompts_manager.lua:1557
+#: main.lua:21814 koassistant_ui/prompts_manager.lua:1557
 #: koassistant_ui/prompts_manager.lua:2243
 msgid "Info"
 msgstr ""
@@ -3177,13 +3177,13 @@ msgid "Open in Reader"
 msgstr ""
 
 #: koassistant_chatgptviewer.lua:3053 koassistant_notebook_manager.lua:192
-#: main.lua:18203 koassistant_ui/behavior_manager.lua:325
+#: main.lua:18220 koassistant_ui/behavior_manager.lua:325
 #: koassistant_ui/domain_manager.lua:335
 msgid "Edit"
 msgstr ""
 
 #: koassistant_chatgptviewer.lua:3064 koassistant_dialogs.lua:12694
-#: koassistant_xray_browser.lua:3964 main.lua:13442 main.lua:13478
+#: koassistant_xray_browser.lua:3964 main.lua:13459 main.lua:13495
 msgid "Regenerate"
 msgstr ""
 
@@ -3305,7 +3305,7 @@ msgstr ""
 
 #: koassistant_chatgptviewer.lua:4643 koassistant_ui/prompts_manager.lua:2174
 #: koassistant_ui/prompts_manager.lua:2192
-#: koassistant_ui/prompts_manager.lua:2249 prompts/actions.lua:2423
+#: koassistant_ui/prompts_manager.lua:2249 prompts/actions.lua:2446
 msgid "Dictionary"
 msgstr ""
 
@@ -3320,7 +3320,7 @@ msgstr ""
 #: koassistant_chatgptviewer.lua:4690 koassistant_update_checker.lua:825
 #: koassistant_ui/prompts_manager.lua:2172
 #: koassistant_ui/prompts_manager.lua:2194
-#: koassistant_ui/prompts_manager.lua:2251 prompts/actions.lua:2369
+#: koassistant_ui/prompts_manager.lua:2251 prompts/actions.lua:2392
 msgid "Translate"
 msgstr ""
 
@@ -3348,7 +3348,7 @@ msgstr ""
 msgid "No highlight selection data available"
 msgstr ""
 
-#: koassistant_chatgptviewer.lua:5080 main.lua:18331
+#: koassistant_chatgptviewer.lua:5080 main.lua:18348
 msgid "No document open"
 msgstr ""
 
@@ -3407,12 +3407,12 @@ msgid "No export metadata available."
 msgstr ""
 
 #: koassistant_chatgptviewer.lua:5509 koassistant_chatgptviewer.lua:5841
-#: main.lua:23447
+#: main.lua:23464
 msgid "Saved to %1"
 msgstr ""
 
 #: koassistant_chatgptviewer.lua:5514 koassistant_chatgptviewer.lua:5843
-#: main.lua:23452
+#: main.lua:23469
 msgid "Export failed: %1"
 msgstr ""
 
@@ -3615,40 +3615,40 @@ msgstr ""
 msgid "Font size set to %1"
 msgstr ""
 
-#: koassistant_chatgptviewer.lua:6554 main.lua:20414
+#: koassistant_chatgptviewer.lua:6554 main.lua:20431
 msgid "Settings reset to defaults"
 msgstr ""
 
-#: koassistant_constants.lua:143 main.lua:22284
+#: koassistant_constants.lua:143 main.lua:22301
 msgid "Translate Page"
 msgstr ""
 
-#: koassistant_constants.lua:145 koassistant_constants.lua:289 main.lua:17588
-#: main.lua:22281
+#: koassistant_constants.lua:145 koassistant_constants.lua:289 main.lua:17605
+#: main.lua:22298
 msgid "Continue Last Chat"
 msgstr ""
 
 #: koassistant_constants.lua:146 koassistant_constants.lua:288
-#: koassistant_settings_schema.lua:67 main.lua:17579 main.lua:22274
+#: koassistant_settings_schema.lua:67 main.lua:17596 main.lua:22291
 msgid "General Chat/Action"
 msgstr ""
 
 #: koassistant_constants.lua:149 koassistant_dialogs.lua:9998
-#: koassistant_dialogs.lua:10047 main.lua:687 main.lua:770 main.lua:7057
-#: main.lua:17799 koassistant_ui/prompts_manager.lua:6273
+#: koassistant_dialogs.lua:10047 main.lua:687 main.lua:770 main.lua:7074
+#: main.lua:17816 koassistant_ui/prompts_manager.lua:6273
 msgid "View Artifacts"
 msgstr ""
 
-#: koassistant_constants.lua:150 main.lua:17813
+#: koassistant_constants.lua:150 main.lua:17830
 msgid "Group Hub"
 msgstr ""
 
-#: koassistant_constants.lua:154 koassistant_dialogs.lua:10431 main.lua:17655
-#: main.lua:22279
+#: koassistant_constants.lua:154 koassistant_dialogs.lua:10431 main.lua:17672
+#: main.lua:22296
 msgid "Quick Settings"
 msgstr ""
 
-#: koassistant_constants.lua:267 main.lua:17091
+#: koassistant_constants.lua:267 main.lua:17108
 msgid "Provider"
 msgstr ""
 
@@ -3664,7 +3664,7 @@ msgid "Domain"
 msgstr ""
 
 #: koassistant_constants.lua:271 koassistant_settings_schema.lua:2695
-#: main.lua:16489 koassistant_ui/prompts_manager.lua:919
+#: main.lua:16506 koassistant_ui/prompts_manager.lua:919
 msgid "Reasoning"
 msgstr ""
 
@@ -3681,7 +3681,7 @@ msgstr ""
 msgid "Minimal Popup"
 msgstr ""
 
-#: koassistant_constants.lua:278 main.lua:17416
+#: koassistant_constants.lua:278 main.lua:17433
 #: koassistant_ui/prompts_manager.lua:5289
 msgid "Translation Language"
 msgstr ""
@@ -3699,28 +3699,28 @@ msgid "Text Extraction"
 msgstr ""
 
 #: koassistant_constants.lua:284 koassistant_settings_schema.lua:88
-#: main.lua:17537
+#: main.lua:17554
 msgid "Browse Notebooks"
 msgstr ""
 
 #: koassistant_constants.lua:285 koassistant_settings_schema.lua:95
-#: main.lua:17546
+#: main.lua:17563
 msgid "Browse Artifacts"
 msgstr ""
 
 #: koassistant_constants.lua:286 koassistant_group_page.lua:492
-#: koassistant_settings_schema.lua:102 main.lua:7537 main.lua:17561
+#: koassistant_settings_schema.lua:102 main.lua:7554 main.lua:17578
 msgid "Groups"
 msgstr ""
 
 #: koassistant_constants.lua:287 koassistant_dialogs.lua:10355
 #: koassistant_dialogs.lua:10372 koassistant_dialogs.lua:10376
-#: koassistant_settings_schema.lua:74 main.lua:17570 main.lua:22276
+#: koassistant_settings_schema.lua:74 main.lua:17587 main.lua:22293
 msgid "Library Chat/Action"
 msgstr ""
 
 #: koassistant_constants.lua:290 koassistant_settings_schema.lua:1857
-#: main.lua:17597 koassistant_ui/prompts_manager.lua:564
+#: main.lua:17614 koassistant_ui/prompts_manager.lua:564
 #: koassistant_ui/prompts_manager.lua:613
 #: koassistant_ui/prompts_manager.lua:778
 #: koassistant_ui/prompts_manager.lua:5661
@@ -3792,7 +3792,7 @@ msgstr ""
 msgid "%1 (no key)"
 msgstr ""
 
-#: koassistant_dialogs.lua:1103 main.lua:3493 main.lua:16664
+#: koassistant_dialogs.lua:1103 main.lua:3493 main.lua:16681
 #: koassistant_ui/prompts_manager.lua:3293
 #: koassistant_ui/prompts_manager.lua:4130
 #: koassistant_ui/prompts_manager.lua:5112
@@ -3825,7 +3825,7 @@ msgstr ""
 msgid "Frontier"
 msgstr ""
 
-#: koassistant_dialogs.lua:1175 main.lua:22384
+#: koassistant_dialogs.lua:1175 main.lua:22401
 msgid "%1 (%2)"
 msgstr ""
 
@@ -3979,11 +3979,11 @@ msgid "Skip book background"
 msgstr ""
 
 #: koassistant_dialogs.lua:1497 koassistant_settings_schema.lua:596
-#: main.lua:17106
+#: main.lua:17123
 msgid "Behavior: %1"
 msgstr ""
 
-#: koassistant_dialogs.lua:1507 main.lua:4216 main.lua:17096
+#: koassistant_dialogs.lua:1507 main.lua:4216 main.lua:17113
 msgid "Model: %1"
 msgstr ""
 
@@ -4022,7 +4022,7 @@ msgstr ""
 msgid "Cannot tag: no document context"
 msgstr ""
 
-#: koassistant_dialogs.lua:3155 main.lua:11809 main.lua:12085
+#: koassistant_dialogs.lua:3155 main.lua:11826 main.lua:12102
 msgid "Please enter a name."
 msgstr ""
 
@@ -4071,7 +4071,7 @@ msgstr ""
 
 #: koassistant_dialogs.lua:5926 koassistant_dialogs.lua:6019
 #: koassistant_dialogs.lua:6167 koassistant_dialogs.lua:9713
-#: koassistant_setup_wizard.lua:529 main.lua:8669
+#: koassistant_setup_wizard.lua:529 main.lua:8686
 msgid "Continue"
 msgstr ""
 
@@ -4183,7 +4183,7 @@ msgid "Book search failed: "
 msgstr ""
 
 #: koassistant_dialogs.lua:6384 koassistant_update_checker.lua:755
-#: main.lua:21327 main.lua:21709 main.lua:21850
+#: main.lua:21344 main.lua:21726 main.lua:21867
 msgid "Unknown error"
 msgstr ""
 
@@ -4266,9 +4266,9 @@ msgstr ""
 msgid "Attach to this chat"
 msgstr ""
 
-#: koassistant_dialogs.lua:7059 koassistant_dialogs.lua:7075 main.lua:17009
-#: main.lua:17017 main.lua:17155 main.lua:17201 main.lua:17243 main.lua:17338
-#: main.lua:17398 main.lua:17411 main.lua:17424 main.lua:17484
+#: koassistant_dialogs.lua:7059 koassistant_dialogs.lua:7075 main.lua:17026
+#: main.lua:17034 main.lua:17172 main.lua:17218 main.lua:17260 main.lua:17355
+#: main.lua:17415 main.lua:17428 main.lua:17441 main.lua:17501
 msgid " (book)"
 msgstr ""
 
@@ -4286,8 +4286,8 @@ msgstr ""
 msgid "yesterday"
 msgstr ""
 
-#: koassistant_dialogs.lua:7386 main.lua:8167 main.lua:8347 main.lua:9800
-#: main.lua:15781
+#: koassistant_dialogs.lua:7386 main.lua:8184 main.lua:8364 main.lua:9817
+#: main.lua:15798
 msgid "View %1"
 msgstr ""
 
@@ -4295,31 +4295,31 @@ msgstr ""
 msgid "now"
 msgstr ""
 
-#: koassistant_dialogs.lua:7417 main.lua:8058 main.lua:8196 main.lua:9509
-#: main.lua:9853 main.lua:15807 main.lua:15907
+#: koassistant_dialogs.lua:7417 main.lua:8075 main.lua:8213 main.lua:9526
+#: main.lua:9870 main.lua:15824 main.lua:15924
 msgid "View \"%1\""
 msgstr ""
 
-#: koassistant_dialogs.lua:7437 main.lua:8141 main.lua:15827
+#: koassistant_dialogs.lua:7437 main.lua:8158 main.lua:15844
 msgid "Update %1"
 msgstr ""
 
-#: koassistant_dialogs.lua:7437 main.lua:8141 main.lua:8685 main.lua:15827
+#: koassistant_dialogs.lua:7437 main.lua:8158 main.lua:8702 main.lua:15844
 msgid "to %1"
 msgstr ""
 
-#: koassistant_dialogs.lua:7439 main.lua:8147 main.lua:8154 main.lua:15829
-#: main.lua:15832
+#: koassistant_dialogs.lua:7439 main.lua:8164 main.lua:8171 main.lua:15846
+#: main.lua:15849
 msgid "Redo %1"
 msgstr ""
 
-#: koassistant_dialogs.lua:7457 koassistant_dialogs.lua:7502 main.lua:15848
-#: main.lua:15920
+#: koassistant_dialogs.lua:7457 koassistant_dialogs.lua:7502 main.lua:15865
+#: main.lua:15937
 msgid "Sections"
 msgstr ""
 
-#: koassistant_dialogs.lua:7467 koassistant_dialogs.lua:7509 main.lua:15858
-#: main.lua:15927
+#: koassistant_dialogs.lua:7467 koassistant_dialogs.lua:7509 main.lua:15875
+#: main.lua:15944
 msgid "New %1…"
 msgstr ""
 
@@ -4338,7 +4338,7 @@ msgstr ""
 msgid "Add Library Folder"
 msgstr ""
 
-#: koassistant_dialogs.lua:7788 main.lua:20750 main.lua:21101
+#: koassistant_dialogs.lua:7788 main.lua:20767 main.lua:21118
 msgid ""
 "Folder already added:\n"
 "%1"
@@ -4385,11 +4385,11 @@ msgstr ""
 msgid "From a Group…"
 msgstr ""
 
-#: koassistant_dialogs.lua:7909 koassistant_xray_merge.lua:3072 main.lua:7162
+#: koassistant_dialogs.lua:7909 koassistant_xray_merge.lua:3072 main.lua:7179
 msgid "%1 (%2 books)"
 msgstr ""
 
-#: koassistant_dialogs.lua:7917 main.lua:18280
+#: koassistant_dialogs.lua:7917 main.lua:18297
 msgid "No books from this group are available on this device."
 msgstr ""
 
@@ -4425,7 +4425,7 @@ msgstr ""
 msgid "%1 items selected: tap to remove"
 msgstr ""
 
-#: koassistant_dialogs.lua:8221 main.lua:17118
+#: koassistant_dialogs.lua:8221 main.lua:17135
 msgid "(research)"
 msgstr ""
 
@@ -4482,7 +4482,7 @@ msgid ""
 msgstr ""
 
 #: koassistant_dialogs.lua:8619 koassistant_xray_browser.lua:4058
-#: koassistant_xray_browser.lua:5298 main.lua:8860 main.lua:8879 main.lua:10353
+#: koassistant_xray_browser.lua:5298 main.lua:8877 main.lua:8896 main.lua:10370
 msgid "Page %1"
 msgstr ""
 
@@ -4500,15 +4500,15 @@ msgstr ""
 msgid "Include it"
 msgstr ""
 
-#: koassistant_dialogs.lua:8684 main.lua:8887
+#: koassistant_dialogs.lua:8684 main.lua:8904
 msgid "Range end: which section?"
 msgstr ""
 
-#: koassistant_dialogs.lua:8688 main.lua:8891
+#: koassistant_dialogs.lua:8688 main.lua:8908
 msgid "The end section comes before the start section."
 msgstr ""
 
-#: koassistant_dialogs.lua:8711 main.lua:8884
+#: koassistant_dialogs.lua:8711 main.lua:8901
 msgid "Range start: which section?"
 msgstr ""
 
@@ -4534,7 +4534,7 @@ msgstr ""
 msgid "Current page"
 msgstr ""
 
-#: koassistant_dialogs.lua:8743 main.lua:8730 main.lua:8737 main.lua:8762
+#: koassistant_dialogs.lua:8743 main.lua:8747 main.lua:8754 main.lua:8779
 msgid "Up to current position (%1)"
 msgstr ""
 
@@ -4542,7 +4542,7 @@ msgstr ""
 msgid "Up to current position"
 msgstr ""
 
-#: koassistant_dialogs.lua:8770 main.lua:8743
+#: koassistant_dialogs.lua:8770 main.lua:8760
 msgid "Current chapter"
 msgstr ""
 
@@ -4554,11 +4554,11 @@ msgstr ""
 msgid "From section… (to current position)"
 msgstr ""
 
-#: koassistant_dialogs.lua:8802 main.lua:8842
+#: koassistant_dialogs.lua:8802 main.lua:8859
 msgid "Start from which section?"
 msgstr ""
 
-#: koassistant_dialogs.lua:8807 main.lua:8755
+#: koassistant_dialogs.lua:8807 main.lua:8772
 msgid "Pick section range…"
 msgstr ""
 
@@ -4574,7 +4574,7 @@ msgstr ""
 msgid "Text to include with your message"
 msgstr ""
 
-#: koassistant_dialogs.lua:8831 main.lua:8715
+#: koassistant_dialogs.lua:8831 main.lua:8732
 msgid "Scope"
 msgstr ""
 
@@ -4869,26 +4869,26 @@ msgid "Unknown prompt type: "
 msgstr ""
 
 #: koassistant_dialogs.lua:10657 koassistant_dialogs.lua:12405
-#: koassistant_dialogs.lua:12484 main.lua:6849 main.lua:6851
+#: koassistant_dialogs.lua:12484 main.lua:6866 main.lua:6868
 msgid "Based on AI training data knowledge"
 msgstr ""
 
 #: koassistant_dialogs.lua:10658 koassistant_dialogs.lua:12406
-#: koassistant_dialogs.lua:12485 main.lua:6853
+#: koassistant_dialogs.lua:12485 main.lua:6870
 msgid "Based on extracted document text"
 msgstr ""
 
 #: koassistant_dialogs.lua:10727 koassistant_xray_browser.lua:2972
-#: main.lua:12487
+#: main.lua:12504
 msgid "Complete"
 msgstr ""
 
-#: koassistant_dialogs.lua:10745 koassistant_dialogs.lua:12523 main.lua:7643
+#: koassistant_dialogs.lua:10745 koassistant_dialogs.lua:12523 main.lua:7660
 msgid "X-Ray deleted — archived versions kept"
 msgstr ""
 
-#: koassistant_dialogs.lua:10746 koassistant_dialogs.lua:12524 main.lua:7644
-#: main.lua:13397
+#: koassistant_dialogs.lua:10746 koassistant_dialogs.lua:12524 main.lua:7661
+#: main.lua:13414
 msgid "%1 deleted"
 msgstr ""
 
@@ -5137,7 +5137,7 @@ msgstr ""
 msgid "Error: No action specified"
 msgstr ""
 
-#: koassistant_dialogs.lua:12442 main.lua:12450
+#: koassistant_dialogs.lua:12442 main.lua:12467
 msgid "Section X-Ray '%1' deleted"
 msgstr ""
 
@@ -5239,7 +5239,7 @@ msgstr ""
 msgid "Tap a book for its hub. Hold it to move, open or remove it."
 msgstr ""
 
-#: koassistant_group_page.lua:275 main.lua:7356
+#: koassistant_group_page.lua:275 main.lua:7373
 msgid "(missing)"
 msgstr ""
 
@@ -5618,7 +5618,7 @@ msgstr ""
 msgid "No text selected"
 msgstr ""
 
-#: koassistant_notebook.lua:525 main.lua:23346
+#: koassistant_notebook.lua:525 main.lua:23363
 msgid "Failed to create notebook: %1"
 msgstr ""
 
@@ -6577,10 +6577,11 @@ msgstr ""
 
 #: koassistant_settings_schema.lua:971
 msgid ""
-"Which category groups a new X-Ray tracks by default: everything, or a "
-"narrower preset such as Reference (no timeline) or Characters only. Applies "
-"when an X-Ray is created or rebuilt; individual books can pick their own "
-"categories in Book Settings."
+"Which category groups a new X-Ray tracks by default. Reference (everything "
+"except the timeline) unless changed here; All categories adds the timeline "
+"or argument development, Characters only is the lightest. Applies when an X-"
+"Ray is created or rebuilt; individual books can pick their own categories in "
+"Book Settings."
 msgstr ""
 
 #: koassistant_settings_schema.lua:976
@@ -7288,7 +7289,7 @@ msgstr ""
 msgid "Action to trigger when highlight bypass is enabled"
 msgstr ""
 
-#: koassistant_settings_schema.lua:1851 main.lua:22829
+#: koassistant_settings_schema.lua:1851 main.lua:22846
 msgid "Actions & Prompts"
 msgstr ""
 
@@ -7394,15 +7395,15 @@ msgid ""
 "Custom folder: choose your own location (e.g. an Obsidian vault)."
 msgstr ""
 
-#: koassistant_settings_schema.lua:2001 main.lua:22826
+#: koassistant_settings_schema.lua:2001 main.lua:22843
 msgid "Privacy & Data"
 msgstr ""
 
-#: koassistant_settings_schema.lua:2012 main.lua:20660
+#: koassistant_settings_schema.lua:2012 main.lua:20677
 msgid "Trusted Providers: None"
 msgstr ""
 
-#: koassistant_settings_schema.lua:2014 main.lua:20662
+#: koassistant_settings_schema.lua:2014 main.lua:20679
 msgid "Trusted Providers: %1"
 msgstr ""
 
@@ -7453,7 +7454,7 @@ msgstr ""
 msgid "Tip: Per-book overrides"
 msgstr ""
 
-#: koassistant_settings_schema.lua:2052 main.lua:20552
+#: koassistant_settings_schema.lua:2052 main.lua:20569
 msgid ""
 "Every sharing toggle here can be overridden per book (Book Settings → "
 "Privacy). Two patterns: keep a global toggle off and allow it for specific "
@@ -7634,7 +7635,7 @@ msgid ""
 "Check this if you know your model's limits and don't need the reminder."
 msgstr ""
 
-#: koassistant_settings_schema.lua:2215 main.lua:17989
+#: koassistant_settings_schema.lua:2215 main.lua:18006
 msgid "Delete Book Artifacts"
 msgstr ""
 
@@ -7834,7 +7835,7 @@ msgstr ""
 msgid "Quick panels"
 msgstr ""
 
-#: koassistant_settings_schema.lua:2453 main.lua:17859
+#: koassistant_settings_schema.lua:2453 main.lua:17876
 msgid "Panel Actions"
 msgstr ""
 
@@ -7842,7 +7843,7 @@ msgstr ""
 msgid "Choose which actions appear on the Quick Actions panel."
 msgstr ""
 
-#: koassistant_settings_schema.lua:2461 main.lua:17866
+#: koassistant_settings_schema.lua:2461 main.lua:17883
 msgid "Panel Utilities"
 msgstr ""
 
@@ -7862,7 +7863,7 @@ msgstr ""
 msgid "Gestures"
 msgstr ""
 
-#: koassistant_settings_schema.lua:2484 main.lua:22402
+#: koassistant_settings_schema.lua:2484 main.lua:22419
 msgid "Shortcuts"
 msgstr ""
 
@@ -7906,7 +7907,7 @@ msgstr ""
 msgid "Backup & Reset"
 msgstr ""
 
-#: koassistant_settings_schema.lua:2543 main.lua:21234
+#: koassistant_settings_schema.lua:2543 main.lua:21251
 msgid "Create Backup"
 msgstr ""
 
@@ -8146,7 +8147,7 @@ msgstr ""
 #: koassistant_settings_schema.lua:2932 koassistant_settings_schema.lua:2938
 #: koassistant_settings_schema.lua:2950 koassistant_settings_schema.lua:2956
 #: koassistant_settings_schema.lua:2968 koassistant_settings_schema.lua:2974
-#: koassistant_setup_wizard.lua:673 main.lua:17029 reasoning_prefs.lua:118
+#: koassistant_setup_wizard.lua:673 main.lua:17046 reasoning_prefs.lua:118
 msgid "Default"
 msgstr ""
 
@@ -8164,15 +8165,15 @@ msgid ""
 "individual models below."
 msgstr ""
 
-#: koassistant_settings_schema.lua:2711 main.lua:16425
+#: koassistant_settings_schema.lua:2711 main.lua:16442
 msgid "Minimal (off where possible)"
 msgstr ""
 
-#: koassistant_settings_schema.lua:2712 main.lua:16426
+#: koassistant_settings_schema.lua:2712 main.lua:16443
 msgid "Default (let each model decide)"
 msgstr ""
 
-#: koassistant_settings_schema.lua:2713 main.lua:16427
+#: koassistant_settings_schema.lua:2713 main.lua:16444
 msgid "Maximum (most reasoning)"
 msgstr ""
 
@@ -8315,7 +8316,7 @@ msgid "Follow main provider"
 msgstr ""
 
 #: koassistant_settings_schema.lua:2876 koassistant_setup_wizard.lua:561
-#: main.lua:3336 main.lua:17086
+#: main.lua:3336 main.lua:17103
 msgid "Provider: %1"
 msgstr ""
 
@@ -8819,11 +8820,11 @@ msgid ""
 "quick glyph test to confirm it works."
 msgstr ""
 
-#: koassistant_setup_wizard.lua:397 main.lua:22740
+#: koassistant_setup_wizard.lua:397 main.lua:22757
 msgid "EMOJI DISPLAY TEST"
 msgstr ""
 
-#: koassistant_setup_wizard.lua:398 main.lua:22741
+#: koassistant_setup_wizard.lua:398 main.lua:22758
 msgid "Do these icons display correctly on your device?"
 msgstr ""
 
@@ -8833,15 +8834,15 @@ msgid ""
 "view (a KOReader renderer limit)."
 msgstr ""
 
-#: koassistant_setup_wizard.lua:403 main.lua:22746
+#: koassistant_setup_wizard.lua:403 main.lua:22763
 msgid "If you see blank boxes or question marks, choose \"No\"."
 msgstr ""
 
-#: koassistant_setup_wizard.lua:416 main.lua:22752
+#: koassistant_setup_wizard.lua:416 main.lua:22769
 msgid "Yes, enable"
 msgstr ""
 
-#: koassistant_setup_wizard.lua:417 main.lua:22753
+#: koassistant_setup_wizard.lua:417 main.lua:22770
 msgid "No, skip"
 msgstr ""
 
@@ -8849,7 +8850,7 @@ msgstr ""
 msgid "Emoji icons enabled"
 msgstr ""
 
-#: koassistant_setup_wizard.lua:450 main.lua:22601
+#: koassistant_setup_wizard.lua:450 main.lua:22618
 msgid "Welcome to KOAssistant!"
 msgstr ""
 
@@ -8961,7 +8962,7 @@ msgid ""
 "until you allow it, and per-book overrides exist for all of it."
 msgstr ""
 
-#: koassistant_setup_wizard.lua:665 main.lua:22828
+#: koassistant_setup_wizard.lua:665 main.lua:22845
 msgid ""
 "Tip: keep a toggle off globally and allow it per book — or on globally and "
 "deny it for sensitive books. A per-book deny always wins."
@@ -9005,12 +9006,12 @@ msgid ""
 "view. Requires a KOReader restart; a glyph test follows after it."
 msgstr ""
 
-#: koassistant_setup_wizard.lua:726 main.lua:12931 main.lua:13120
-#: main.lua:14676
+#: koassistant_setup_wizard.lua:726 main.lua:12948 main.lua:13137
+#: main.lua:14693
 msgid "Install"
 msgstr ""
 
-#: koassistant_setup_wizard.lua:727 main.lua:15627 main.lua:15664
+#: koassistant_setup_wizard.lua:727 main.lua:15644 main.lua:15681
 msgid "Skip"
 msgstr ""
 
@@ -9029,7 +9030,7 @@ msgstr ""
 msgid "Gestures assigned: %1 (restart pending)"
 msgstr ""
 
-#: koassistant_setup_wizard.lua:805 main.lua:22462
+#: koassistant_setup_wizard.lua:805 main.lua:22479
 msgid "taken"
 msgstr ""
 
@@ -9159,7 +9160,7 @@ msgid ""
 msgstr ""
 
 #: koassistant_update_checker.lua:695 koassistant_update_checker.lua:787
-#: main.lua:21974
+#: main.lua:21991
 msgid "Later"
 msgstr ""
 
@@ -9266,13 +9267,13 @@ msgstr ""
 msgid "← X-Ray"
 msgstr ""
 
-#: koassistant_xray_browser.lua:164 main.lua:12290 main.lua:12433
-#: main.lua:13215
+#: koassistant_xray_browser.lua:164 main.lua:12307 main.lua:12450
+#: main.lua:13232
 msgid "Section X-Ray: %1"
 msgstr ""
 
 #: koassistant_xray_browser.lua:516 koassistant_xray_browser.lua:614
-#: main.lua:11789
+#: main.lua:11806
 msgid "Pages %1–%2"
 msgstr ""
 
@@ -9344,8 +9345,8 @@ msgstr ""
 msgid "X-Ray § %1"
 msgstr ""
 
-#: koassistant_xray_browser.lua:1221 main.lua:9826 main.lua:12838
-#: main.lua:13093
+#: koassistant_xray_browser.lua:1221 main.lua:9843 main.lua:12855
+#: main.lua:13110
 msgid "X-Ray Version"
 msgstr ""
 
@@ -9760,7 +9761,7 @@ msgstr ""
 #: koassistant_xray_browser.lua:4472 koassistant_xray_browser.lua:4638
 #: koassistant_xray_browser.lua:4673 koassistant_xray_browser.lua:4702
 #: koassistant_xray_browser.lua:4923 koassistant_xray_browser.lua:5343
-#: main.lua:19440
+#: main.lua:19457
 msgid "Reveal"
 msgstr ""
 
@@ -10024,19 +10025,19 @@ msgstr ""
 msgid "Search this book's section X-Rays (%1)"
 msgstr ""
 
-#: koassistant_xray_browser.lua:6485 main.lua:10007
+#: koassistant_xray_browser.lua:6485 main.lua:10024
 msgid "Extend…"
 msgstr ""
 
-#: koassistant_xray_browser.lua:6491 main.lua:10011
+#: koassistant_xray_browser.lua:6491 main.lua:10028
 msgid "Rebuild…"
 msgstr ""
 
-#: koassistant_xray_browser.lua:6501 main.lua:10024
+#: koassistant_xray_browser.lua:6501 main.lua:10041
 msgid "Rebuild X-Ray…"
 msgstr ""
 
-#: koassistant_xray_browser.lua:6503 main.lua:9480 main.lua:10024
+#: koassistant_xray_browser.lua:6503 main.lua:9497 main.lua:10041
 msgid "Create X-Ray…"
 msgstr ""
 
@@ -10056,11 +10057,11 @@ msgstr ""
 msgid "Delete this X-Ray? This cannot be undone."
 msgstr ""
 
-#: koassistant_xray_browser.lua:6605 main.lua:9551 main.lua:10085
+#: koassistant_xray_browser.lua:6605 main.lua:9568 main.lua:10102
 msgid "Merge section X-Rays (%1)…"
 msgstr ""
 
-#: koassistant_xray_browser.lua:6635 main.lua:10093
+#: koassistant_xray_browser.lua:6635 main.lua:10110
 msgid "Merge from another book…"
 msgstr ""
 
@@ -10080,7 +10081,7 @@ msgstr ""
 msgid "Other versions…"
 msgstr ""
 
-#: koassistant_xray_browser.lua:6749 main.lua:10100
+#: koassistant_xray_browser.lua:6749 main.lua:10117
 msgid "Find duplicate entities…"
 msgstr ""
 
@@ -10092,11 +10093,11 @@ msgstr ""
 msgid "Pages:"
 msgstr ""
 
-#: koassistant_xray_browser.lua:6786 main.lua:6882
+#: koassistant_xray_browser.lua:6786 main.lua:6899
 msgid "updated from"
 msgstr ""
 
-#: koassistant_xray_browser.lua:6788 main.lua:6885
+#: koassistant_xray_browser.lua:6788 main.lua:6902
 msgid "Progress:"
 msgstr ""
 
@@ -10116,22 +10117,22 @@ msgstr ""
 msgid "Type:"
 msgstr ""
 
-#: koassistant_xray_browser.lua:6800 main.lua:6887
+#: koassistant_xray_browser.lua:6800 main.lua:6904
 msgid "Source:"
 msgstr ""
 
-#: koassistant_xray_browser.lua:6803 main.lua:6898
+#: koassistant_xray_browser.lua:6803 main.lua:6915
 msgid "Reasoning:"
 msgstr ""
 
 #: koassistant_xray_browser.lua:6803 koassistant_xray_browser.lua:6806
-#: main.lua:6898 main.lua:6901 koassistant_ui/prompts_manager.lua:866
+#: main.lua:6915 main.lua:6918 koassistant_ui/prompts_manager.lua:866
 #: koassistant_ui/prompts_manager.lua:894
 #: koassistant_ui/prompts_manager.lua:901
 msgid "Yes"
 msgstr ""
 
-#: koassistant_xray_browser.lua:6806 main.lua:6901
+#: koassistant_xray_browser.lua:6806 main.lua:6918
 msgid "Web search:"
 msgstr ""
 
@@ -10434,12 +10435,12 @@ msgstr ""
 msgid "Merge anyway"
 msgstr ""
 
-#: koassistant_xray_merge.lua:1998 main.lua:11825
+#: koassistant_xray_merge.lua:1998 main.lua:11842
 msgid "A Section X-Ray named '%1' already exists. Replace it?"
 msgstr ""
 
-#: koassistant_xray_merge.lua:2001 main.lua:9226 main.lua:11828 main.lua:12104
-#: main.lua:12130
+#: koassistant_xray_merge.lua:2001 main.lua:9243 main.lua:11845 main.lua:12121
+#: main.lua:12147
 msgid "Replace"
 msgstr ""
 
@@ -10508,7 +10509,7 @@ msgid ""
 "extraction\" (or use a trusted provider) to merge them."
 msgstr ""
 
-#: koassistant_xray_merge.lua:2270 main.lua:12281
+#: koassistant_xray_merge.lua:2270 main.lua:12298
 msgid "merged"
 msgstr ""
 
@@ -10839,7 +10840,7 @@ msgstr ""
 msgid "Merge into \"%1\": other books with an X-Ray"
 msgstr ""
 
-#: koassistant_xray_merge.lua:3510 main.lua:7530
+#: koassistant_xray_merge.lua:3510 main.lua:7547
 msgid "Manage groups…"
 msgstr ""
 
@@ -10972,7 +10973,7 @@ msgstr ""
 msgid "Background — \"%1\": %2"
 msgstr ""
 
-#: koassistant_xray_rows.lua:118 main.lua:8359
+#: koassistant_xray_rows.lua:118 main.lua:8376
 msgid "Update %1 (to %2)"
 msgstr ""
 
@@ -11011,7 +11012,7 @@ msgstr ""
 msgid "Nothing to update from checkpoints: the X-Ray moved in the meantime."
 msgstr ""
 
-#: koassistant_xray_rows.lua:205 main.lua:9614 main.lua:12693
+#: koassistant_xray_rows.lua:205 main.lua:9631 main.lua:12710
 msgid "Switch to complete version (100%), instant"
 msgstr ""
 
@@ -11023,7 +11024,7 @@ msgstr ""
 msgid "Install checkpoint to %1% (ahead), instant"
 msgstr ""
 
-#: koassistant_xray_rows.lua:258 main.lua:9602 main.lua:9678
+#: koassistant_xray_rows.lua:258 main.lua:9619 main.lua:9695
 msgid "All versions (%1)…"
 msgstr ""
 
@@ -11979,11 +11980,11 @@ msgstr ""
 msgid "Follow Primary (%1)"
 msgstr ""
 
-#: main.lua:5958 main.lua:5990 main.lua:6041 main.lua:17410
+#: main.lua:5958 main.lua:5990 main.lua:6041 main.lua:17427
 msgid "Translate: %1"
 msgstr ""
 
-#: main.lua:6004 main.lua:18501 koassistant_ui/prompts_manager.lua:1613
+#: main.lua:6004 main.lua:18518 koassistant_ui/prompts_manager.lua:1613
 #: koassistant_ui/prompts_manager.lua:3877
 msgid "Custom..."
 msgstr ""
@@ -11992,7 +11993,7 @@ msgstr ""
 msgid "Custom Translation Language"
 msgstr ""
 
-#: main.lua:6016 main.lua:18515
+#: main.lua:6016 main.lua:18532
 msgid "e.g., Spanish, Japanese, French"
 msgstr ""
 
@@ -12044,63 +12045,63 @@ msgstr ""
 msgid "Load Full"
 msgstr ""
 
-#: main.lua:6325
+#: main.lua:6342
 msgid ""
 "Model lists are now managed through the model_lists.lua file. Please edit "
 "this file to add or remove models."
 msgstr ""
 
-#: main.lua:6684
+#: main.lua:6701
 msgid "Image prompt template"
 msgstr ""
 
-#: main.lua:6686 koassistant_ui/prompts_manager.lua:859
+#: main.lua:6703 koassistant_ui/prompts_manager.lua:859
 msgid ""
 "Book title/author and surrounding text are included only when available for "
 "the request."
 msgstr ""
 
-#: main.lua:6775
+#: main.lua:6792
 msgid "No previously opened chat found"
 msgstr ""
 
-#: main.lua:6792 main.lua:19976
+#: main.lua:6809 main.lua:19993
 msgid "Configuration not found. Please set up configuration.lua first."
 msgstr ""
 
-#: main.lua:6824 main.lua:15723 main.lua:18136 main.lua:18154 main.lua:18172
+#: main.lua:6841 main.lua:15740 main.lua:18153 main.lua:18171 main.lua:18189
 msgid "Please open a book first"
 msgstr ""
 
-#: main.lua:6847 main.lua:6935
+#: main.lua:6864 main.lua:6952
 msgid "Based on document summary"
 msgstr ""
 
-#: main.lua:6895
+#: main.lua:6912
 msgid "Language:"
 msgstr ""
 
-#: main.lua:6904
+#: main.lua:6921
 msgid "%1 in, %2 out"
 msgstr ""
 
-#: main.lua:6906
+#: main.lua:6923
 msgid "(%1 thinking)"
 msgstr ""
 
-#: main.lua:6908
+#: main.lua:6925
 msgid "Tokens:"
 msgstr ""
 
-#: main.lua:6937
+#: main.lua:6954
 msgid "Based on AI knowledge only"
 msgstr ""
 
-#: main.lua:6952
+#: main.lua:6969
 msgid "No book open"
 msgstr ""
 
-#: main.lua:6967
+#: main.lua:6984
 msgid ""
 "No artifacts found for this document.\n"
 "\n"
@@ -12108,82 +12109,82 @@ msgid ""
 "create them."
 msgstr ""
 
-#: main.lua:7171
+#: main.lua:7188
 msgid "Which group?"
 msgstr ""
 
-#: main.lua:7360
+#: main.lua:7377
 msgid "(this book)"
 msgstr ""
 
-#: main.lua:7439
+#: main.lua:7456
 msgid "Not in %1's X-Ray: %2"
 msgstr ""
 
-#: main.lua:7451
+#: main.lua:7468
 msgid "(later in the series)"
 msgstr ""
 
-#: main.lua:7455
+#: main.lua:7472
 msgid ""
 "%1 comes later in the series and can reveal what happens in the books before "
 "it. Open it anyway?"
 msgstr ""
 
-#: main.lua:7456
+#: main.lua:7473
 msgid "Open it"
 msgstr ""
 
-#: main.lua:7481
+#: main.lua:7498
 msgid "(not in its X-Ray)"
 msgstr ""
 
-#: main.lua:7505
+#: main.lua:7522
 msgid "Merge / fold X-Rays…"
 msgstr ""
 
-#: main.lua:7523
+#: main.lua:7540
 msgid "Group hub…"
 msgstr ""
 
-#: main.lua:7879
+#: main.lua:7896
 msgid ""
 "Text extraction is disabled for this action. Re-enable it in the Action "
 "Manager."
 msgstr ""
 
-#: main.lua:7890
+#: main.lua:7907
 msgid "Text extraction is turned off for this book (Book Settings → Privacy)."
 msgstr ""
 
-#: main.lua:7891
+#: main.lua:7908
 msgid ""
 "Text extraction is required to generate this artifact.\n"
 "\n"
 "Enable it in Settings → Privacy & Data → Text Extraction."
 msgstr ""
 
-#: main.lua:7899
+#: main.lua:7916
 msgid ""
 "Library scanning is disabled for this action. Re-enable it in the Action "
 "Manager."
 msgstr ""
 
-#: main.lua:7907
+#: main.lua:7924
 msgid ""
 "Library scanning is required for this action.\n"
 "\n"
 "Enable it in Settings → Privacy & Data → Allow Library Scanning."
 msgstr ""
 
-#: main.lua:7917
+#: main.lua:7934
 msgid ""
 "No scan folders configured.\n"
 "\n"
 "Add folders in Settings → Library Settings → Permanent Scan Folders."
 msgstr ""
 
-#: main.lua:7926
+#: main.lua:7943
 msgid ""
 "This action requires highlight or annotation data, but data access is "
 "disabled for this action.\n"
@@ -12191,883 +12192,883 @@ msgid ""
 "Re-enable in Action Manager (hold the action → Edit)."
 msgstr ""
 
-#: main.lua:7938
+#: main.lua:7955
 msgid ""
 "Highlights sharing is turned off for this book (Book Settings → Privacy)."
 msgstr ""
 
-#: main.lua:7939
+#: main.lua:7956
 msgid ""
 "This action requires access to your highlights or annotations.\n"
 "\n"
 "Enable sharing in Settings → Privacy & Data."
 msgstr ""
 
-#: main.lua:7981
+#: main.lua:7998
 msgid ""
 "Spoiler protection is on for this book. This covers the whole book, "
 "including parts you haven't read yet. Continue?"
 msgstr ""
 
-#: main.lua:7982 main.lua:9157
+#: main.lua:7999 main.lua:9174
 msgid "Run"
 msgstr ""
 
-#: main.lua:8034
+#: main.lua:8051
 msgid "Generate %1"
 msgstr ""
 
-#: main.lua:8083 main.lua:8230
+#: main.lua:8100 main.lua:8247
 msgid "Focus on a section…"
 msgstr ""
 
-#: main.lua:8088 main.lua:8235 main.lua:8915
+#: main.lua:8105 main.lua:8252 main.lua:8932
 msgid "Select Section for %1"
 msgstr ""
 
-#: main.lua:8149 main.lua:8156
+#: main.lua:8166 main.lua:8173
 msgid "Regenerate %1"
 msgstr ""
 
-#: main.lua:8299
+#: main.lua:8316
 msgid "Generate %1 (to %2)"
 msgstr ""
 
-#: main.lua:8307
+#: main.lua:8324
 msgid "Generate %1 (complete)"
 msgstr ""
 
-#: main.lua:8333 main.lua:9764 main.lua:15763
+#: main.lua:8350 main.lua:9781 main.lua:15780
 msgid "introduction"
 msgstr ""
 
-#: main.lua:8361
+#: main.lua:8378
 msgid "Redo %1 (to %2)"
 msgstr ""
 
-#: main.lua:8375
+#: main.lua:8392
 msgid "Redo %1 (complete)"
 msgstr ""
 
-#: main.lua:8668
+#: main.lua:8685
 msgid "This covers parts you haven't read yet."
 msgstr ""
 
-#: main.lua:8728 main.lua:8760
+#: main.lua:8745 main.lua:8777
 msgid "Full document"
 msgstr ""
 
-#: main.lua:8747
+#: main.lua:8764
 msgid "Current chapter so far"
 msgstr ""
 
-#: main.lua:8751
+#: main.lua:8768
 msgid "From section… (to %1)"
 msgstr ""
 
-#: main.lua:8758 main.lua:8767
+#: main.lua:8775 main.lua:8784
 msgid "Pick section…"
 msgstr ""
 
-#: main.lua:8848
+#: main.lua:8865
 msgid "That section starts after your current position."
 msgstr ""
 
-#: main.lua:8968 main.lua:8976
+#: main.lua:8985 main.lua:8993
 msgid "From \"%1\" to current position"
 msgstr ""
 
-#: main.lua:8984
+#: main.lua:9001
 msgid "Sections not available for this action."
 msgstr ""
 
-#: main.lua:8984
+#: main.lua:9001
 msgid "Use KOReader's hidden flows to limit scope."
 msgstr ""
 
-#: main.lua:8993 koassistant_ui/behavior_manager.lua:295
+#: main.lua:9010 koassistant_ui/behavior_manager.lua:295
 #: koassistant_ui/domain_manager.lua:311 koassistant_ui/prompts_manager.lua:841
 msgid "Source"
 msgstr ""
 
-#: main.lua:9008 main.lua:9009
+#: main.lua:9025 main.lua:9026
 msgid "Extract text"
 msgstr ""
 
-#: main.lua:9009 main.lua:9104
+#: main.lua:9026 main.lua:9121
 msgid "enable in Settings → Privacy"
 msgstr ""
 
-#: main.lua:9026 main.lua:9030 main.lua:9034 main.lua:9066 main.lua:9085
+#: main.lua:9043 main.lua:9047 main.lua:9051 main.lua:9083 main.lua:9102
 msgid "Use summary"
 msgstr ""
 
-#: main.lua:9030 main.lua:9123
+#: main.lua:9047 main.lua:9140
 msgid "this action requires text extraction"
 msgstr ""
 
-#: main.lua:9034
+#: main.lua:9051
 msgid "not available for this action"
 msgstr ""
 
-#: main.lua:9041
+#: main.lua:9058
 msgid "Use section summary"
 msgstr ""
 
-#: main.lua:9051
+#: main.lua:9068
 msgid "Use document summary"
 msgstr ""
 
-#: main.lua:9060
+#: main.lua:9077
 msgid "Generate section summary"
 msgstr ""
 
-#: main.lua:9060 main.lua:9081
+#: main.lua:9077 main.lua:9098
 msgid "one-time, reusable by other actions"
 msgstr ""
 
-#: main.lua:9066 main.lua:9085
+#: main.lua:9083 main.lua:9102
 msgid "enable text extraction first"
 msgstr ""
 
-#: main.lua:9074
+#: main.lua:9091
 msgid "Use existing summary"
 msgstr ""
 
-#: main.lua:9081
+#: main.lua:9098
 msgid "Generate summary"
 msgstr ""
 
-#: main.lua:9098
+#: main.lua:9115
 msgid "Smart retrieval (AI searches the book)"
 msgstr ""
 
-#: main.lua:9106
+#: main.lua:9123
 msgid "not supported by this provider"
 msgstr ""
 
-#: main.lua:9109
+#: main.lua:9126
 msgid "full or up-to-position only"
 msgstr ""
 
-#: main.lua:9123 main.lua:9126
+#: main.lua:9140 main.lua:9143
 msgid "AI knowledge only"
 msgstr ""
 
-#: main.lua:9179
+#: main.lua:9196
 msgid "Up to %1"
 msgstr ""
 
-#: main.lua:9189 main.lua:9198
+#: main.lua:9206 main.lua:9215
 msgid "%1 (to %2)"
 msgstr ""
 
-#: main.lua:9223
+#: main.lua:9240
 msgid "A full-document %1 already exists. Replace it?"
 msgstr ""
 
-#: main.lua:9523 main.lua:10040 main.lua:12322
+#: main.lua:9540 main.lua:10057 main.lua:12339
 msgid "View Section X-Rays (%1)"
 msgstr ""
 
-#: main.lua:9533 main.lua:10049
+#: main.lua:9550 main.lua:10066
 msgid "Generate Section X-Ray…"
 msgstr ""
 
-#: main.lua:9540 main.lua:10056
+#: main.lua:9557 main.lua:10073
 msgid "Generate for a section range…"
 msgstr ""
 
-#: main.lua:9572 main.lua:9892
+#: main.lua:9589 main.lua:9909
 msgid "Generating X-Ray to %1% in the background… (tap to cancel)"
 msgstr ""
 
-#: main.lua:9573 main.lua:9893
+#: main.lua:9590 main.lua:9910
 msgid "Generating X-Ray in the background… (tap to cancel)"
 msgstr ""
 
-#: main.lua:9574 main.lua:9894
+#: main.lua:9591 main.lua:9911
 msgid "Building checkpoints: %1 of %2, to %3%… (tap to cancel)"
 msgstr ""
 
-#: main.lua:9576 main.lua:9896
+#: main.lua:9593 main.lua:9913
 msgid "Building checkpoints: %1 of %2… (tap to cancel)"
 msgstr ""
 
-#: main.lua:9634 main.lua:9960
+#: main.lua:9651 main.lua:9977
 msgid "Resume automatic building (paused)…"
 msgstr ""
 
-#: main.lua:9655
+#: main.lua:9672
 msgid "Resume building checkpoints (%1 so far — stopped: %2)…"
 msgstr ""
 
-#: main.lua:9656
+#: main.lua:9673
 msgid "Resume building checkpoints (%1 so far)…"
 msgstr ""
 
-#: main.lua:9688 main.lua:10072
+#: main.lua:9705 main.lua:10089
 msgid "Section X-Rays (%1)…"
 msgstr ""
 
-#: main.lua:9688 main.lua:10072
+#: main.lua:9705 main.lua:10089
 msgid "Section X-Rays…"
 msgstr ""
 
-#: main.lua:9689 main.lua:10073
+#: main.lua:9706 main.lua:10090
 msgid "Section X-Rays"
 msgstr ""
 
-#: main.lua:9690 main.lua:10075
+#: main.lua:9707 main.lua:10092
 msgid "Versions…"
 msgstr ""
 
-#: main.lua:9690 main.lua:10076
+#: main.lua:9707 main.lua:10093
 msgid "Versions"
 msgstr ""
 
-#: main.lua:9724 main.lua:10152
+#: main.lua:9741 main.lua:10169
 msgid ""
 "The installed X-Ray covers the whole book — spoiler protection does not "
 "limit it"
 msgstr ""
 
-#: main.lua:9727 main.lua:10155
+#: main.lua:9744 main.lua:10172
 msgid "The installed X-Ray reaches %1%, ahead of your reading position"
 msgstr ""
 
-#: main.lua:9730 main.lua:10158
+#: main.lua:9747 main.lua:10175
 msgid "Spoiler protection is on — checkpoints follow your position"
 msgstr ""
 
-#: main.lua:9775
+#: main.lua:9792
 msgid "auto"
 msgstr ""
 
-#: main.lua:9817
+#: main.lua:9834
 msgid "Introduction"
 msgstr ""
 
-#: main.lua:9822
+#: main.lua:9839
 msgid "View earlier version (%1)"
 msgstr ""
 
-#: main.lua:9910
+#: main.lua:9927
 msgid "Auto-update in progress… (tap to cancel)"
 msgstr ""
 
-#: main.lua:9916
+#: main.lua:9933
 msgid "Background update cancelled."
 msgstr ""
 
-#: main.lua:9984
+#: main.lua:10001
 msgid "Resume building checkpoints (from %1% — stopped: %2)…"
 msgstr ""
 
-#: main.lua:9986
+#: main.lua:10003
 msgid "Resume building checkpoints (from %1%)…"
 msgstr ""
 
-#: main.lua:10075
+#: main.lua:10092
 msgid "Versions (%1)…"
 msgstr ""
 
-#: main.lua:10117
+#: main.lua:10134
 msgid "Merge / fold…"
 msgstr ""
 
-#: main.lua:10117
+#: main.lua:10134
 msgid "Merge / fold"
 msgstr ""
 
-#: main.lua:10180
+#: main.lua:10197
 msgid "Marking & lookup…"
 msgstr ""
 
-#: main.lua:10207
+#: main.lua:10224
 msgid "You're at %1. A checkpoint at %2% is ready to install now, free."
 msgstr ""
 
-#: main.lua:10214
+#: main.lua:10231
 msgid ""
 "You're at %1. The next checkpoint (%2%) is built and installs on the next "
 "page turn."
 msgstr ""
 
-#: main.lua:10216
+#: main.lua:10233
 msgid ""
 "You're at %1. The next checkpoint (%2%) is already built and installs when "
 "you reach it."
 msgstr ""
 
-#: main.lua:10219
+#: main.lua:10236
 msgid "You're at %1."
 msgstr ""
 
-#: main.lua:10232
+#: main.lua:10249
 msgid "Last auto-update failed (%1)"
 msgstr ""
 
-#: main.lua:10233
+#: main.lua:10250
 msgid "Last auto-update failed"
 msgstr ""
 
-#: main.lua:10256
+#: main.lua:10273
 msgid "This book has no table of contents."
 msgstr ""
 
-#: main.lua:10291
+#: main.lua:10308
 msgid "No chapters available."
 msgstr ""
 
-#: main.lua:10405
+#: main.lua:10422
 msgid "Select Section"
 msgstr ""
 
-#: main.lua:10642
+#: main.lua:10659
 msgid "Section range: pick the first section"
 msgstr ""
 
-#: main.lua:10645
+#: main.lua:10662
 msgid "Section range: pick the last section"
 msgstr ""
 
-#: main.lua:10658
+#: main.lua:10675
 msgid "%1 – %2"
 msgstr ""
 
-#: main.lua:10768
+#: main.lua:10785
 msgid "Create X-Ray: how far should it cover?"
 msgstr ""
 
-#: main.lua:10770 main.lua:11132
+#: main.lua:10787 main.lua:11149
 msgid "The whole book"
 msgstr ""
 
-#: main.lua:10774
+#: main.lua:10791
 msgid "Up to my reading position"
 msgstr ""
 
-#: main.lua:11019
+#: main.lua:11036
 msgid ""
 "Rebuild from scratch, replacing the current X-Ray? The current one is kept "
 "until the new one arrives, then archived under \"All versions\"."
 msgstr ""
 
-#: main.lua:11020
+#: main.lua:11037
 msgid ""
 "Rebuild from scratch, replacing the current X-Ray? The current one is kept "
 "until the new one arrives, then replaced. Version archiving is off, so it "
 "will be gone."
 msgstr ""
 
-#: main.lua:11024
+#: main.lua:11041
 msgid ""
 "Its %1 checkpoints belong to the old version and are deleted when the new "
 "one is saved."
 msgstr ""
 
-#: main.lua:11028 main.lua:11478
+#: main.lua:11045 main.lua:11495
 msgid "Rebuild"
 msgstr ""
 
-#: main.lua:11067
+#: main.lua:11084
 msgid "Rebuild X-Ray"
 msgstr ""
 
-#: main.lua:11068
+#: main.lua:11085
 msgid "Extend X-Ray"
 msgstr ""
 
-#: main.lua:11069
+#: main.lua:11086
 msgid "Create X-Ray"
 msgstr ""
 
-#: main.lua:11085
+#: main.lua:11102
 msgid ""
 "Your X-Ray covers to %1%. Building here replaces it from scratch (the "
 "outgoing version is archived under \"All versions\")."
 msgstr ""
 
-#: main.lua:11095
+#: main.lua:11112
 msgid ""
 "Your installed X-Ray covers to %1%. A checkpoint up to %2% is already built."
 msgstr ""
 
-#: main.lua:11099
+#: main.lua:11116
 msgid "Your X-Ray covers to %1%."
 msgstr ""
 
-#: main.lua:11103
+#: main.lua:11120
 msgid "analyzed as a whole"
 msgstr ""
 
-#: main.lua:11104
+#: main.lua:11121
 msgid "made from AI knowledge"
 msgstr ""
 
-#: main.lua:11105
+#: main.lua:11122
 msgid "in an older format"
 msgstr ""
 
-#: main.lua:11106
+#: main.lua:11123
 msgid ""
 "Your current X-Ray was %1, so it can't be extended. Building here replaces "
 "it (the outgoing version is archived under \"All versions\")."
 msgstr ""
 
-#: main.lua:11115
+#: main.lua:11132
 msgid "Automatic building is on; the next checkpoint arrives at %1%."
 msgstr ""
 
-#: main.lua:11118
+#: main.lua:11135
 msgid "Automatic building is on; the next checkpoint completes the book."
 msgstr ""
 
-#: main.lua:11130
+#: main.lua:11147
 msgid "Coverage"
 msgstr ""
 
-#: main.lua:11146
+#: main.lua:11163
 msgid "Up to my current position (%1), from scratch"
 msgstr ""
 
-#: main.lua:11147
+#: main.lua:11164
 msgid "Up to my current position (%1)"
 msgstr ""
 
-#: main.lua:11157
+#: main.lua:11174
 msgid "To the end of \"%1\" (%2%), from scratch"
 msgstr ""
 
-#: main.lua:11159
+#: main.lua:11176
 msgid "To the end of \"%1\" (%2%)"
 msgstr ""
 
-#: main.lua:11178
+#: main.lua:11195
 msgid "Cover the book up to the end of…"
 msgstr ""
 
-#: main.lua:11206 main.lua:15019
+#: main.lua:11223 main.lua:15036
 msgid "Build"
 msgstr ""
 
-#: main.lua:11213 main.lua:11236
+#: main.lua:11230 main.lua:11253
 msgid "In one request, in background (update)"
 msgstr ""
 
-#: main.lua:11214 main.lua:11237
+#: main.lua:11231 main.lua:11254
 msgid "In one request, in background"
 msgstr ""
 
-#: main.lua:11217
+#: main.lua:11234
 msgid "In one request, in background (from scratch)"
 msgstr ""
 
-#: main.lua:11219
+#: main.lua:11236
 msgid "In one request now (update to 100%)"
 msgstr ""
 
-#: main.lua:11220
+#: main.lua:11237
 msgid "In one request now (update to your position)"
 msgstr ""
 
-#: main.lua:11222
+#: main.lua:11239
 msgid "In one request now"
 msgstr ""
 
-#: main.lua:11250
+#: main.lua:11267
 msgid "In checkpoints, now (1 background step)"
 msgstr ""
 
-#: main.lua:11251
+#: main.lua:11268
 msgid "In checkpoints, now (%1 background steps)"
 msgstr ""
 
-#: main.lua:11260
+#: main.lua:11277
 msgid "In checkpoints, as I read (already on)"
 msgstr ""
 
-#: main.lua:11262
+#: main.lua:11279
 msgid "In checkpoints, as I read (already on; start now)"
 msgstr ""
 
-#: main.lua:11263
+#: main.lua:11280
 msgid "In checkpoints, as I read (automatic)"
 msgstr ""
 
-#: main.lua:11286
+#: main.lua:11303
 msgid ""
 "You can update it manually anytime, or turn on automatic updates later; both "
 "build on top of what you have."
 msgstr ""
 
-#: main.lua:11288
+#: main.lua:11305
 msgid ""
 "Automatic building is on and caught up. The next checkpoint builds by itself "
 "as you read on."
 msgstr ""
 
-#: main.lua:11290
+#: main.lua:11307
 msgid ""
 "Builds checkpoints in the background as you read, keeping the next one ready "
 "ahead of you. Missing checkpoints up to your position build right away."
 msgstr ""
 
-#: main.lua:11292
+#: main.lua:11309
 msgid "Coverage reaches 100% when you finish the book."
 msgstr ""
 
-#: main.lua:11294
+#: main.lua:11311
 msgid "It stops at the end of \"%1\"."
 msgstr ""
 
-#: main.lua:11302
+#: main.lua:11319
 msgid ""
 "Continues from your current coverage in bounded background steps, each a "
 "spoiler-safe version. Keep reading, cancel anytime, resume later."
 msgstr ""
 
-#: main.lua:11303
+#: main.lua:11320
 msgid ""
 "Covers the range in bounded background steps, each a spoiler-safe version up "
 "to its position. A usable X-Ray installs after the first step; keep reading, "
 "cancel anytime, resume later."
 msgstr ""
 
-#: main.lua:11305
+#: main.lua:11322
 msgid ""
 "The same single request in the background; a notification arrives when it is "
 "ready. The book must stay open."
 msgstr ""
 
-#: main.lua:11311
+#: main.lua:11328
 msgid "Updates your existing X-Ray to 100% in a single request."
 msgstr ""
 
-#: main.lua:11313
+#: main.lua:11330
 msgid "Updates your existing X-Ray up to your position in a single request."
 msgstr ""
 
-#: main.lua:11316
+#: main.lua:11333
 msgid ""
 "Updates your existing X-Ray to the end of the chosen section in one "
 "background request; a notification arrives when it is ready."
 msgstr ""
 
-#: main.lua:11319
+#: main.lua:11336
 msgid ""
 "Analyzes the whole book in a single request, shown as it streams in. Large "
 "for long books, no spoiler-safe intermediate versions."
 msgstr ""
 
-#: main.lua:11321
+#: main.lua:11338
 msgid ""
 "Reads the book up to your position in a single request, shown as it streams "
 "in."
 msgstr ""
 
-#: main.lua:11324
+#: main.lua:11341
 msgid ""
 "Reads the book up to the end of the chosen section in one background "
 "request; a notification arrives when it is ready."
 msgstr ""
 
-#: main.lua:11331
+#: main.lua:11348
 msgid ""
 "Rebuilds from scratch and replaces the current X-Ray (the outgoing version "
 "is archived)."
 msgstr ""
 
-#: main.lua:11339
+#: main.lua:11356
 msgid ""
 "Note: this is a fresh AI request; the checkpoint already built to %1% still "
 "installs for free as you read past it."
 msgstr ""
 
-#: main.lua:11382
+#: main.lua:11399
 msgid "Every %1%…"
 msgstr ""
 
-#: main.lua:11408
+#: main.lua:11425
 msgid "Checkpoint spacing for this book: every %1%"
 msgstr ""
 
-#: main.lua:11421
+#: main.lua:11438
 msgid "Checkpoint spacing for this book: recommended (every %1%)"
 msgstr ""
 
-#: main.lua:11459
+#: main.lua:11476
 msgid "Checkpoint spacing, categories, depth:"
 msgstr ""
 
-#: main.lua:11479
+#: main.lua:11496
 msgid "Extend"
 msgstr ""
 
-#: main.lua:11480 koassistant_ui/prompts_manager.lua:2080
+#: main.lua:11497 koassistant_ui/prompts_manager.lua:2080
 msgid "Create"
 msgstr ""
 
-#: main.lua:11667
+#: main.lua:11684
 msgid "Automatic X-Ray on: rebuilding as you read."
 msgstr ""
 
-#: main.lua:11668
+#: main.lua:11685
 msgid "Automatic X-Ray on: building as you read."
 msgstr ""
 
-#: main.lua:11685
+#: main.lua:11702
 msgid ""
 "Automatic X-Ray on: the X-Ray is rebuilt from the start in background "
 "requests, the introduction and checkpoints up to your position, plus one "
 "ahead."
 msgstr ""
 
-#: main.lua:11687
+#: main.lua:11704
 msgid ""
 "Automatic X-Ray on: background requests build the introduction and "
 "checkpoints up to your position, plus one ahead."
 msgstr ""
 
-#: main.lua:11689
+#: main.lua:11706
 msgid "Requests needed now: %1. Each covers a bounded slice of the text."
 msgstr ""
 
-#: main.lua:11690
+#: main.lua:11707
 msgid "Start now?"
 msgstr ""
 
-#: main.lua:11693
+#: main.lua:11710
 msgid "Cancel (leave Automatic X-Ray off)"
 msgstr ""
 
-#: main.lua:11702
+#: main.lua:11719
 msgid "Start"
 msgstr ""
 
-#: main.lua:11730
+#: main.lua:11747
 msgid ""
 "Automatic X-Ray is on for this book, but the X-Ray has not been built yet."
 msgstr ""
 
-#: main.lua:11731
+#: main.lua:11748
 msgid "Cancel (turn Automatic X-Ray off)"
 msgstr ""
 
-#: main.lua:11788
+#: main.lua:11805
 msgid "Section X-Ray Name"
 msgstr ""
 
-#: main.lua:11793
+#: main.lua:11810
 msgid "Enter a name for this Section X-Ray"
 msgstr ""
 
-#: main.lua:11804 main.lua:12080 main.lua:15019
+#: main.lua:11821 main.lua:12097 main.lua:15036
 msgid "Generate"
 msgstr ""
 
-#: main.lua:12064
+#: main.lua:12081
 msgid "Name this section"
 msgstr ""
 
-#: main.lua:12065
+#: main.lua:12082
 msgid "%1 · Pages %2–%3"
 msgstr ""
 
-#: main.lua:12069
+#: main.lua:12086
 msgid "Enter a name for this section"
 msgstr ""
 
-#: main.lua:12080
+#: main.lua:12097
 msgid "Confirm"
 msgstr ""
 
-#: main.lua:12101
+#: main.lua:12118
 msgid "A section '%1' already exists for %2. Replace it?"
 msgstr ""
 
-#: main.lua:12127
+#: main.lua:12144
 msgid "A %1 for this page range already exists: \"%2\". Replace it?"
 msgstr ""
 
-#: main.lua:12175
+#: main.lua:12192
 msgid "No sections found."
 msgstr ""
 
-#: main.lua:12210
+#: main.lua:12227
 msgid "Delete section '%1'?"
 msgstr ""
 
-#: main.lua:12259
+#: main.lua:12276
 msgid "No Section X-Rays found."
 msgstr ""
 
-#: main.lua:12405
+#: main.lua:12422
 msgid ""
 "The updated X-Ray may list the same entity twice: \"%1\" and \"%2\".\n"
 "\n"
 "Review the suggestion?"
 msgstr ""
 
-#: main.lua:12408
+#: main.lua:12425
 msgid ""
 "The updated X-Ray has %1 possible duplicate entity pairs.\n"
 "\n"
 "Review the suggestions?"
 msgstr ""
 
-#: main.lua:12413
+#: main.lua:12430
 msgid "Review"
 msgstr ""
 
-#: main.lua:12441
+#: main.lua:12458
 msgid "Delete Section X-Ray: %1?"
 msgstr ""
 
-#: main.lua:12485
+#: main.lua:12502
 msgid "Introduction (spoiler-free)"
 msgstr ""
 
-#: main.lua:12493
+#: main.lua:12510
 msgid "end of %1"
 msgstr ""
 
-#: main.lua:12507 main.lua:12509
+#: main.lua:12524 main.lua:12526
 msgid "built %1"
 msgstr ""
 
-#: main.lua:12512
+#: main.lua:12529
 msgid "edited"
 msgstr ""
 
-#: main.lua:12517 main.lua:12519
+#: main.lua:12534 main.lua:12536
 msgid "archived %1"
 msgstr ""
 
-#: main.lua:12584
+#: main.lua:12601
 msgid "No X-Ray versions."
 msgstr ""
 
-#: main.lua:12624 main.lua:12661
+#: main.lua:12641 main.lua:12678
 msgid "(current)"
 msgstr ""
 
-#: main.lua:12646
+#: main.lua:12663
 msgid "— Archived versions —"
 msgstr ""
 
-#: main.lua:12648
+#: main.lua:12665
 msgid "— Prepared checkpoints —"
 msgstr ""
 
-#: main.lua:12652
+#: main.lua:12669
 msgid "checkpoint"
 msgstr ""
 
-#: main.lua:12666
+#: main.lua:12683
 msgid "(ahead)"
 msgstr ""
 
-#: main.lua:12671
+#: main.lua:12688
 msgid "(latest before your position)"
 msgstr ""
 
-#: main.lua:12703
+#: main.lua:12720
 msgid "Delete checkpoints (%1)…"
 msgstr ""
 
-#: main.lua:12722
+#: main.lua:12739
 msgid ""
 "Delete the %1 checkpoints? They include your complete version (100%), which "
 "is not installed as your current X-Ray; deleting now discards it."
 msgstr ""
 
-#: main.lua:12725
+#: main.lua:12742
 msgid "Switch to complete version first…"
 msgstr ""
 
-#: main.lua:12732
+#: main.lua:12749
 msgid "Delete all, including the complete version"
 msgstr ""
 
-#: main.lua:12747
+#: main.lua:12764
 msgid "Your complete X-Ray stays; this deletes only the checkpoints."
 msgstr ""
 
-#: main.lua:12749
+#: main.lua:12766
 msgid "It also removes the free \"Switch back to your position\" option."
 msgstr ""
 
-#: main.lua:12752
+#: main.lua:12769
 msgid "The current X-Ray and archived previous versions are not affected."
 msgstr ""
 
-#: main.lua:12755
+#: main.lua:12772
 msgid "Delete all %1 checkpoints?"
 msgstr ""
 
-#: main.lua:12783
+#: main.lua:12800
 msgid "X-Ray Versions"
 msgstr ""
 
-#: main.lua:12791
+#: main.lua:12808
 msgid ""
 "X-Ray follows your reading position (your choice). Installing the newest "
 "checkpoint switches back to newest-first."
 msgstr ""
 
-#: main.lua:12794
+#: main.lua:12811
 msgid "Research mode: the newest checkpoint installs as soon as it is built."
 msgstr ""
 
-#: main.lua:12796
+#: main.lua:12813
 msgid "Book finished: the newest checkpoint installs as soon as it is built."
 msgstr ""
 
-#: main.lua:12797
+#: main.lua:12814
 msgid ""
 "Spoiler protection is off: the newest checkpoint installs as soon as it is "
 "built."
 msgstr ""
 
-#: main.lua:12802
+#: main.lua:12819
 msgid "Reading position: %1"
 msgstr ""
 
-#: main.lua:12854
+#: main.lua:12871
 msgid "Installed as your current X-Ray"
 msgstr ""
 
-#: main.lua:12858 main.lua:13106
+#: main.lua:12875 main.lua:13123
 msgid "Install (auto-update in progress)"
 msgstr ""
 
-#: main.lua:12899
+#: main.lua:12916
 msgid "Checkpoint installed (%1)"
 msgstr ""
 
-#: main.lua:12906 main.lua:14651
+#: main.lua:12923 main.lua:14668
 msgid "Install failed. This checkpoint is no longer on disk."
 msgstr ""
 
-#: main.lua:12910 main.lua:13112
+#: main.lua:12927 main.lua:13129
 msgid "Install as current X-Ray (free)"
 msgstr ""
 
-#: main.lua:12914
+#: main.lua:12931
 msgid ""
 "Install the checkpoint from %1 as your current X-Ray? Your current version "
 "stays in the version list."
 msgstr ""
 
-#: main.lua:12917
+#: main.lua:12934
 msgid ""
 "Spoiler protection is off, but this pins the X-Ray to follow your reading "
 "position for this book. Installing the newest checkpoint switches back."
 msgstr ""
 
-#: main.lua:12926
+#: main.lua:12943
 msgid ""
 "Install the checkpoint from %1? It reaches past your reading position (%2%), "
 "so its entries may mention people and events you have not reached yet. Your "
@@ -13075,199 +13076,199 @@ msgid ""
 "you read past it; the X-Ray popup offers a switch back to your position."
 msgstr ""
 
-#: main.lua:12955
+#: main.lua:12972
 msgid "Delete this checkpoint"
 msgstr ""
 
-#: main.lua:12993
+#: main.lua:13010
 msgid "Delete the checkpoint from %1?"
 msgstr ""
 
-#: main.lua:12994
+#: main.lua:13011
 msgid "If automatic building needs this grid point again, it is rebuilt."
 msgstr ""
 
-#: main.lua:12997
+#: main.lua:13014
 msgid ""
 "This checkpoint is currently installed as your X-Ray — deleting it from the "
 "list alone keeps it installed."
 msgstr ""
 
-#: main.lua:13004
+#: main.lua:13021
 msgid "Delete and go back to %1"
 msgstr ""
 
-#: main.lua:13025
+#: main.lua:13042
 msgid "Checkpoint deleted — X-Ray back to %1"
 msgstr ""
 
-#: main.lua:13032
+#: main.lua:13049
 msgid "Delete from the list only"
 msgstr ""
 
-#: main.lua:13039
+#: main.lua:13056
 msgid "Checkpoint deleted (%1)"
 msgstr ""
 
-#: main.lua:13066
+#: main.lua:13083
 msgid "Checkpoint: %1"
 msgstr ""
 
-#: main.lua:13117
+#: main.lua:13134
 msgid ""
 "Install the version from %1 as your current X-Ray? Your current version "
 "stays in the version list."
 msgstr ""
 
-#: main.lua:13134
+#: main.lua:13151
 msgid "Version installed (%1)"
 msgstr ""
 
-#: main.lua:13139
+#: main.lua:13156
 msgid "Install failed. This version is no longer archived."
 msgstr ""
 
-#: main.lua:13162
+#: main.lua:13179
 msgid "Delete the X-Ray version from %1?"
 msgstr ""
 
-#: main.lua:13196
+#: main.lua:13213
 msgid "X-Ray version: %1"
 msgstr ""
 
-#: main.lua:13227
+#: main.lua:13244
 msgid "Section Analysis: %1"
 msgstr ""
 
-#: main.lua:13239
+#: main.lua:13256
 msgid "Section Summary: %1"
 msgstr ""
 
-#: main.lua:13310
+#: main.lua:13327
 msgid "Continue / Review"
 msgstr ""
 
-#: main.lua:13314
+#: main.lua:13331
 msgid "Take Again"
 msgstr ""
 
-#: main.lua:13437
+#: main.lua:13454
 msgid "Update to %1"
 msgstr ""
 
-#: main.lua:13439
+#: main.lua:13456
 msgid "Redo"
 msgstr ""
 
-#: main.lua:13549
+#: main.lua:13566
 msgid ""
 "You haven't read this book in %1 days.\n"
 "\n"
 "Would you like an AI Recap to help you get back into it?"
 msgstr ""
 
-#: main.lua:13604
+#: main.lua:13621
 msgid ""
 "KOAssistant: Would you like an AI suggestion for what to read next from your "
 "library?"
 msgstr ""
 
-#: main.lua:13605
+#: main.lua:13622
 msgid "Suggest"
 msgstr ""
 
-#: main.lua:13693 main.lua:15597 main.lua:15614 main.lua:15707
+#: main.lua:13710 main.lua:15614 main.lua:15631 main.lua:15724
 msgid "Chapter %1"
 msgstr ""
 
-#: main.lua:14059 main.lua:14181 main.lua:14839
+#: main.lua:14076 main.lua:14198 main.lua:14856
 msgid "WiFi is off."
 msgstr ""
 
-#: main.lua:14152 main.lua:14470 main.lua:14552 main.lua:14618 main.lua:14821
+#: main.lua:14169 main.lua:14487 main.lua:14569 main.lua:14635 main.lua:14838
 msgid "An X-Ray task is already running."
 msgstr ""
 
-#: main.lua:14226
+#: main.lua:14243
 msgid "Updating X-Ray in background (%1% → %2%)…"
 msgstr ""
 
-#: main.lua:14244
+#: main.lua:14261
 msgid "X-Ray updated to %1%"
 msgstr ""
 
-#: main.lua:14256
+#: main.lua:14273
 msgid "Background X-Ray update failed: %1"
 msgstr ""
 
-#: main.lua:14371
+#: main.lua:14388
 msgid ""
 "Spoiler protection is on: X-Ray back to your position (%1%). Newer versions "
 "are kept."
 msgstr ""
 
-#: main.lua:14413
+#: main.lua:14430
 msgid "Introductory X-Ray is ready (spoiler-free)."
 msgstr ""
 
-#: main.lua:14415
+#: main.lua:14432
 msgid "X-Ray updated to %1% (newest checkpoint; spoiler protection is off)"
 msgstr ""
 
-#: main.lua:14417
+#: main.lua:14434
 msgid "X-Ray updated to %1% (checkpoint)"
 msgstr ""
 
-#: main.lua:14490
+#: main.lua:14507
 msgid "The complete checkpoint is no longer available."
 msgstr ""
 
-#: main.lua:14496
+#: main.lua:14513
 msgid "Switch to the complete X-Ray (100%)?"
 msgstr ""
 
-#: main.lua:14497
+#: main.lua:14514
 msgid ""
 "It covers the whole book, including everything ahead of your reading "
 "position. The current version is kept in the version list."
 msgstr ""
 
-#: main.lua:14500
+#: main.lua:14517
 msgid "Switch"
 msgstr ""
 
-#: main.lua:14507 main.lua:14603
+#: main.lua:14524 main.lua:14620
 msgid "Switch failed. The checkpoint could not be installed."
 msgstr ""
 
-#: main.lua:14521
+#: main.lua:14538
 msgid ""
 "Switched to the complete X-Ray. The checkpoints are kept; they can be safely "
 "deleted under \"All versions\", or kept for the free \"Switch back to your "
 "position\" option."
 msgstr ""
 
-#: main.lua:14574
+#: main.lua:14591
 msgid "No checkpoint at or below your position."
 msgstr ""
 
-#: main.lua:14592
+#: main.lua:14609
 msgid "Switched back: X-Ray now at %1% and follows your position for this book"
 msgstr ""
 
-#: main.lua:14594
+#: main.lua:14611
 msgid "Switched back: X-Ray now at %1%"
 msgstr ""
 
-#: main.lua:14641
+#: main.lua:14658
 msgid "No checkpoint is built ahead of your position."
 msgstr ""
 
-#: main.lua:14662
+#: main.lua:14679
 msgid "Checkpoint installed (%1%)"
 msgstr ""
 
-#: main.lua:14674
+#: main.lua:14691
 msgid ""
 "Install the checkpoint to %1%? It reaches past your reading position (%2%), "
 "so its entries may mention people and events you have not reached yet. Your "
@@ -13275,419 +13276,419 @@ msgid ""
 "you read past it; the X-Ray popup offers a switch back to your position."
 msgstr ""
 
-#: main.lua:14773
+#: main.lua:14790
 msgid "Use recommended (every %1%)"
 msgstr ""
 
-#: main.lua:14784
+#: main.lua:14801
 msgid "Every %1%: %2 checkpoints"
 msgstr ""
 
-#: main.lua:14786
+#: main.lua:14803
 msgid "Every %1%"
 msgstr ""
 
-#: main.lua:14789
+#: main.lua:14806
 msgid "(recommended)"
 msgstr ""
 
-#: main.lua:14808
+#: main.lua:14825
 msgid "Checkpoint spacing:"
 msgstr ""
 
-#: main.lua:14828
+#: main.lua:14845
 msgid "Checkpoint building supports EPUB-style (flowing) documents only."
 msgstr ""
 
-#: main.lua:14868
+#: main.lua:14885
 msgid ""
 "This X-Ray can't build checkpoints (complete-track, AI-knowledge, or legacy "
 "format). Delete it first to build from scratch."
 msgstr ""
 
-#: main.lua:14948
+#: main.lua:14965
 msgid "Nothing to build: the X-Ray already covers the whole book."
 msgstr ""
 
-#: main.lua:14956
+#: main.lua:14973
 msgid "%1% (end of \"%2\")"
 msgstr ""
 
-#: main.lua:14961
+#: main.lua:14978
 msgid ""
 "Replaces your current X-Ray from scratch. Nothing is touched until the first "
 "new checkpoint arrives; the outgoing version is archived then."
 msgstr ""
 
-#: main.lua:14970
+#: main.lua:14987
 msgid "Its %1 checkpoints belong to the old version and are deleted then too."
 msgstr ""
 
-#: main.lua:14974
+#: main.lua:14991
 msgid "Extends your X-Ray from %1% to %2."
 msgstr ""
 
-#: main.lua:14975 main.lua:14980
+#: main.lua:14992 main.lua:14997
 msgid "Covers the book from the beginning to %1."
 msgstr ""
 
-#: main.lua:14977
+#: main.lua:14994
 msgid "Continues from %1% to %2."
 msgstr ""
 
-#: main.lua:14981
+#: main.lua:14998
 msgid "Covers the whole book from the beginning."
 msgstr ""
 
-#: main.lua:14985
+#: main.lua:15002
 msgid "One background request."
 msgstr ""
 
-#: main.lua:14986
+#: main.lua:15003
 msgid ""
 "Keep reading; the book must stay open. A notification arrives when it is "
 "ready."
 msgstr ""
 
-#: main.lua:14989
+#: main.lua:15006
 msgid "2 checkpoints: one at your position (%1%), one at the end."
 msgstr ""
 
-#: main.lua:14993
+#: main.lua:15010
 msgid ""
 "%1 checkpoints: the first at your position (%2%), then chapter ends roughly "
 "every %3%."
 msgstr ""
 
-#: main.lua:14995
+#: main.lua:15012
 msgid "%1 checkpoints: the first at your position (%2%), then every %3%."
 msgstr ""
 
-#: main.lua:14999
+#: main.lua:15016
 msgid "%1 checkpoints, at chapter ends roughly every %2%."
 msgstr ""
 
-#: main.lua:15001
+#: main.lua:15018
 msgid "%1 checkpoints, every %2%."
 msgstr ""
 
-#: main.lua:15005
+#: main.lua:15022
 msgid "An introduction is generated first (%1 requests in total)."
 msgstr ""
 
-#: main.lua:15007
+#: main.lua:15024
 msgid "Small background requests; keep reading, cancel anytime, resume later."
 msgstr ""
 
-#: main.lua:15011
+#: main.lua:15028
 msgid "Generate the X-Ray?"
 msgstr ""
 
-#: main.lua:15012
+#: main.lua:15029
 msgid "Resume building X-Ray checkpoints?"
 msgstr ""
 
-#: main.lua:15013
+#: main.lua:15030
 msgid "Build X-Ray checkpoints?"
 msgstr ""
 
-#: main.lua:15019
+#: main.lua:15036
 msgid "Resume"
 msgstr ""
 
-#: main.lua:15122
+#: main.lua:15139
 msgid "Checkpoint build stopped: text extraction is disabled."
 msgstr ""
 
-#: main.lua:15127
+#: main.lua:15144
 msgid "Checkpoint build stopped: WiFi is off."
 msgstr ""
 
-#: main.lua:15251
+#: main.lua:15268
 msgid "Generating X-Ray in the background (to %1%)…"
 msgstr ""
 
-#: main.lua:15254
+#: main.lua:15271
 msgid "X-Ray checkpoints: %1 of %2 (introduction)…"
 msgstr ""
 
-#: main.lua:15255
+#: main.lua:15272
 msgid "X-Ray checkpoints: %1 of %2 (to %3%)…"
 msgstr ""
 
-#: main.lua:15275 main.lua:15305
+#: main.lua:15292 main.lua:15322
 msgid "X-Ray generation cancelled."
 msgstr ""
 
-#: main.lua:15275 main.lua:15305
+#: main.lua:15292 main.lua:15322
 msgid "Checkpoint build cancelled."
 msgstr ""
 
-#: main.lua:15329
+#: main.lua:15346
 msgid ""
 "Checkpoint build paused at %1 of %2: the next step is a large request. "
 "Resume from the X-Ray popup to review it."
 msgstr ""
 
-#: main.lua:15350
+#: main.lua:15367
 msgid "Model busy — retrying checkpoint %1 of %2 in %3 s…"
 msgstr ""
 
-#: main.lua:15379
+#: main.lua:15396
 msgid ""
 "Checkpoint build stopped at %1 of %2 (%3): resume it from the X-Ray popup."
 msgstr ""
 
-#: main.lua:15381
+#: main.lua:15398
 msgid "Checkpoint build stopped at %1 of %2: resume it from the X-Ray popup."
 msgstr ""
 
-#: main.lua:15444
+#: main.lua:15461
 msgid "X-Ray ready (covers to %1%)."
 msgstr ""
 
-#: main.lua:15445
+#: main.lua:15462
 msgid "X-Ray ready."
 msgstr ""
 
-#: main.lua:15446
+#: main.lua:15463
 msgid "X-Ray checkpoints built (%1)."
 msgstr ""
 
-#: main.lua:15464
+#: main.lua:15481
 msgid "model overloaded"
 msgstr ""
 
-#: main.lua:15465
+#: main.lua:15482
 msgid "rate limited"
 msgstr ""
 
-#: main.lua:15466
+#: main.lua:15483
 msgid "provider error"
 msgstr ""
 
-#: main.lua:15467
+#: main.lua:15484
 msgid "request timed out"
 msgstr ""
 
-#: main.lua:15468
+#: main.lua:15485
 msgid "connection problem"
 msgstr ""
 
-#: main.lua:15469
+#: main.lua:15486
 msgid "unusable response"
 msgstr ""
 
-#: main.lua:15470
+#: main.lua:15487
 msgid "large step needs review"
 msgstr ""
 
-#: main.lua:15476
+#: main.lua:15493
 msgid "request too large"
 msgstr ""
 
-#: main.lua:15477
+#: main.lua:15494
 msgid "nothing was sent"
 msgstr ""
 
-#: main.lua:15480
+#: main.lua:15497
 msgid "account credits or billing"
 msgstr ""
 
-#: main.lua:15519
+#: main.lua:15536
 msgid "Build cancelled: resume from the X-Ray popup."
 msgstr ""
 
-#: main.lua:15625
+#: main.lua:15642
 msgid ""
 "End of: %1\n"
 "\n"
 "Would you like a comprehension quiz?"
 msgstr ""
 
-#: main.lua:15635
+#: main.lua:15652
 msgid "Not for this book"
 msgstr ""
 
-#: main.lua:15640
+#: main.lua:15657
 msgid ""
 "Chapter quizzes turned off for this book.\n"
 "Re-enable in Book Settings → Quiz."
 msgstr ""
 
-#: main.lua:15646
+#: main.lua:15663
 msgid "Quiz settings…"
 msgstr ""
 
-#: main.lua:15662
+#: main.lua:15679
 msgid ""
 "End of: %1\n"
 "\n"
 "Start the quiz now?"
 msgstr ""
 
-#: main.lua:15733 main.lua:16104 main.lua:16180
+#: main.lua:15750 main.lua:16121 main.lua:16197
 msgid "Action '%1' not found"
 msgstr ""
 
-#: main.lua:16163
+#: main.lua:16180
 msgid "Unknown action context: %1"
 msgstr ""
 
-#: main.lua:16415
+#: main.lua:16432
 msgid "This model"
 msgstr ""
 
-#: main.lua:16415
+#: main.lua:16432
 msgid "Current model"
 msgstr ""
 
-#: main.lua:16438
+#: main.lua:16455
 msgid "This model: %1"
 msgstr ""
 
-#: main.lua:16444 main.lua:16699
+#: main.lua:16461 main.lua:16716
 msgid "model default"
 msgstr ""
 
-#: main.lua:16471
+#: main.lua:16488
 msgid "Other models…"
 msgstr ""
 
-#: main.lua:16489 main.lua:16635
+#: main.lua:16506 main.lua:16652
 msgid "Reasoning · %1"
 msgstr ""
 
-#: main.lua:16511
+#: main.lua:16528
 msgid "Always reasons (cannot be changed)"
 msgstr ""
 
-#: main.lua:16512
+#: main.lua:16529
 msgid "This model does not support reasoning"
 msgstr ""
 
-#: main.lua:16523
+#: main.lua:16540
 msgid "Model API default (no override)"
 msgstr ""
 
-#: main.lua:16539
+#: main.lua:16556
 msgid "Always reasons — this model's API has no off switch"
 msgstr ""
 
-#: main.lua:16570
+#: main.lua:16587
 msgid "Model default"
 msgstr ""
 
-#: main.lua:16622
+#: main.lua:16639
 msgid "%1 · %2"
 msgstr ""
 
-#: main.lua:16631 main.lua:16780
+#: main.lua:16648 main.lua:16797
 msgid "No configurable models"
 msgstr ""
 
-#: main.lua:16673
+#: main.lua:16690
 msgid "Reasoning · pick a provider"
 msgstr ""
 
-#: main.lua:16769
+#: main.lua:16786
 msgid "%1: Follow global → %2"
 msgstr ""
 
-#: main.lua:17111 koassistant_ui/prompts_manager.lua:921
+#: main.lua:17128 koassistant_ui/prompts_manager.lua:921
 #: koassistant_ui/prompts_manager.lua:1654
 #: koassistant_ui/prompts_manager.lua:3918
 msgid "AI Behavior"
 msgstr ""
 
-#: main.lua:17137
+#: main.lua:17154
 msgid "Reasoning: %1"
 msgstr ""
 
-#: main.lua:17157
+#: main.lua:17174
 msgid "Book Tools: %1"
 msgstr ""
 
-#: main.lua:17168 main.lua:17343
+#: main.lua:17185 main.lua:17360
 msgid "N/A for %1"
 msgstr ""
 
-#: main.lua:17203
+#: main.lua:17220
 msgid "Quick Answer: %1"
 msgstr ""
 
-#: main.lua:17245
+#: main.lua:17262
 msgid " (research mode)"
 msgstr ""
 
-#: main.lua:17247
+#: main.lua:17264
 msgid " (book finished)"
 msgstr ""
 
-#: main.lua:17249
+#: main.lua:17266
 msgid "Spoiler Protection: %1"
 msgstr ""
 
-#: main.lua:17266 main.lua:17507
+#: main.lua:17283 main.lua:17524
 msgid ""
 "Saved as default. This book has its own override — hold the button to change "
 "it."
 msgstr ""
 
-#: main.lua:17271
+#: main.lua:17288
 msgid "Saved as default. Research mode keeps protection off for this book."
 msgstr ""
 
-#: main.lua:17276
+#: main.lua:17293
 msgid ""
 "Saved as default. This book is marked finished, so protection stays off."
 msgstr ""
 
-#: main.lua:17302
+#: main.lua:17319
 msgid "Minimal Popup: %1"
 msgstr ""
 
-#: main.lua:17340
+#: main.lua:17357
 msgid "Web Search: %1"
 msgstr ""
 
-#: main.lua:17355
+#: main.lua:17372
 msgid "Saved as default. %1 can't use web search. Switch to: %2."
 msgstr ""
 
-#: main.lua:17397
+#: main.lua:17414
 msgid "Language: %1"
 msgstr ""
 
-#: main.lua:17403
+#: main.lua:17420
 msgid "Primary Language"
 msgstr ""
 
-#: main.lua:17423 main.lua:18477 main.lua:18537
+#: main.lua:17440 main.lua:18494 main.lua:18554
 msgid "Dictionary: %1"
 msgstr ""
 
-#: main.lua:17436
+#: main.lua:17453
 msgid "H.Bypass: ON"
 msgstr ""
 
-#: main.lua:17436
+#: main.lua:17453
 msgid "H.Bypass: OFF"
 msgstr ""
 
-#: main.lua:17455
+#: main.lua:17472
 msgid "D.Bypass: ON"
 msgstr ""
 
-#: main.lua:17455
+#: main.lua:17472
 msgid "D.Bypass: OFF"
 msgstr ""
 
-#: main.lua:17485
+#: main.lua:17502
 msgid "Text Extraction: %1"
 msgstr ""
 
-#: main.lua:17493
+#: main.lua:17510
 msgid ""
 "To enable text extraction for the first time, go to:\n"
 "Settings → Privacy & Data → Text Extraction\n"
@@ -13695,39 +13696,39 @@ msgid ""
 "After that, this toggle will work directly."
 msgstr ""
 
-#: main.lua:17606
+#: main.lua:17623
 msgid "More Settings..."
 msgstr ""
 
-#: main.lua:17620
+#: main.lua:17637
 msgid "Quick Actions..."
 msgstr ""
 
-#: main.lua:17665
+#: main.lua:17682
 msgid "Sort Items"
 msgstr ""
 
-#: main.lua:17673 main.lua:17873
+#: main.lua:17690 main.lua:17890
 msgid "Align Buttons ✓"
 msgstr ""
 
-#: main.lua:17673 main.lua:17873
+#: main.lua:17690 main.lua:17890
 msgid "Align Buttons"
 msgstr ""
 
-#: main.lua:17713
+#: main.lua:17730
 msgid "Quick Actions is only available while reading a book."
 msgstr ""
 
-#: main.lua:17905
+#: main.lua:17922
 msgid "Testing connection..."
 msgstr ""
 
-#: main.lua:17933
+#: main.lua:17950
 msgid "Connection test failed:\n"
 msgstr ""
 
-#: main.lua:17939
+#: main.lua:17956
 msgid ""
 "Connection test successful!\n"
 "\n"
@@ -13737,25 +13738,25 @@ msgid ""
 "Response: %3"
 msgstr ""
 
-#: main.lua:17947
+#: main.lua:17964
 msgid "Connection test failed: "
 msgstr ""
 
-#: main.lua:17967
+#: main.lua:17984
 msgid ""
 "No book is currently open.\n"
 "\n"
 "Open a book first, then use this option to delete its artifacts."
 msgstr ""
 
-#: main.lua:17980
+#: main.lua:17997
 msgid ""
 "No artifacts found for this book.\n"
 "\n"
 "Run an artifact action (X-Ray, Recap, Summarize, etc.) first."
 msgstr ""
 
-#: main.lua:17990
+#: main.lua:18007
 msgid ""
 "Delete ALL artifacts for this book?\n"
 "\n"
@@ -13766,79 +13767,79 @@ msgid ""
 "This cannot be undone."
 msgstr ""
 
-#: main.lua:18013
+#: main.lua:18030
 msgid "Failed to delete artifacts."
 msgstr ""
 
-#: main.lua:18109
+#: main.lua:18126
 msgid "Dictionary bypass: ON"
 msgstr ""
 
-#: main.lua:18109
+#: main.lua:18126
 msgid "Dictionary bypass: OFF"
 msgstr ""
 
-#: main.lua:18123
+#: main.lua:18140
 msgid "Highlight bypass: ON"
 msgstr ""
 
-#: main.lua:18123
+#: main.lua:18140
 msgid "Highlight bypass: OFF"
 msgstr ""
 
-#: main.lua:18344
+#: main.lua:18361
 msgid "Could not extract text from current page"
 msgstr ""
 
-#: main.lua:18355
+#: main.lua:18372
 msgid "Translate action not found"
 msgstr ""
 
-#: main.lua:18416
+#: main.lua:18433
 msgid "Follow Translation Language"
 msgstr ""
 
-#: main.lua:18430
+#: main.lua:18447
 msgid "Dictionary: Follow Translation"
 msgstr ""
 
-#: main.lua:18438
+#: main.lua:18455
 msgid "Follow Primary Language"
 msgstr ""
 
-#: main.lua:18451
+#: main.lua:18468
 msgid "Dictionary: Follow Primary"
 msgstr ""
 
-#: main.lua:18513
+#: main.lua:18530
 msgid "Custom Dictionary Language"
 msgstr ""
 
-#: main.lua:18516
+#: main.lua:18533
 msgid "Enter the response language for dictionary lookups."
 msgstr ""
 
-#: main.lua:18608
+#: main.lua:18625
 msgid "Select Export Folder"
 msgstr ""
 
-#: main.lua:18617
+#: main.lua:18634
 msgid ""
 "Export path set to:\n"
 "%1"
 msgstr ""
 
-#: main.lua:18650
+#: main.lua:18667
 msgid "Select Notebook Folder"
 msgstr ""
 
-#: main.lua:18660
+#: main.lua:18677
 msgid ""
 "Notebook folder set to:\n"
 "%1"
 msgstr ""
 
-#: main.lua:19438
+#: main.lua:19455
 msgid ""
 "This entry comes from the next checkpoint (to %1%), ahead of your reading "
 "position, and may contain spoilers.\n"
@@ -13846,75 +13847,75 @@ msgid ""
 "Reveal the full entry?"
 msgstr ""
 
-#: main.lua:19553
+#: main.lua:19570
 msgid "book"
 msgstr ""
 
-#: main.lua:19554
+#: main.lua:19571
 msgid "global"
 msgstr ""
 
-#: main.lua:19583
+#: main.lua:19600
 msgid "Passive marking: %1 (%2)"
 msgstr ""
 
-#: main.lua:19588
+#: main.lua:19605
 msgid "Density: %1 (%2)"
 msgstr ""
 
-#: main.lua:19592
+#: main.lua:19609
 msgid "Mark: %1 (%2)"
 msgstr ""
 
-#: main.lua:19596
+#: main.lua:19613
 msgid "Tap marked words to open: %1 (%2)"
 msgstr ""
 
-#: main.lua:19606
+#: main.lua:19623
 msgid "Upcoming entities: %1 (%2)"
 msgstr ""
 
-#: main.lua:19612
+#: main.lua:19629
 msgid "Upcoming entity cards: %1 (%2)"
 msgstr ""
 
-#: main.lua:19621
+#: main.lua:19638
 msgid "Matching selections open entries: %1 (%2)"
 msgstr ""
 
-#: main.lua:19629
+#: main.lua:19646
 msgid "Exact hits open: %1 (%2)"
 msgstr ""
 
-#: main.lua:19635
+#: main.lua:19652
 msgid "Card shows: %1 (%2)"
 msgstr ""
 
-#: main.lua:19641
+#: main.lua:19658
 msgid "Use global marking settings for this book"
 msgstr ""
 
-#: main.lua:19668
+#: main.lua:19685
 msgid "Marking & lookup"
 msgstr ""
 
-#: main.lua:19812
+#: main.lua:19829
 msgid "Dictionary bypass action"
 msgstr ""
 
-#: main.lua:19812
+#: main.lua:19829
 msgid "Highlight bypass action"
 msgstr ""
 
-#: main.lua:19862 main.lua:19916
+#: main.lua:19879 main.lua:19933
 msgid "Bypass action: %1"
 msgstr ""
 
-#: main.lua:19966
+#: main.lua:19983
 msgid "All action settings restored to defaults"
 msgstr ""
 
-#: main.lua:20039
+#: main.lua:20056
 msgid ""
 "KOAssistant %1\n"
 "\n"
@@ -13930,276 +13931,276 @@ msgid ""
 "Gesture manager."
 msgstr ""
 
-#: main.lua:20128
+#: main.lua:20145
 msgid "Feature settings reset to defaults"
 msgstr ""
 
-#: main.lua:20160
+#: main.lua:20177
 msgid "All customizations reset"
 msgstr ""
 
-#: main.lua:20184
+#: main.lua:20201
 msgid "Custom actions deleted"
 msgstr ""
 
-#: main.lua:20198
+#: main.lua:20215
 msgid "Action edits reset to defaults"
 msgstr ""
 
-#: main.lua:20233
+#: main.lua:20250
 msgid "Action menus reset to defaults."
 msgstr ""
 
-#: main.lua:20246
+#: main.lua:20263
 msgid "Dictionary popup actions reset"
 msgstr ""
 
-#: main.lua:20259
+#: main.lua:20276
 msgid "Highlight menu actions reset"
 msgstr ""
 
-#: main.lua:20271
+#: main.lua:20288
 msgid "File browser actions reset"
 msgstr ""
 
-#: main.lua:20283
+#: main.lua:20300
 msgid "Quick actions reset"
 msgstr ""
 
-#: main.lua:20296
+#: main.lua:20313
 msgid "Input dialog actions reset"
 msgstr ""
 
-#: main.lua:20339
+#: main.lua:20356
 msgid "Custom providers and models reset"
 msgstr ""
 
-#: main.lua:20427
+#: main.lua:20444
 msgid "All action settings reset"
 msgstr ""
 
-#: main.lua:20475
+#: main.lua:20492
 msgid "Fresh start complete - API keys preserved"
 msgstr ""
 
-#: main.lua:20498
+#: main.lua:20515
 msgid "Default: Personal content private, basic context shared"
 msgstr ""
 
-#: main.lua:20521
+#: main.lua:20538
 msgid "Minimal: All extended sharing disabled"
 msgstr ""
 
-#: main.lua:20544
+#: main.lua:20561
 msgid ""
 "Full: All data sharing enabled (Text extraction must be enabled separately)"
 msgstr ""
 
-#: main.lua:20612
+#: main.lua:20629
 msgid "(custom)"
 msgstr ""
 
-#: main.lua:20673
+#: main.lua:20690
 msgid ""
 "Select providers to trust\n"
 "\n"
 "Trusted providers bypass data sharing controls."
 msgstr ""
 
-#: main.lua:20704
+#: main.lua:20721
 msgid ""
 "Remove this folder from library scanning?\n"
 "\n"
 "%1"
 msgstr ""
 
-#: main.lua:20734 main.lua:21085
+#: main.lua:20751 main.lua:21102
 msgid "Add folder"
 msgstr ""
 
-#: main.lua:20740
+#: main.lua:20757
 msgid "Select Library Folder"
 msgstr ""
 
-#: main.lua:20773 main.lua:21124
+#: main.lua:20790 main.lua:21141
 msgid "No folders configured"
 msgstr ""
 
-#: main.lua:20801
+#: main.lua:20818
 msgid "✓ Reset"
 msgstr ""
 
-#: main.lua:20803
+#: main.lua:20820
 msgid "✗ Keep"
 msgstr ""
 
-#: main.lua:20809 main.lua:21285 main.lua:21417 main.lua:22283
+#: main.lua:20826 main.lua:21302 main.lua:21434 main.lua:22300
 msgid "Settings"
 msgstr ""
 
-#: main.lua:20817
+#: main.lua:20834
 msgid "Custom actions"
 msgstr ""
 
-#: main.lua:20825
+#: main.lua:20842
 msgid "Action edits"
 msgstr ""
 
-#: main.lua:20833
+#: main.lua:20850
 msgid "Action menus"
 msgstr ""
 
-#: main.lua:20841
+#: main.lua:20858
 msgid "Custom providers & models"
 msgstr ""
 
-#: main.lua:20849
+#: main.lua:20866
 msgid "Behaviors & domains"
 msgstr ""
 
-#: main.lua:20857 main.lua:20914
+#: main.lua:20874 main.lua:20931
 msgid "API keys"
 msgstr ""
 
-#: main.lua:20869
+#: main.lua:20886
 msgid "Reset Selected"
 msgstr ""
 
-#: main.lua:20878
+#: main.lua:20895
 msgid "What would you like to reset?"
 msgstr ""
 
-#: main.lua:20890
+#: main.lua:20907
 msgid "settings"
 msgstr ""
 
-#: main.lua:20894
+#: main.lua:20911
 msgid "custom actions"
 msgstr ""
 
-#: main.lua:20898
+#: main.lua:20915
 msgid "action edits"
 msgstr ""
 
-#: main.lua:20902
+#: main.lua:20919
 msgid "action menus"
 msgstr ""
 
-#: main.lua:20906
+#: main.lua:20923
 msgid "providers/models"
 msgstr ""
 
-#: main.lua:20910
+#: main.lua:20927
 msgid "behaviors/domains"
 msgstr ""
 
-#: main.lua:20919
+#: main.lua:20936
 msgid "Reset: %1"
 msgstr ""
 
-#: main.lua:20924
+#: main.lua:20941
 msgid "Nothing selected to reset"
 msgstr ""
 
-#: main.lua:20971
+#: main.lua:20988
 msgid "Validation complete. Removed %1 stale entries."
 msgstr ""
 
-#: main.lua:20975
+#: main.lua:20992
 msgid "All indexes are valid. No issues found."
 msgstr ""
 
-#: main.lua:20997
+#: main.lua:21014
 msgid "Rebuilding data indexes…"
 msgstr ""
 
-#: main.lua:21006
+#: main.lua:21023
 msgid "Index rebuild failed. Check the log for details."
 msgstr ""
 
-#: main.lua:21012
+#: main.lua:21029
 msgid "Index rebuild complete."
 msgstr ""
 
-#: main.lua:21013
+#: main.lua:21030
 msgid "Checked %1 books: %2 with KOAssistant data."
 msgstr ""
 
-#: main.lua:21014
+#: main.lua:21031
 msgid "Indexed books: artifacts %1, chats %2, notebooks %3, pinned %4."
 msgstr ""
 
-#: main.lua:21019
+#: main.lua:21036
 msgid "Removed %1 stale entries."
 msgstr ""
 
-#: main.lua:21023
+#: main.lua:21040
 msgid "%1 synced sidecars couldn't be matched to local books."
 msgstr ""
 
-#: main.lua:21055
+#: main.lua:21072
 msgid ""
 "Remove this folder from index scanning?\n"
 "\n"
 "%1"
 msgstr ""
 
-#: main.lua:21091
+#: main.lua:21108
 msgid "Select Folder to Scan"
 msgstr ""
 
-#: main.lua:21162
+#: main.lua:21179
 msgid "Core Settings: ✓ Included"
 msgstr ""
 
-#: main.lua:21168
+#: main.lua:21185
 msgid "API Keys: ✓ Include (⚠ Sensitive)"
 msgstr ""
 
-#: main.lua:21168
+#: main.lua:21185
 msgid "API Keys: ✗ Exclude"
 msgstr ""
 
-#: main.lua:21183
+#: main.lua:21200
 msgid "Config Files: ✓ Include"
 msgstr ""
 
-#: main.lua:21183
+#: main.lua:21200
 msgid "Config Files: ✗ Exclude"
 msgstr ""
 
-#: main.lua:21198
+#: main.lua:21215
 msgid "Domains & Behaviors: ✓ Include"
 msgstr ""
 
-#: main.lua:21198
+#: main.lua:21215
 msgid "Domains & Behaviors: ✗ Exclude"
 msgstr ""
 
-#: main.lua:21213
+#: main.lua:21230
 msgid "Chat History: ✓ Include"
 msgstr ""
 
-#: main.lua:21213
+#: main.lua:21230
 msgid "Chat History: ✗ Exclude"
 msgstr ""
 
-#: main.lua:21228 main.lua:21381 main.lua:21592 main.lua:21614
+#: main.lua:21245 main.lua:21398 main.lua:21609 main.lua:21631
 msgid "━━━━━━━━━━━━━━━━"
 msgstr ""
 
-#: main.lua:21254
+#: main.lua:21271
 msgid "What to include in backup:"
 msgstr ""
 
-#: main.lua:21266
+#: main.lua:21283
 msgid ""
 "Creating backup...\n"
 "\n"
 "This may take a moment."
 msgstr ""
 
-#: main.lua:21278
+#: main.lua:21295
 msgid ""
 "Backup created successfully!\n"
 "\n"
@@ -14208,50 +14209,50 @@ msgid ""
 "Size: %2"
 msgstr ""
 
-#: main.lua:21288 main.lua:21419
+#: main.lua:21305 main.lua:21436
 msgid "API Keys"
 msgstr ""
 
-#: main.lua:21291 main.lua:21423
+#: main.lua:21308 main.lua:21440
 msgid "Config Files"
 msgstr ""
 
-#: main.lua:21297 main.lua:21428
+#: main.lua:21314 main.lua:21445
 msgid "%1 domains"
 msgstr ""
 
-#: main.lua:21299
+#: main.lua:21316
 msgid "0 domains"
 msgstr ""
 
-#: main.lua:21302 main.lua:21433
+#: main.lua:21319 main.lua:21450
 msgid "%1 behaviors"
 msgstr ""
 
-#: main.lua:21304
+#: main.lua:21321
 msgid "0 behaviors"
 msgstr ""
 
-#: main.lua:21310 main.lua:21441
+#: main.lua:21327 main.lua:21458
 msgid "%1 chats"
 msgstr ""
 
-#: main.lua:21312
+#: main.lua:21329
 msgid "0 chats"
 msgstr ""
 
-#: main.lua:21317
+#: main.lua:21334
 msgid "Included:"
 msgstr ""
 
-#: main.lua:21327
+#: main.lua:21344
 msgid ""
 "Backup failed:\n"
 "\n"
 "%1"
 msgstr ""
 
-#: main.lua:21344
+#: main.lua:21361
 msgid ""
 "No backups found.\n"
 "\n"
@@ -14259,25 +14260,25 @@ msgid ""
 "Settings → Backup & Reset → Create Backup"
 msgstr ""
 
-#: main.lua:21364
+#: main.lua:21381
 msgid "Restore Point"
 msgstr ""
 
-#: main.lua:21387
+#: main.lua:21404
 msgid ""
 "Select backup to restore\n"
 "\n"
 "Total: %1 backup(s)"
 msgstr ""
 
-#: main.lua:21402 main.lua:21808
+#: main.lua:21419 main.lua:21825
 msgid ""
 "Invalid backup:\n"
 "\n"
 "%1"
 msgstr ""
 
-#: main.lua:21411
+#: main.lua:21428
 msgid ""
 "Backup: %1\n"
 "\n"
@@ -14287,87 +14288,87 @@ msgid ""
 "Contents:"
 msgstr ""
 
-#: main.lua:21421
+#: main.lua:21438
 msgid "No API keys"
 msgstr ""
 
-#: main.lua:21430
+#: main.lua:21447
 msgid "domains"
 msgstr ""
 
-#: main.lua:21435
+#: main.lua:21452
 msgid "behaviors"
 msgstr ""
 
-#: main.lua:21443
+#: main.lua:21460
 msgid "Chat history"
 msgstr ""
 
-#: main.lua:21453 main.lua:21680
+#: main.lua:21470 main.lua:21697
 msgid "Warnings:"
 msgstr ""
 
-#: main.lua:21470
+#: main.lua:21487
 msgid "Restore →"
 msgstr ""
 
-#: main.lua:21507
+#: main.lua:21524
 msgid "Settings: ✓ Restore"
 msgstr ""
 
-#: main.lua:21507
+#: main.lua:21524
 msgid "Settings: ✗ Skip"
 msgstr ""
 
-#: main.lua:21524
+#: main.lua:21541
 msgid "API Keys: ✓ Restore"
 msgstr ""
 
-#: main.lua:21524
+#: main.lua:21541
 msgid "API Keys: ✗ Skip"
 msgstr ""
 
-#: main.lua:21541
+#: main.lua:21558
 msgid "Config Files: ✓ Restore"
 msgstr ""
 
-#: main.lua:21541
+#: main.lua:21558
 msgid "Config Files: ✗ Skip"
 msgstr ""
 
-#: main.lua:21558
+#: main.lua:21575
 msgid "Domains & Behaviors: ✓ Restore"
 msgstr ""
 
-#: main.lua:21558
+#: main.lua:21575
 msgid "Domains & Behaviors: ✗ Skip"
 msgstr ""
 
-#: main.lua:21575
+#: main.lua:21592
 msgid "Chat History: ✓ Restore"
 msgstr ""
 
-#: main.lua:21575
+#: main.lua:21592
 msgid "Chat History: ✗ Skip"
 msgstr ""
 
-#: main.lua:21598
+#: main.lua:21615
 msgid "Mode: Merge with existing"
 msgstr ""
 
-#: main.lua:21598
+#: main.lua:21615
 msgid "Mode: Replace existing"
 msgstr ""
 
-#: main.lua:21620
+#: main.lua:21637
 msgid "Restore Now"
 msgstr ""
 
-#: main.lua:21640
+#: main.lua:21657
 msgid "What to restore:"
 msgstr ""
 
-#: main.lua:21653
+#: main.lua:21670
 msgid ""
 "Restore from backup?\n"
 "\n"
@@ -14376,25 +14377,25 @@ msgid ""
 "⚠ KOReader should be restarted after restore for changes to take full effect."
 msgstr ""
 
-#: main.lua:21654 main.lua:21817
+#: main.lua:21671 main.lua:21834
 msgid "Restore"
 msgstr ""
 
-#: main.lua:21658
+#: main.lua:21675
 msgid ""
 "Restoring backup...\n"
 "\n"
 "This may take a moment."
 msgstr ""
 
-#: main.lua:21677
+#: main.lua:21694
 msgid ""
 "Restore completed successfully!\n"
 "\n"
 "It's recommended to restart KOReader for all changes to take effect."
 msgstr ""
 
-#: main.lua:21689 koassistant_ui/prompts_manager.lua:1680
+#: main.lua:21706 koassistant_ui/prompts_manager.lua:1680
 #: koassistant_ui/prompts_manager.lua:3409
 #: koassistant_ui/prompts_manager.lua:3944
 #: koassistant_ui/prompts_manager.lua:4242
@@ -14406,29 +14407,29 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-#: main.lua:21695
+#: main.lua:21712
 msgid "Restart Now"
 msgstr ""
 
-#: main.lua:21709
+#: main.lua:21726
 msgid ""
 "Restore failed:\n"
 "\n"
 "%1"
 msgstr ""
 
-#: main.lua:21732
+#: main.lua:21749
 msgid "No backups found."
 msgstr ""
 
-#: main.lua:21781
+#: main.lua:21798
 msgid ""
 "Backups (%1)\n"
 "\n"
 "Total size: %2"
 msgstr ""
 
-#: main.lua:21833
+#: main.lua:21850
 msgid ""
 "Delete backup?\n"
 "\n"
@@ -14437,23 +14438,23 @@ msgid ""
 "This cannot be undone."
 msgstr ""
 
-#: main.lua:21841
+#: main.lua:21858
 msgid "Backup deleted"
 msgstr ""
 
-#: main.lua:21850
+#: main.lua:21867
 msgid ""
 "Failed to delete backup:\n"
 "\n"
 "%1"
 msgstr ""
 
-#: main.lua:21929
+#: main.lua:21946
 msgid ""
 "KOAssistant moved its data out of KOReader's metadata files for %1 books."
 msgstr ""
 
-#: main.lua:21966
+#: main.lua:21983
 msgid ""
 "KOAssistant: Chat Storage Upgrade\n"
 "\n"
@@ -14466,19 +14467,19 @@ msgid ""
 "Old chat files will be backed up to koassistant_chats.backup/"
 msgstr ""
 
-#: main.lua:21973
+#: main.lua:21990
 msgid "Migrate Now"
 msgstr ""
 
-#: main.lua:22005
+#: main.lua:22022
 msgid "KOAssistant: Migrating chat history..."
 msgstr ""
 
-#: main.lua:22018
+#: main.lua:22035
 msgid "No old chats found to migrate"
 msgstr ""
 
-#: main.lua:22140
+#: main.lua:22157
 msgid ""
 "KOAssistant: Migration Incomplete\n"
 "\n"
@@ -14490,11 +14491,11 @@ msgid ""
 "Check the console for detailed error messages."
 msgstr ""
 
-#: main.lua:22152
+#: main.lua:22169
 msgid "Failed documents:"
 msgstr ""
 
-#: main.lua:22159
+#: main.lua:22176
 msgid ""
 "KOAssistant: Migration Complete\n"
 "\n"
@@ -14505,267 +14506,267 @@ msgid ""
 "koassistant_chats.backup/"
 msgstr ""
 
-#: main.lua:22200
+#: main.lua:22217
 msgid "configuration.lua has errors and was not loaded."
 msgstr ""
 
-#: main.lua:22202
+#: main.lua:22219
 msgid ""
 "Please fix the syntax error. Your custom settings (endpoints, provider, "
 "features) are not active."
 msgstr ""
 
-#: main.lua:22282
+#: main.lua:22299
 msgid "Continue Last Saved Chat"
 msgstr ""
 
-#: main.lua:22285
+#: main.lua:22302
 msgid "Toggle Dictionary Bypass"
 msgstr ""
 
-#: main.lua:22286
+#: main.lua:22303
 msgid "Toggle Highlight Bypass"
 msgstr ""
 
-#: main.lua:22336
+#: main.lua:22353
 msgid "file browser"
 msgstr ""
 
-#: main.lua:22336
+#: main.lua:22353
 msgid "reader"
 msgstr ""
 
-#: main.lua:22404
+#: main.lua:22421
 msgid "Tap an action to assign or remove a gesture. Changes apply immediately."
 msgstr ""
 
-#: main.lua:22406
+#: main.lua:22423
 msgid ""
 "KOReader's gesture data isn't ready, so assignment is unavailable here — use "
 "KOReader Settings > Taps and gestures."
 msgstr ""
 
-#: main.lua:22426
+#: main.lua:22443
 msgid "Remove: %1 (%2)"
 msgstr ""
 
-#: main.lua:22430
+#: main.lua:22447
 msgid "Gesture removed."
 msgstr ""
 
-#: main.lua:22438
+#: main.lua:22455
 msgid "— Reader —"
 msgstr ""
 
-#: main.lua:22439
+#: main.lua:22456
 msgid "— File browser —"
 msgstr ""
 
-#: main.lua:22453
+#: main.lua:22470
 msgid "Gesture assigned: %1"
 msgstr ""
 
-#: main.lua:22462
+#: main.lua:22479
 msgid "%1 — %2"
 msgstr ""
 
-#: main.lua:22474
+#: main.lua:22491
 msgid "Shortcut for: %1"
 msgstr ""
 
-#: main.lua:22475
+#: main.lua:22492
 msgid "Pick a gesture — it starts working right away:"
 msgstr ""
 
-#: main.lua:22537
+#: main.lua:22554
 msgid "KOAssistant detected your language as %1."
 msgstr ""
 
-#: main.lua:22538
+#: main.lua:22555
 msgid "Use %1 for AI responses, translations, and dictionary?"
 msgstr ""
 
-#: main.lua:22539
+#: main.lua:22556
 msgid "You can change this anytime in Settings → AI Language Settings."
 msgstr ""
 
-#: main.lua:22544 main.lua:22648
+#: main.lua:22561 main.lua:22665
 msgid "Use %1"
 msgstr ""
 
-#: main.lua:22545 main.lua:22671
+#: main.lua:22562 main.lua:22688
 msgid "Keep English"
 msgstr ""
 
-#: main.lua:22602
+#: main.lua:22619
 msgid ""
 "Your AI reading assistant is ready. Let's set up a few things. Tap the "
 "screen to continue."
 msgstr ""
 
-#: main.lua:22640 main.lua:22663
+#: main.lua:22657 main.lua:22680
 msgid "LANGUAGE SETUP"
 msgstr ""
 
-#: main.lua:22641
+#: main.lua:22658
 msgid "Your KOReader language is %1."
 msgstr ""
 
-#: main.lua:22642
+#: main.lua:22659
 msgid "Use %1 as your AI language?"
 msgstr ""
 
-#: main.lua:22643 main.lua:22666
+#: main.lua:22660 main.lua:22683
 msgid "You can add more languages later in Settings."
 msgstr ""
 
-#: main.lua:22649
+#: main.lua:22666
 msgid "Choose different"
 msgstr ""
 
-#: main.lua:22664
+#: main.lua:22681
 msgid "KOAssistant will respond in English by default."
 msgstr ""
 
-#: main.lua:22665
+#: main.lua:22682
 msgid "If you prefer a different language, tap \"Choose Language\"."
 msgstr ""
 
-#: main.lua:22672
+#: main.lua:22689
 msgid "Choose language"
 msgstr ""
 
-#: main.lua:22724
+#: main.lua:22741
 msgid "Choose your AI language"
 msgstr ""
 
-#: main.lua:22745
+#: main.lua:22762
 msgid ""
 "See the README for instructions on how to enable emojis in the KOReader UI."
 msgstr ""
 
-#: main.lua:22783
+#: main.lua:22800
 msgid "GESTURE SETUP"
 msgstr ""
 
-#: main.lua:22784
+#: main.lua:22801
 msgid "KOAssistant has two quick-access panels:"
 msgstr ""
 
-#: main.lua:22785
+#: main.lua:22802
 msgid "Quick Actions: book actions, artifacts, and utilities (reader mode)"
 msgstr ""
 
-#: main.lua:22786
+#: main.lua:22803
 msgid ""
 "Quick Settings: change provider, model, behavior, and more (file browser)"
 msgstr ""
 
-#: main.lua:22787
+#: main.lua:22804
 msgid "Assign both to \"tap bottom right corner\"?"
 msgstr ""
 
-#: main.lua:22788
+#: main.lua:22805
 msgid ""
 "You can change these anytime in KOReader Settings (Gear icon) → Taps and "
 "Gestures."
 msgstr ""
 
-#: main.lua:22789
+#: main.lua:22806
 msgid "Requires KOReader restart to take effect."
 msgstr ""
 
-#: main.lua:22794
+#: main.lua:22811
 msgid "Set up"
 msgstr ""
 
-#: main.lua:22795
+#: main.lua:22812
 msgid "No thanks"
 msgstr ""
 
-#: main.lua:22810
+#: main.lua:22827
 msgid "GESTURE TIP"
 msgstr ""
 
-#: main.lua:22811
+#: main.lua:22828
 msgid "KOAssistant has two quick-access panels you can assign to gestures:"
 msgstr ""
 
-#: main.lua:22812
+#: main.lua:22829
 msgid ""
 "Quick Actions: book actions, artifacts, and utilities (assign in reader mode)"
 msgstr ""
 
-#: main.lua:22813
+#: main.lua:22830
 msgid ""
 "Quick Settings: change provider, model, behavior, and more (assign in file "
 "browser mode)"
 msgstr ""
 
-#: main.lua:22814
+#: main.lua:22831
 msgid "Set them up in KOReader Settings (Gear icon) → Taps and Gestures."
 msgstr ""
 
-#: main.lua:22825
+#: main.lua:22842
 msgid "GETTING STARTED"
 msgstr ""
 
-#: main.lua:22827
+#: main.lua:22844
 msgid ""
 "Some features need document text access. Enable in: Settings → Privacy & Data"
 msgstr ""
 
-#: main.lua:22830
+#: main.lua:22847
 msgid ""
 "Create or edit prompts: Settings → Actions & Prompts → Manage Actions (or "
 "from Quick Settings panel)"
 msgstr ""
 
-#: main.lua:22834
+#: main.lua:22851
 msgid "Gestures assigned. Please restart KOReader for changes to take effect."
 msgstr ""
 
-#: main.lua:22837
+#: main.lua:22854
 msgid "Enjoy your reading!"
 msgstr ""
 
-#: main.lua:23242
+#: main.lua:23259
 msgid "Move %1 notebook(s) to the new location?"
 msgstr ""
 
-#: main.lua:23258
+#: main.lua:23275
 msgid "Moved %1 notebooks. %2 failed."
 msgstr ""
 
-#: main.lua:23263
+#: main.lua:23280
 msgid "Moved %1 notebooks."
 msgstr ""
 
-#: main.lua:23334
+#: main.lua:23351
 msgid "No notebook exists for this document. Create one?"
 msgstr ""
 
-#: main.lua:23388
+#: main.lua:23405
 msgid "Notebook is empty"
 msgstr ""
 
-#: main.lua:23437
+#: main.lua:23454
 msgid "Failed to read notebook file."
 msgstr ""
 
-#: main.lua:23485
+#: main.lua:23502
 msgid "Chat about this notebook"
 msgstr ""
 
-#: main.lua:23486
+#: main.lua:23503
 msgid "Start a new chat about this notebook"
 msgstr ""
 
-#: main.lua:23519
+#: main.lua:23536
 msgid "Notebook saved"
 msgstr ""
 
-#: main.lua:23526
+#: main.lua:23543
 msgid "Reset to last saved"
 msgstr ""
 
@@ -17174,44 +17175,44 @@ msgid ""
 "and prompt framing are set in Settings → Advanced → Image Generation."
 msgstr ""
 
-#: prompts/actions.lua:1319
+#: prompts/actions.lua:1342
 msgid ""
 "Comprehensive overview: what the work is about, its themes, significance, "
 "and reading experience. Based on AI knowledge: no book data needed."
 msgstr ""
 
-#: prompts/actions.lua:1365
+#: prompts/actions.lua:1388
 msgid "Find Similar"
 msgstr ""
 
-#: prompts/actions.lua:1366
+#: prompts/actions.lua:1389
 msgid ""
 "Recommends 5-7 similar works, explaining what makes each one similar and who "
 "would prefer which. When library scanning is enabled, notes which "
 "recommendations you already own."
 msgstr ""
 
-#: prompts/actions.lua:1394
+#: prompts/actions.lua:1417
 msgid "About Author"
 msgstr ""
 
-#: prompts/actions.lua:1395
+#: prompts/actions.lua:1418
 msgid ""
 "Biography, major works, writing style, and suggested reading order for the "
 "author."
 msgstr ""
 
-#: prompts/actions.lua:1406
+#: prompts/actions.lua:1429
 msgid "Historical Context"
 msgstr ""
 
-#: prompts/actions.lua:1407
+#: prompts/actions.lua:1430
 msgid ""
 "Explores when the work was written, what was happening at the time, and how "
 "it reflects or responds to its era."
 msgstr ""
 
-#: prompts/actions.lua:1422
+#: prompts/actions.lua:1445
 msgid ""
 "Builds a structured reference guide (characters, themes, locations, "
 "timeline) up to your current reading position, from the book text alone. "
@@ -17219,17 +17220,17 @@ msgid ""
 "target a specific section from the table of contents."
 msgstr ""
 
-#: prompts/actions.lua:1425
+#: prompts/actions.lua:1448
 msgid "Or use X-Ray (Simple) for an overview based on AI knowledge."
 msgstr ""
 
-#: prompts/actions.lua:1523
+#: prompts/actions.lua:1546
 msgid ""
 "A prose companion guide from AI knowledge: characters, themes, settings, key "
 "terms. No text extraction needed. Uses reading progress to avoid spoilers."
 msgstr ""
 
-#: prompts/actions.lua:1609
+#: prompts/actions.lua:1632
 msgid ""
 "A 'Previously on...' refresher to help you get back into reading after time "
 "away. Covers recent events, active threads, and where you left off. Adapts "
@@ -17237,29 +17238,29 @@ msgid ""
 "found notable. Updates incrementally as you read further."
 msgstr ""
 
-#: prompts/actions.lua:1696 prompts/actions.lua:2251
+#: prompts/actions.lua:1719 prompts/actions.lua:2274
 msgid "Analyze Notes"
 msgstr ""
 
-#: prompts/actions.lua:1697
+#: prompts/actions.lua:1720
 msgid ""
 "Analyzes your note-taking and highlighting patterns to reveal what catches "
 "your attention, emerging themes, and connections between your notes. This is "
 "about understanding you as a reader, not summarizing the work."
 msgstr ""
 
-#: prompts/actions.lua:1758
+#: prompts/actions.lua:1781
 msgid "Related Thinkers"
 msgstr ""
 
-#: prompts/actions.lua:1759
+#: prompts/actions.lua:1782
 msgid ""
 "Maps the intellectual landscape: who influenced the author, who the author "
 "influenced, and contemporary thinkers working on similar problems. For "
 "fiction, focuses on literary influences and movements."
 msgstr ""
 
-#: prompts/actions.lua:1795
+#: prompts/actions.lua:1818
 msgid ""
 "Breaks down the work's thesis, supporting arguments, evidence, assumptions, "
 "and potential counterarguments. For fiction, analyzes themes and the "
@@ -17267,7 +17268,7 @@ msgid ""
 "as an artifact."
 msgstr ""
 
-#: prompts/actions.lua:1849
+#: prompts/actions.lua:1872
 msgid ""
 "Prosecutes the case against the work: steelmanned opposing positions, the "
 "argument's weakest links, what would falsify it, and who disagrees and why. "
@@ -17275,141 +17276,141 @@ msgid ""
 "section. Result is saved as an artifact."
 msgstr ""
 
-#: prompts/actions.lua:1895
+#: prompts/actions.lua:1918
 msgid ""
 "Generates 8-10 discussion questions spanning comprehension, analysis, "
 "interpretation, and personal connection. Good for book clubs or classroom "
 "use. Can target a specific section. Result is saved as an artifact."
 msgstr ""
 
-#: prompts/actions.lua:1943
+#: prompts/actions.lua:1966
 msgid ""
 "Interactive comprehension quiz with multiple choice, short answer, and essay "
 "questions. Answers one at a time with scoring. Result is saved as an "
 "artifact. Can be triggered automatically at chapter ends."
 msgstr ""
 
-#: prompts/actions.lua:1972
+#: prompts/actions.lua:1995
 msgid "Document Analysis"
 msgstr ""
 
-#: prompts/actions.lua:1973
+#: prompts/actions.lua:1996
 msgid ""
 "Analyzes the document's thesis, structure, key insights, and audience. The "
 "result is saved as an Analyze artifact that other actions can reference. Can "
 "target a specific section."
 msgstr ""
 
-#: prompts/actions.lua:2007
+#: prompts/actions.lua:2030
 msgid "Document Summary"
 msgstr ""
 
-#: prompts/actions.lua:2008
+#: prompts/actions.lua:2031
 msgid ""
 "Creates a comprehensive summary preserving key details and structure. The "
 "result is saved as a Summary artifact, which other actions can use as their "
 "document source. Can target a specific section."
 msgstr ""
 
-#: prompts/actions.lua:2034
+#: prompts/actions.lua:2057
 msgid "Extract Key Insights"
 msgstr ""
 
-#: prompts/actions.lua:2035
+#: prompts/actions.lua:2058
 msgid ""
 "Distills the most important takeaways: ideas worth remembering, novel "
 "perspectives, actionable conclusions, and connections to broader concepts. "
 "Can target a specific section. Result is saved as an artifact."
 msgstr ""
 
-#: prompts/actions.lua:2072
+#: prompts/actions.lua:2095
 msgid ""
 "A spoiler-free guide to what's ahead: themes developing, questions worth "
 "holding, patterns to notice. Uses your reading position to stay safe. Can "
 "target a specific section."
 msgstr ""
 
-#: prompts/actions.lua:2119
+#: prompts/actions.lua:2142
 msgid "Suggest from Library"
 msgstr ""
 
-#: prompts/actions.lua:2120
+#: prompts/actions.lua:2143
 msgid ""
 "Suggests what to read next from your own library, based on the current book "
 "and your reading history."
 msgstr ""
 
-#: prompts/actions.lua:2124 prompts/actions.lua:2276 prompts/actions.lua:2293
-#: prompts/actions.lua:2309 prompts/actions.lua:2326
+#: prompts/actions.lua:2147 prompts/actions.lua:2299 prompts/actions.lua:2316
+#: prompts/actions.lua:2332 prompts/actions.lua:2349
 msgid ""
 "Enable library scanning in Settings → Privacy & Data to use this action."
 msgstr ""
 
-#: prompts/actions.lua:2141
+#: prompts/actions.lua:2164
 msgid "Reviews"
 msgstr ""
 
-#: prompts/actions.lua:2142
+#: prompts/actions.lua:2165
 msgid ""
 "Searches the web for critical and reader reviews, awards, and any "
 "controversy about the work."
 msgstr ""
 
-#: prompts/actions.lua:2177
+#: prompts/actions.lua:2200
 msgid "Compare"
 msgstr ""
 
-#: prompts/actions.lua:2178
+#: prompts/actions.lua:2201
 msgid ""
 "Compares the selected works, focusing on meaningful contrasts: different "
 "approaches, unique strengths, and which readers would prefer which."
 msgstr ""
 
-#: prompts/actions.lua:2189
+#: prompts/actions.lua:2212
 msgid "Find Common Themes"
 msgstr ""
 
-#: prompts/actions.lua:2190
+#: prompts/actions.lua:2213
 msgid ""
 "Identifies shared themes, intellectual traditions, and deeper patterns "
 "across the selected works: beyond surface-level genre labels."
 msgstr ""
 
-#: prompts/actions.lua:2201
+#: prompts/actions.lua:2224
 msgid "Analyze Collection"
 msgstr ""
 
-#: prompts/actions.lua:2202
+#: prompts/actions.lua:2225
 msgid ""
 "Analyzes what the collection reveals about the reader's interests, "
 "perspective, and what might be missing for a more complete picture."
 msgstr ""
 
-#: prompts/actions.lua:2214
+#: prompts/actions.lua:2237
 msgid "Quick Summaries"
 msgstr ""
 
-#: prompts/actions.lua:2215
+#: prompts/actions.lua:2238
 msgid ""
 "A brief 2-3 sentence summary of each selected work, focusing on premise and "
 "appeal."
 msgstr ""
 
-#: prompts/actions.lua:2226
+#: prompts/actions.lua:2249
 msgid "Reading Order"
 msgstr ""
 
-#: prompts/actions.lua:2227
+#: prompts/actions.lua:2250
 msgid ""
 "Suggests an optimal reading order based on conceptual dependencies, "
 "difficulty progression, and thematic arc."
 msgstr ""
 
-#: prompts/actions.lua:2238
+#: prompts/actions.lua:2261
 msgid "Recommend"
 msgstr ""
 
-#: prompts/actions.lua:2239
+#: prompts/actions.lua:2262
 msgid ""
 "Recommends 5-8 new works based on the patterns across your selected works: "
 "matching the intersection of your interests, not just similarity to one "
@@ -17417,24 +17418,24 @@ msgid ""
 "already own and prioritizes books you haven't read."
 msgstr ""
 
-#: prompts/actions.lua:2252
+#: prompts/actions.lua:2275
 msgid ""
 "Analyzes your highlights, annotations, and notes across the selected books: "
 "what patterns emerge in what you mark, what you write, and how your thinking "
 "connects across works."
 msgstr ""
 
-#: prompts/actions.lua:2256
+#: prompts/actions.lua:2279
 msgid ""
 "Enable highlights or annotations sharing in Settings → Privacy & Data to use "
 "this action."
 msgstr ""
 
-#: prompts/actions.lua:2269
+#: prompts/actions.lua:2292
 msgid "Next Read"
 msgstr ""
 
-#: prompts/actions.lua:2270
+#: prompts/actions.lua:2293
 msgid ""
 "Suggests what to read next from your library: including books worth "
 "revisiting or picking back up. Based on what you've finished recently, "
@@ -17443,11 +17444,11 @@ msgid ""
 "read extensively."
 msgstr ""
 
-#: prompts/actions.lua:2286
+#: prompts/actions.lua:2309
 msgid "Discover New"
 msgstr ""
 
-#: prompts/actions.lua:2287
+#: prompts/actions.lua:2310
 msgid ""
 "Suggests new books based on your library: identifies your taste from what "
 "you own and recommends works you don't have yet, including a few picks "
@@ -17455,11 +17456,11 @@ msgid ""
 "data to better understand your preferences."
 msgstr ""
 
-#: prompts/actions.lua:2302
+#: prompts/actions.lua:2325
 msgid "Analyze Library"
 msgstr ""
 
-#: prompts/actions.lua:2303
+#: prompts/actions.lua:2326
 msgid ""
 "Analyzes your library to reveal genres and authors you gravitate toward, "
 "completion patterns, and gaps in your collection. When advanced stats are "
@@ -17467,11 +17468,11 @@ msgid ""
 "time on."
 msgstr ""
 
-#: prompts/actions.lua:2319
+#: prompts/actions.lua:2342
 msgid "Challenge My Taste"
 msgstr ""
 
-#: prompts/actions.lua:2320
+#: prompts/actions.lua:2343
 msgid ""
 "Critiques your reading pattern rather than celebrating it: where your "
 "library is one-sided, which voices are missing, and what a sharp critic of "
@@ -17479,43 +17480,43 @@ msgid ""
 "advanced stats are enabled, includes engagement patterns."
 msgstr ""
 
-#: prompts/actions.lua:2340
+#: prompts/actions.lua:2363
 msgid "News Update"
 msgstr ""
 
-#: prompts/actions.lua:2341
+#: prompts/actions.lua:2364
 msgid ""
 "Fetches today's top global news stories from Al Jazeera with headlines, "
 "summaries, and links. Uses web search."
 msgstr ""
 
-#: prompts/actions.lua:2370
+#: prompts/actions.lua:2393
 msgid ""
 "Translates the selected text into your configured translation language. This "
 "action also controls the Translate Current Page function."
 msgstr ""
 
-#: prompts/actions.lua:2390
+#: prompts/actions.lua:2413
 msgid "Quick Define"
 msgstr ""
 
-#: prompts/actions.lua:2391
+#: prompts/actions.lua:2414
 msgid ""
 "A brief, one-line dictionary definition of the selected word in your "
 "dictionary language."
 msgstr ""
 
-#: prompts/actions.lua:2424
+#: prompts/actions.lua:2447
 msgid ""
 "Full dictionary entry with pronunciation, definitions, etymology, and "
 "synonyms."
 msgstr ""
 
-#: prompts/actions.lua:2457
+#: prompts/actions.lua:2480
 msgid "Deep Analysis"
 msgstr ""
 
-#: prompts/actions.lua:2458
+#: prompts/actions.lua:2481
 msgid ""
 "Deep linguistic analysis covering morphology, word family, etymology, "
 "cognates, and cross-language borrowings. Adapts to the word's language "

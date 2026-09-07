@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOAssistant 0.12.0-dev\n"
 "Report-Msgid-Bugs-To: https://github.com/zeeyado/koassistant.koplugin/issues\n"
-"POT-Creation-Date: 2026-09-07 16:29+0200\n"
+"POT-Creation-Date: 2026-09-07 18:41+0200\n"
 "PO-Revision-Date: 2026-01-27 17:48+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: _meta.lua:4 main.lua:6311
+#: _meta.lua:4 main.lua:6329
 #, fuzzy
 msgid "KOAssistant"
 msgstr "KOAssistant"
@@ -28,28 +28,28 @@ msgid "A powerful AI assistant integrated into KOReader"
 msgstr "KOReaderに統合された強力なAIアシスタント"
 
 #: koassistant_action_cache.lua:613 koassistant_action_cache.lua:946
-#: koassistant_dialogs.lua:7228 koassistant_dialogs.lua:12626 main.lua:13236
+#: koassistant_dialogs.lua:7228 koassistant_dialogs.lua:12626 main.lua:13253
 #, fuzzy
 msgid "Summary"
 msgstr "要約"
 
 #: koassistant_action_cache.lua:614 koassistant_action_cache.lua:947
-#: koassistant_dialogs.lua:7224 koassistant_dialogs.lua:12622 main.lua:13224
+#: koassistant_dialogs.lua:7224 koassistant_dialogs.lua:12622 main.lua:13241
 #, fuzzy
 msgid "Analysis"
 msgstr "分析"
 
-#: koassistant_action_cache.lua:615 main.lua:13550 prompts/actions.lua:1608
+#: koassistant_action_cache.lua:615 main.lua:13567 prompts/actions.lua:1631
 #, fuzzy
 msgid "Recap"
 msgstr "要点の振り返り"
 
-#: koassistant_action_cache.lua:616 prompts/actions.lua:1522
+#: koassistant_action_cache.lua:616 prompts/actions.lua:1545
 #, fuzzy
 msgid "X-Ray (Simple)"
 msgstr "X-Ray（シンプル）"
 
-#: koassistant_action_cache.lua:617 prompts/actions.lua:1318
+#: koassistant_action_cache.lua:617 prompts/actions.lua:1341
 #, fuzzy
 msgid "About"
 msgstr "について"
@@ -60,19 +60,19 @@ msgid "Notes Analysis"
 msgstr "ノート分析"
 
 #: koassistant_action_cache.lua:619 koassistant_action_cache.lua:948
-#: prompts/actions.lua:1794
+#: prompts/actions.lua:1817
 #, fuzzy
 msgid "Key Arguments"
 msgstr "主要な論点"
 
 #: koassistant_action_cache.lua:620 koassistant_action_cache.lua:950
-#: prompts/actions.lua:1894
+#: prompts/actions.lua:1917
 #, fuzzy
 msgid "Discussion Questions"
 msgstr "議論のための質問"
 
 #: koassistant_action_cache.lua:621 koassistant_action_cache.lua:951
-#: main.lua:13308 main.lua:15626 main.lua:15663 prompts/actions.lua:1942
+#: main.lua:13325 main.lua:15643 main.lua:15680 prompts/actions.lua:1965
 #, fuzzy
 msgid "Quiz"
 msgstr "クイズ"
@@ -83,7 +83,7 @@ msgid "Key Insights"
 msgstr "重要なインサイト"
 
 #: koassistant_action_cache.lua:623 koassistant_action_cache.lua:953
-#: prompts/actions.lua:2071
+#: prompts/actions.lua:2094
 #, fuzzy
 msgid "Reading Guide"
 msgstr "読書ガイド"
@@ -165,23 +165,23 @@ msgid "View Section Reading Guides"
 msgstr "セクション読書ガイドを表示"
 
 #: koassistant_action_cache.lua:945 koassistant_book_page.lua:159
-#: koassistant_book_settings.lua:2702 koassistant_dialogs.lua:10895
+#: koassistant_book_settings.lua:2711 koassistant_dialogs.lua:10895
 #: koassistant_settings_schema.lua:904 koassistant_xray_browser.lua:1626
 #: koassistant_xray_browser.lua:2045 koassistant_xray_browser.lua:6395
-#: koassistant_xray_rows.lua:118 main.lua:7417 main.lua:12548 main.lua:12629
-#: prompts/actions.lua:1421
+#: koassistant_xray_rows.lua:118 main.lua:7434 main.lua:12565 main.lua:12646
+#: prompts/actions.lua:1444
 #, fuzzy
 msgid "X-Ray"
 msgstr "X-Ray"
 
-#: koassistant_action_cache.lua:949 prompts/actions.lua:1848
+#: koassistant_action_cache.lua:949 prompts/actions.lua:1871
 #, fuzzy
 msgid "Counterarguments"
 msgstr "反対意見"
 
 #: koassistant_action_cache.lua:2279 koassistant_dialogs.lua:10718
 #: koassistant_xray_merge.lua:1666 koassistant_xray_merge.lua:1920
-#: main.lua:7754 main.lua:10357 main.lua:11869 main.lua:11963
+#: main.lua:7771 main.lua:10374 main.lua:11886 main.lua:11980
 #, fuzzy
 msgid "pp %1–%2"
 msgstr "pp %1–%2"
@@ -196,8 +196,8 @@ msgstr "ハイライトメニュー"
 msgid "the dictionary popup"
 msgstr "辞書ポップアップ"
 
-#: koassistant_action_hold.lua:36 koassistant_constants.lua:291 main.lua:17849
-#: main.lua:22278
+#: koassistant_action_hold.lua:36 koassistant_constants.lua:291 main.lua:17866
+#: main.lua:22295
 #, fuzzy
 msgid "Quick Actions"
 msgstr "クイックアクション"
@@ -303,7 +303,7 @@ msgstr "ライブラリ（ピン留め）"
 #: koassistant_xray_parser.lua:1193 koassistant_xray_parser.lua:1300
 #: koassistant_xray_parser.lua:1328 koassistant_xray_parser.lua:1349
 #: koassistant_xray_parser.lua:1369 koassistant_xray_parser.lua:1376
-#: main.lua:12523 main.lua:20037 koassistant_ui/behavior_manager.lua:285
+#: main.lua:12540 main.lua:20054 koassistant_ui/behavior_manager.lua:285
 #: koassistant_ui/domain_manager.lua:301 koassistant_ui/prompts_manager.lua:791
 #, fuzzy
 msgid "Unknown"
@@ -360,14 +360,14 @@ msgstr "本を開く"
 #: koassistant_artifact_browser.lua:1074 koassistant_book_groups_ui.lua:60
 #: koassistant_book_groups_ui.lua:255 koassistant_book_groups_ui.lua:394
 #: koassistant_book_groups_ui.lua:746 koassistant_book_groups_ui.lua:798
-#: koassistant_book_groups_ui.lua:877 koassistant_book_picker.lua:275
-#: koassistant_book_picker.lua:875 koassistant_book_settings.lua:944
-#: koassistant_book_settings.lua:1353 koassistant_book_settings.lua:2834
-#: koassistant_book_settings.lua:3028 koassistant_book_settings.lua:3085
-#: koassistant_book_settings.lua:3287 koassistant_book_settings.lua:3374
-#: koassistant_book_settings.lua:3412 koassistant_book_settings.lua:3514
-#: koassistant_book_settings.lua:3539 koassistant_book_settings.lua:3704
-#: koassistant_book_settings.lua:3754 koassistant_chat_history_dialog.lua:898
+#: koassistant_book_groups_ui.lua:877 koassistant_book_picker.lua:277
+#: koassistant_book_picker.lua:877 koassistant_book_settings.lua:944
+#: koassistant_book_settings.lua:1353 koassistant_book_settings.lua:2843
+#: koassistant_book_settings.lua:3037 koassistant_book_settings.lua:3094
+#: koassistant_book_settings.lua:3296 koassistant_book_settings.lua:3383
+#: koassistant_book_settings.lua:3421 koassistant_book_settings.lua:3523
+#: koassistant_book_settings.lua:3548 koassistant_book_settings.lua:3713
+#: koassistant_book_settings.lua:3763 koassistant_chat_history_dialog.lua:898
 #: koassistant_chat_history_dialog.lua:1112
 #: koassistant_chat_history_dialog.lua:1578
 #: koassistant_chat_history_dialog.lua:2289
@@ -408,14 +408,14 @@ msgstr "本を開く"
 #: main.lua:2328 main.lua:2622 main.lua:3625 main.lua:3670 main.lua:3714
 #: main.lua:3785 main.lua:4055 main.lua:4428 main.lua:4904 main.lua:5123
 #: main.lua:5331 main.lua:5375 main.lua:5504 main.lua:6021 main.lua:6262
-#: main.lua:7050 main.lua:7170 main.lua:8096 main.lua:8246 main.lua:8318
-#: main.lua:8388 main.lua:9233 main.lua:9748 main.lua:10191 main.lua:10778
-#: main.lua:11474 main.lua:11693 main.lua:11797 main.lua:11835 main.lua:12073
-#: main.lua:12111 main.lua:12139 main.lua:12221 main.lua:12234 main.lua:12315
-#: main.lua:12456 main.lua:12468 main.lua:12736 main.lua:12762 main.lua:12776
-#: main.lua:12938 main.lua:13045 main.lua:13144 main.lua:13176 main.lua:13188
-#: main.lua:13318 main.lua:14529 main.lua:15030 main.lua:15869 main.lua:15938
-#: main.lua:17994 main.lua:18520 main.lua:20631 main.lua:21464 main.lua:22470
+#: main.lua:7067 main.lua:7187 main.lua:8113 main.lua:8263 main.lua:8335
+#: main.lua:8405 main.lua:9250 main.lua:9765 main.lua:10208 main.lua:10795
+#: main.lua:11491 main.lua:11710 main.lua:11814 main.lua:11852 main.lua:12090
+#: main.lua:12128 main.lua:12156 main.lua:12238 main.lua:12251 main.lua:12332
+#: main.lua:12473 main.lua:12485 main.lua:12753 main.lua:12779 main.lua:12793
+#: main.lua:12955 main.lua:13062 main.lua:13161 main.lua:13193 main.lua:13205
+#: main.lua:13335 main.lua:14546 main.lua:15047 main.lua:15886 main.lua:15955
+#: main.lua:18011 main.lua:18537 main.lua:20648 main.lua:21481 main.lua:22487
 #: koassistant_ui/behavior_manager.lua:440
 #: koassistant_ui/behavior_manager.lua:499
 #: koassistant_ui/behavior_manager.lua:578
@@ -461,8 +461,8 @@ msgid "Cancel"
 msgstr "キャンセル"
 
 #: koassistant_artifact_browser.lua:511 koassistant_artifact_browser.lua:988
-#: koassistant_notebook_manager.lua:182 main.lua:12831 main.lua:13088
-#: main.lua:18196
+#: koassistant_notebook_manager.lua:182 main.lua:12848 main.lua:13105
+#: main.lua:18213
 #, fuzzy
 msgid "View"
 msgstr "表示"
@@ -492,9 +492,9 @@ msgstr ""
 #: koassistant_chat_history_dialog.lua:2675 koassistant_chatgptviewer.lua:3097
 #: koassistant_chatgptviewer.lua:3135 koassistant_image_browser.lua:103
 #: koassistant_notebook_manager.lua:221 koassistant_xray_browser.lua:6580
-#: main.lua:5357 main.lua:12213 main.lua:12436 main.lua:12444 main.lua:12758
-#: main.lua:13032 main.lua:13157 main.lua:13165 main.lua:18000 main.lua:21826
-#: main.lua:21834 koassistant_ui/behavior_manager.lua:332
+#: main.lua:5357 main.lua:12230 main.lua:12453 main.lua:12461 main.lua:12775
+#: main.lua:13049 main.lua:13174 main.lua:13182 main.lua:18017 main.lua:21843
+#: main.lua:21851 koassistant_ui/behavior_manager.lua:332
 #: koassistant_ui/domain_manager.lua:342
 #: koassistant_ui/prompts_manager.lua:1168
 #, fuzzy
@@ -513,8 +513,8 @@ msgstr "すべてのアーティファクトを削除しました"
 #: koassistant_chat_history_dialog.lua:631
 #: koassistant_chat_history_dialog.lua:2869 koassistant_constants.lua:147
 #: koassistant_constants.lua:283 koassistant_notebook_manager.lua:280
-#: koassistant_settings_schema.lua:81 main.lua:657 main.lua:17526
-#: main.lua:22280 koassistant_ui/prompts_manager.lua:6271
+#: koassistant_settings_schema.lua:81 main.lua:657 main.lua:17543
+#: main.lua:22297 koassistant_ui/prompts_manager.lua:6271
 #, fuzzy
 msgid "Chat History"
 msgstr "チャット履歴"
@@ -571,7 +571,7 @@ msgstr "アクション"
 
 #: koassistant_artifact_browser.lua:917 koassistant_artifact_browser.lua:1375
 #: koassistant_chatgptviewer.lua:2753 koassistant_constants.lua:268
-#: koassistant_xray_browser.lua:7099 main.lua:17101
+#: koassistant_xray_browser.lua:7099 main.lua:17118
 #, fuzzy
 msgid "Model"
 msgstr "モデル"
@@ -627,10 +627,10 @@ msgid "Enter a new name"
 msgstr "新しい名前を入力"
 
 #: koassistant_artifact_browser.lua:1016 koassistant_book_groups_ui.lua:65
-#: koassistant_book_settings.lua:946 koassistant_book_settings.lua:3376
-#: koassistant_book_settings.lua:3706 koassistant_chatgptviewer.lua:1655
+#: koassistant_book_settings.lua:946 koassistant_book_settings.lua:3385
+#: koassistant_book_settings.lua:3715 koassistant_chatgptviewer.lua:1655
 #: koassistant_dialogs.lua:1751 main.lua:2272 main.lua:3792 main.lua:5147
-#: main.lua:5333 main.lua:6028 main.lua:6277 main.lua:18527 main.lua:20637
+#: main.lua:5333 main.lua:6028 main.lua:6277 main.lua:18544 main.lua:20654
 #: koassistant_ui/behavior_manager.lua:517
 #: koassistant_ui/domain_manager.lua:516
 #: koassistant_ui/prompts_manager.lua:2080
@@ -656,13 +656,13 @@ msgstr ""
 msgid "No Section X-Rays available."
 msgstr "利用可能なセクションX-Rayはありません。"
 
-#: koassistant_artifact_browser.lua:1161 main.lua:12307
+#: koassistant_artifact_browser.lua:1161 main.lua:12324
 #, fuzzy
 msgid "Merge section X-Rays…"
 msgstr "セクションのX-Rayを統合…"
 
 #: koassistant_artifact_browser.lua:1211 koassistant_artifact_browser.lua:1230
-#: koassistant_chatgptviewer.lua:2672 main.lua:13344
+#: koassistant_chatgptviewer.lua:2672 main.lua:13361
 #, fuzzy
 msgid "Section %1: %2"
 msgstr "セクション %1: %2"
@@ -744,7 +744,7 @@ msgstr "クイズのアーティファクトは添付できません（テキス
 msgid "This artifact has no attachable text."
 msgstr "このアーティファクトには添付可能なテキストがありません。"
 
-#: koassistant_attachments.lua:207 koassistant_dialogs.lua:12919 main.lua:7091
+#: koassistant_attachments.lua:207 koassistant_dialogs.lua:12919 main.lua:7108
 #, fuzzy
 msgid "Artifact"
 msgstr "アーティファクト"
@@ -797,13 +797,13 @@ msgstr "（名称未設定）"
 #: koassistant_book_groups_ui.lua:46 koassistant_book_settings.lua:604
 #: koassistant_book_settings.lua:1029 koassistant_book_settings.lua:1038
 #: koassistant_book_settings.lua:1051 koassistant_book_settings.lua:1260
-#: koassistant_book_settings.lua:2578 koassistant_book_settings.lua:2582
-#: koassistant_book_settings.lua:2810 koassistant_book_settings.lua:2830
+#: koassistant_book_settings.lua:2587 koassistant_book_settings.lua:2591
+#: koassistant_book_settings.lua:2819 koassistant_book_settings.lua:2839
 #: koassistant_dialogs.lua:1322 koassistant_dialogs.lua:7059
 #: koassistant_dialogs.lua:7063 koassistant_group_settings.lua:70
 #: koassistant_settings_schema.lua:647 koassistant_settings_schema.lua:1429
-#: koassistant_settings_schema.lua:1889 main.lua:6210 main.lua:17007
-#: main.lua:17009 reasoning_prefs.lua:112 koassistant_ui/prompts_manager.lua:70
+#: koassistant_settings_schema.lua:1889 main.lua:6210 main.lua:17024
+#: main.lua:17026 reasoning_prefs.lua:112 koassistant_ui/prompts_manager.lua:70
 #: koassistant_ui/prompts_manager.lua:869
 #: koassistant_ui/prompts_manager.lua:1779
 #: koassistant_ui/prompts_manager.lua:2436
@@ -898,15 +898,15 @@ msgid "Look in a folder…"
 msgstr "フォルダを探す…"
 
 #: koassistant_book_groups_ui.lua:281 koassistant_book_groups_ui.lua:702
-#: koassistant_book_groups_ui.lua:924 koassistant_book_picker.lua:441
+#: koassistant_book_groups_ui.lua:924 koassistant_book_picker.lua:443
 #: koassistant_dialogs.lua:7999
 #, fuzzy
 msgid "Select Folder"
 msgstr "フォルダーを選択"
 
 #: koassistant_book_groups_ui.lua:292 koassistant_book_groups_ui.lua:713
-#: koassistant_book_groups_ui.lua:935 koassistant_book_picker.lua:323
-#: koassistant_book_picker.lua:380
+#: koassistant_book_groups_ui.lua:935 koassistant_book_picker.lua:325
+#: koassistant_book_picker.lua:382
 #, fuzzy
 msgid ""
 "No books found in:\n"
@@ -922,7 +922,7 @@ msgstr "コレクションを探す…"
 
 #: koassistant_book_groups_ui.lua:318 koassistant_group_settings.lua:250
 #: koassistant_xray_dedup.lua:670 koassistant_xray_merge.lua:2559
-#: main.lua:12417
+#: main.lua:12434
 #, fuzzy
 msgid "Not now"
 msgstr "今はしない"
@@ -944,7 +944,7 @@ msgid "New group from series \"%1\"…"
 msgstr "シリーズ「%1」から新しいグループを作成…"
 
 #: koassistant_book_groups_ui.lua:377 koassistant_xray_browser.lua:3263
-#: main.lua:7485
+#: main.lua:7502
 #, fuzzy
 msgid "(no X-Ray)"
 msgstr "（X-Rayなし）"
@@ -985,7 +985,7 @@ msgid "1-%1 (currently %2)"
 msgstr "1-%1（現在%2）"
 
 #: koassistant_book_groups_ui.lua:458 koassistant_xray_browser.lua:3190
-#: main.lua:23243
+#: main.lua:23260
 #, fuzzy
 msgid "Move"
 msgstr "移動"
@@ -1001,7 +1001,7 @@ msgid "Remove from group"
 msgstr "グループから削除"
 
 #: koassistant_book_groups_ui.lua:490 koassistant_book_groups_ui.lua:568
-#: koassistant_book_groups_ui.lua:618 koassistant_book_settings.lua:2351
+#: koassistant_book_groups_ui.lua:618 koassistant_book_settings.lua:2360
 #: koassistant_chat_history_dialog.lua:1431
 #: koassistant_chat_history_dialog.lua:1618 koassistant_dialogs.lua:2185
 #: koassistant_dialogs.lua:8143 koassistant_setup_wizard.lua:891
@@ -1042,7 +1042,7 @@ msgid "Choose which…"
 msgstr "選択する…"
 
 #: koassistant_book_groups_ui.lua:769 koassistant_book_groups_ui.lua:971
-#: koassistant_book_picker.lua:376
+#: koassistant_book_picker.lua:378
 #, fuzzy
 msgid "No books in the collection \"%1\"."
 msgstr "コレクション「%1」に本がありません。"
@@ -1114,8 +1114,8 @@ msgstr "この本で新しいグループを作成…"
 #: koassistant_dialogs.lua:11656 koassistant_xray_dedup.lua:931
 #: koassistant_xray_dedup.lua:975 koassistant_xray_merge.lua:3242
 #: koassistant_xray_merge.lua:3348 koassistant_xray_merge.lua:3455
-#: koassistant_xray_merge.lua:3493 main.lua:9462 main.lua:13059 main.lua:14801
-#: main.lua:19662
+#: koassistant_xray_merge.lua:3493 main.lua:9479 main.lua:13076 main.lua:14818
+#: main.lua:19679
 #, fuzzy
 msgid "Back"
 msgstr "戻る"
@@ -1126,7 +1126,7 @@ msgid "Groups — %1"
 msgstr "グループ — %1"
 
 #: koassistant_book_page.lua:43 koassistant_constants.lua:153
-#: koassistant_settings_schema.lua:57 main.lua:22277
+#: koassistant_settings_schema.lua:57 main.lua:22294
 #, fuzzy
 msgid "Book Hub"
 msgstr "ブックハブ"
@@ -1142,7 +1142,7 @@ msgid "none"
 msgstr "なし"
 
 #: koassistant_book_page.lua:216 koassistant_constants.lua:144
-#: koassistant_settings_schema.lua:45 main.lua:22275
+#: koassistant_settings_schema.lua:45 main.lua:22292
 #, fuzzy
 msgid "Book Chat/Action"
 msgstr "本のチャット/アクション"
@@ -1154,7 +1154,7 @@ msgstr "本のチャット／アクション（本が開かれていません）
 
 #: koassistant_book_page.lua:243 koassistant_chatgptviewer.lua:1621
 #: koassistant_constants.lua:148 koassistant_quiz_viewer.lua:561 main.lua:634
-#: main.lua:18192 main.lua:23396 main.lua:23484
+#: main.lua:18209 main.lua:23413 main.lua:23501
 #: koassistant_ui/prompts_manager.lua:6269
 #, fuzzy
 msgid "Notebook"
@@ -1165,8 +1165,8 @@ msgstr "ノートブック"
 msgid "Search in book"
 msgstr "本の中を検索"
 
-#: koassistant_book_page.lua:269 koassistant_book_settings.lua:2662
-#: main.lua:7537
+#: koassistant_book_page.lua:269 koassistant_book_settings.lua:2671
+#: main.lua:7554
 #, fuzzy
 msgid "Group: %1"
 msgstr "グループ：%1"
@@ -1176,7 +1176,7 @@ msgstr "グループ：%1"
 msgid "Add to group…"
 msgstr "グループに追加…"
 
-#: koassistant_book_page.lua:292 koassistant_book_settings.lua:2755
+#: koassistant_book_page.lua:292 koassistant_book_settings.lua:2764
 #: koassistant_constants.lua:155 koassistant_dialogs.lua:10481 main.lua:806
 #: koassistant_ui/prompts_manager.lua:6277
 #, fuzzy
@@ -1194,7 +1194,7 @@ msgid "Nothing to export."
 msgstr "エクスポートする項目がありません。"
 
 #: koassistant_book_page.lua:350 koassistant_chatgptviewer.lua:5483
-#: koassistant_chatgptviewer.lua:5831 main.lua:23425
+#: koassistant_chatgptviewer.lua:5831 main.lua:23442
 #, fuzzy
 msgid "Select export folder"
 msgstr "エクスポートフォルダを選択"
@@ -1219,7 +1219,7 @@ msgstr ""
 "\n"
 "この操作は元に戻せません。"
 
-#: koassistant_book_page.lua:390 main.lua:18008
+#: koassistant_book_page.lua:390 main.lua:18025
 #, fuzzy
 msgid "Artifacts deleted."
 msgstr "アーティファクトを削除しました。"
@@ -1249,7 +1249,7 @@ msgstr "すべての本を閲覧…"
 msgid "Delete all artifacts…"
 msgstr "すべての生成物を削除…"
 
-#: koassistant_book_picker.lua:32 koassistant_book_picker.lua:147
+#: koassistant_book_picker.lua:32 koassistant_book_picker.lua:149
 #, fuzzy
 msgid "All"
 msgstr "すべて"
@@ -1274,123 +1274,123 @@ msgstr "読了"
 msgid "Finished 75%+"
 msgstr "75%以上読了"
 
-#: koassistant_book_picker.lua:157
+#: koassistant_book_picker.lua:159
 #, fuzzy
 msgid "%1: %2 (%3 selected)"
 msgstr "%1: %2（%3 件選択中）"
 
-#: koassistant_book_picker.lua:228
+#: koassistant_book_picker.lua:230
 #, fuzzy
 msgid "Favorites"
 msgstr "お気に入り"
 
-#: koassistant_book_picker.lua:280
+#: koassistant_book_picker.lua:282
 #, fuzzy
 msgid "Which collection?"
 msgstr "どのコレクションですか？"
 
-#: koassistant_book_picker.lua:317
+#: koassistant_book_picker.lua:319
 #, fuzzy
 msgid "Failed to load library scanner."
 msgstr "ライブラリスキャナーの読み込みに失敗しました。"
 
-#: koassistant_book_picker.lua:372
+#: koassistant_book_picker.lua:374
 #, fuzzy
 msgid "No books in reading history."
 msgstr "読書履歴にある本はありません。"
 
-#: koassistant_book_picker.lua:390 koassistant_book_picker.lua:705
+#: koassistant_book_picker.lua:392 koassistant_book_picker.lua:707
 #, fuzzy
 msgid "History"
 msgstr "履歴"
 
-#: koassistant_book_picker.lua:416 koassistant_book_picker.lua:558
+#: koassistant_book_picker.lua:418 koassistant_book_picker.lua:560
 #, fuzzy
 msgid "Failed to load folder."
 msgstr "フォルダーの読み込みに失敗しました。"
 
-#: koassistant_book_picker.lua:587
+#: koassistant_book_picker.lua:589
 #, fuzzy
 msgid "Please select at least 1 book."
 msgstr "少なくとも1冊のブックを選択してください。"
 
-#: koassistant_book_picker.lua:689
+#: koassistant_book_picker.lua:691
 #, fuzzy
 msgid "Confirm Selection (%1)"
 msgstr "選択を確定 (%1)"
 
-#: koassistant_book_picker.lua:699
+#: koassistant_book_picker.lua:701
 #, fuzzy
 msgid "Sources:"
 msgstr "ソース："
 
-#: koassistant_book_picker.lua:719
+#: koassistant_book_picker.lua:721
 #, fuzzy
 msgid "Folder: %1"
 msgstr "フォルダー: %1"
 
-#: koassistant_book_picker.lua:735
+#: koassistant_book_picker.lua:737
 #, fuzzy
 msgid "Collection: %1"
 msgstr "コレクション: %1"
 
-#: koassistant_book_picker.lua:749 koassistant_dialogs.lua:7988
+#: koassistant_book_picker.lua:751 koassistant_dialogs.lua:7988
 #, fuzzy
 msgid "Browse Folder…"
 msgstr "フォルダーを参照…"
 
-#: koassistant_book_picker.lua:759
+#: koassistant_book_picker.lua:761
 #, fuzzy
 msgid "Browse Collection…"
 msgstr "コレクションを閲覧…"
 
-#: koassistant_book_picker.lua:772
+#: koassistant_book_picker.lua:774
 #, fuzzy
 msgid "Filter…"
 msgstr "フィルター…"
 
-#: koassistant_book_picker.lua:781
+#: koassistant_book_picker.lua:783
 #, fuzzy
 msgid "Search: \"%1\""
 msgstr "検索: \"%1\""
 
-#: koassistant_book_picker.lua:781
+#: koassistant_book_picker.lua:783
 #, fuzzy
 msgid "Search…"
 msgstr "検索…"
 
-#: koassistant_book_picker.lua:790
+#: koassistant_book_picker.lua:792
 #, fuzzy
 msgid "Select All Visible"
 msgstr "表示中のすべてを選択"
 
-#: koassistant_book_picker.lua:802 koassistant_dialogs.lua:8053
+#: koassistant_book_picker.lua:804 koassistant_dialogs.lua:8053
 #, fuzzy
 msgid "Clear Selection"
 msgstr "選択をクリア"
 
-#: koassistant_book_picker.lua:843
+#: koassistant_book_picker.lua:845
 #, fuzzy
 msgid "Clear search"
 msgstr "検索をクリア"
 
-#: koassistant_book_picker.lua:854
+#: koassistant_book_picker.lua:856
 #, fuzzy
 msgid "Filter by status"
 msgstr "ステータスでフィルター"
 
-#: koassistant_book_picker.lua:871
+#: koassistant_book_picker.lua:873
 #, fuzzy
 msgid "Search by title or author"
 msgstr "タイトルまたは著者で検索"
 
-#: koassistant_book_picker.lua:882 koassistant_group_settings.lua:414
+#: koassistant_book_picker.lua:884 koassistant_group_settings.lua:414
 #: main.lua:5130
 #, fuzzy
 msgid "Clear"
 msgstr "クリア"
 
-#: koassistant_book_picker.lua:890 koassistant_xray_browser.lua:5876
+#: koassistant_book_picker.lua:892 koassistant_xray_browser.lua:5876
 #, fuzzy
 msgid "Search"
 msgstr "検索"
@@ -1402,25 +1402,25 @@ msgstr "検索"
 #: koassistant_book_settings.lua:1345 koassistant_book_settings.lua:1642
 #: koassistant_book_settings.lua:1645 koassistant_book_settings.lua:1682
 #: koassistant_book_settings.lua:1762 koassistant_book_settings.lua:1806
-#: koassistant_book_settings.lua:2384 koassistant_book_settings.lua:2422
-#: koassistant_book_settings.lua:2436 koassistant_book_settings.lua:2449
-#: koassistant_book_settings.lua:2515 koassistant_book_settings.lua:2571
-#: koassistant_book_settings.lua:2573 koassistant_book_settings.lua:2788
-#: koassistant_book_settings.lua:2790 koassistant_book_settings.lua:2853
-#: koassistant_book_settings.lua:2855 koassistant_book_settings.lua:2939
-#: koassistant_book_settings.lua:2941 koassistant_book_settings.lua:3265
-#: koassistant_book_settings.lua:3267 koassistant_book_settings.lua:3283
-#: koassistant_book_settings.lua:3285 koassistant_book_settings.lua:3510
-#: koassistant_book_settings.lua:3512 koassistant_book_settings.lua:3570
-#: koassistant_book_settings.lua:3572 koassistant_book_settings.lua:3594
-#: koassistant_book_settings.lua:3601 koassistant_chatgptviewer.lua:6372
+#: koassistant_book_settings.lua:2393 koassistant_book_settings.lua:2431
+#: koassistant_book_settings.lua:2445 koassistant_book_settings.lua:2458
+#: koassistant_book_settings.lua:2524 koassistant_book_settings.lua:2580
+#: koassistant_book_settings.lua:2582 koassistant_book_settings.lua:2797
+#: koassistant_book_settings.lua:2799 koassistant_book_settings.lua:2862
+#: koassistant_book_settings.lua:2864 koassistant_book_settings.lua:2948
+#: koassistant_book_settings.lua:2950 koassistant_book_settings.lua:3274
+#: koassistant_book_settings.lua:3276 koassistant_book_settings.lua:3292
+#: koassistant_book_settings.lua:3294 koassistant_book_settings.lua:3519
+#: koassistant_book_settings.lua:3521 koassistant_book_settings.lua:3579
+#: koassistant_book_settings.lua:3581 koassistant_book_settings.lua:3603
+#: koassistant_book_settings.lua:3610 koassistant_chatgptviewer.lua:6372
 #: koassistant_chatgptviewer.lua:6381 koassistant_chatgptviewer.lua:6450
 #: koassistant_chatgptviewer.lua:6480 koassistant_chatgptviewer.lua:6495
 #: koassistant_group_settings.lua:87 koassistant_group_settings.lua:89
-#: koassistant_settings_schema.lua:798 main.lua:16450 main.lua:16543
-#: main.lua:16574 main.lua:16702 main.lua:17153 main.lua:17199 main.lua:17241
-#: main.lua:17301 main.lua:17336 main.lua:17483 main.lua:19584 main.lua:19597
-#: main.lua:19607 main.lua:19622 reasoning_prefs.lua:103
+#: koassistant_settings_schema.lua:798 main.lua:16467 main.lua:16560
+#: main.lua:16591 main.lua:16719 main.lua:17170 main.lua:17216 main.lua:17258
+#: main.lua:17318 main.lua:17353 main.lua:17500 main.lua:19601 main.lua:19614
+#: main.lua:19624 main.lua:19639 reasoning_prefs.lua:103
 #: reasoning_prefs.lua:121
 #, fuzzy
 msgid "On"
@@ -1433,27 +1433,27 @@ msgstr "オン"
 #: koassistant_book_settings.lua:1345 koassistant_book_settings.lua:1643
 #: koassistant_book_settings.lua:1645 koassistant_book_settings.lua:1683
 #: koassistant_book_settings.lua:1763 koassistant_book_settings.lua:1807
-#: koassistant_book_settings.lua:2385 koassistant_book_settings.lua:2422
-#: koassistant_book_settings.lua:2436 koassistant_book_settings.lua:2449
-#: koassistant_book_settings.lua:2515 koassistant_book_settings.lua:2572
-#: koassistant_book_settings.lua:2573 koassistant_book_settings.lua:2789
-#: koassistant_book_settings.lua:2790 koassistant_book_settings.lua:2853
-#: koassistant_book_settings.lua:2855 koassistant_book_settings.lua:2940
-#: koassistant_book_settings.lua:2941 koassistant_book_settings.lua:3266
-#: koassistant_book_settings.lua:3267 koassistant_book_settings.lua:3283
-#: koassistant_book_settings.lua:3286 koassistant_book_settings.lua:3510
-#: koassistant_book_settings.lua:3513 koassistant_book_settings.lua:3571
-#: koassistant_book_settings.lua:3572 koassistant_book_settings.lua:3594
-#: koassistant_book_settings.lua:3601 koassistant_chatgptviewer.lua:6372
+#: koassistant_book_settings.lua:2394 koassistant_book_settings.lua:2431
+#: koassistant_book_settings.lua:2445 koassistant_book_settings.lua:2458
+#: koassistant_book_settings.lua:2524 koassistant_book_settings.lua:2581
+#: koassistant_book_settings.lua:2582 koassistant_book_settings.lua:2798
+#: koassistant_book_settings.lua:2799 koassistant_book_settings.lua:2862
+#: koassistant_book_settings.lua:2864 koassistant_book_settings.lua:2949
+#: koassistant_book_settings.lua:2950 koassistant_book_settings.lua:3275
+#: koassistant_book_settings.lua:3276 koassistant_book_settings.lua:3292
+#: koassistant_book_settings.lua:3295 koassistant_book_settings.lua:3519
+#: koassistant_book_settings.lua:3522 koassistant_book_settings.lua:3580
+#: koassistant_book_settings.lua:3581 koassistant_book_settings.lua:3603
+#: koassistant_book_settings.lua:3610 koassistant_chatgptviewer.lua:6372
 #: koassistant_chatgptviewer.lua:6381 koassistant_chatgptviewer.lua:6450
 #: koassistant_chatgptviewer.lua:6480 koassistant_chatgptviewer.lua:6495
 #: koassistant_dialogs.lua:1274 koassistant_dialogs.lua:1310
 #: koassistant_dialogs.lua:8913 koassistant_group_settings.lua:87
 #: koassistant_group_settings.lua:89 koassistant_settings_schema.lua:798
-#: koassistant_settings_schema.lua:1713 main.lua:6151 main.lua:16446
-#: main.lua:16529 main.lua:16571 main.lua:16700 main.lua:17153 main.lua:17199
-#: main.lua:17241 main.lua:17301 main.lua:17336 main.lua:17483 main.lua:19584
-#: main.lua:19597 main.lua:19607 main.lua:19622 reasoning_prefs.lua:36
+#: koassistant_settings_schema.lua:1713 main.lua:6151 main.lua:16463
+#: main.lua:16546 main.lua:16588 main.lua:16717 main.lua:17170 main.lua:17216
+#: main.lua:17258 main.lua:17318 main.lua:17353 main.lua:17500 main.lua:19601
+#: main.lua:19614 main.lua:19624 main.lua:19639 reasoning_prefs.lua:36
 #: reasoning_prefs.lua:119
 #, fuzzy
 msgid "Off"
@@ -1462,20 +1462,20 @@ msgstr "オフ"
 #: koassistant_book_settings.lua:391 koassistant_book_settings.lua:1033
 #: koassistant_book_settings.lua:1080 koassistant_book_settings.lua:1340
 #: koassistant_book_settings.lua:1575 koassistant_book_settings.lua:1654
-#: koassistant_book_settings.lua:1693 koassistant_book_settings.lua:2276
-#: koassistant_book_settings.lua:2573 koassistant_book_settings.lua:2581
-#: koassistant_book_settings.lua:2790 koassistant_book_settings.lua:2828
-#: koassistant_book_settings.lua:2844 koassistant_book_settings.lua:2852
-#: koassistant_book_settings.lua:2870 koassistant_book_settings.lua:2878
-#: koassistant_book_settings.lua:2886 koassistant_book_settings.lua:2941
-#: koassistant_book_settings.lua:3103 koassistant_book_settings.lua:3125
-#: koassistant_book_settings.lua:3184 koassistant_book_settings.lua:3189
-#: koassistant_book_settings.lua:3205 koassistant_book_settings.lua:3211
-#: koassistant_book_settings.lua:3225 koassistant_book_settings.lua:3267
-#: koassistant_book_settings.lua:3283 koassistant_book_settings.lua:3510
-#: koassistant_book_settings.lua:3532 koassistant_book_settings.lua:3567
-#: koassistant_book_settings.lua:3739 koassistant_book_settings.lua:3769
-#: main.lua:16516
+#: koassistant_book_settings.lua:1693 koassistant_book_settings.lua:2285
+#: koassistant_book_settings.lua:2582 koassistant_book_settings.lua:2590
+#: koassistant_book_settings.lua:2799 koassistant_book_settings.lua:2837
+#: koassistant_book_settings.lua:2853 koassistant_book_settings.lua:2861
+#: koassistant_book_settings.lua:2879 koassistant_book_settings.lua:2887
+#: koassistant_book_settings.lua:2895 koassistant_book_settings.lua:2950
+#: koassistant_book_settings.lua:3112 koassistant_book_settings.lua:3134
+#: koassistant_book_settings.lua:3193 koassistant_book_settings.lua:3198
+#: koassistant_book_settings.lua:3214 koassistant_book_settings.lua:3220
+#: koassistant_book_settings.lua:3234 koassistant_book_settings.lua:3276
+#: koassistant_book_settings.lua:3292 koassistant_book_settings.lua:3519
+#: koassistant_book_settings.lua:3541 koassistant_book_settings.lua:3576
+#: koassistant_book_settings.lua:3748 koassistant_book_settings.lua:3778
+#: main.lua:16533
 #, fuzzy
 msgid "Follow global (%1)"
 msgstr "グローバルに従う（%1）"
@@ -1494,7 +1494,7 @@ msgid "Thorough"
 msgstr "徹底的に"
 
 #: koassistant_book_settings.lua:532 koassistant_book_settings.lua:537
-#: koassistant_book_settings.lua:1726 koassistant_book_settings.lua:2092
+#: koassistant_book_settings.lua:1726 koassistant_book_settings.lua:2096
 #: koassistant_chatgptviewer.lua:6113 koassistant_dialogs.lua:1160
 #: koassistant_dialogs.lua:1276 koassistant_settings_schema.lua:349
 #: koassistant_settings_schema.lua:2828 koassistant_settings_schema.lua:2838
@@ -1508,7 +1508,7 @@ msgstr "徹底的に"
 msgid "Standard"
 msgstr "標準"
 
-#: koassistant_book_settings.lua:535 koassistant_book_settings.lua:2090
+#: koassistant_book_settings.lua:535 koassistant_book_settings.lua:2094
 #: koassistant_settings_schema.lua:2827
 #, fuzzy
 msgid "Light"
@@ -1533,15 +1533,15 @@ msgstr "段落"
 msgid "Characters"
 msgstr "文字数"
 
-#: koassistant_book_settings.lua:608 koassistant_book_settings.lua:2814
-#: koassistant_book_settings.lua:3557 main.lua:16569 main.lua:16575
+#: koassistant_book_settings.lua:608 koassistant_book_settings.lua:2823
+#: koassistant_book_settings.lua:3566 main.lua:16586 main.lua:16592
 #, fuzzy
 msgid "Follow global"
 msgstr "グローバルに従う"
 
 #: koassistant_book_settings.lua:890 koassistant_book_settings.lua:1112
 #: koassistant_group_settings.lua:84 koassistant_setup_wizard.lua:962
-#: main.lua:22380
+#: main.lua:22397
 #, fuzzy
 msgid "not set"
 msgstr "未設定"
@@ -1583,19 +1583,19 @@ msgstr ""
 "例:「Xのゼミ用」・「これはアーベリー訳である」"
 
 #: koassistant_book_settings.lua:1011 koassistant_book_settings.lua:1535
-#: koassistant_book_settings.lua:2251
+#: koassistant_book_settings.lua:2260
 #, fuzzy
 msgid "For this group"
 msgstr "このグループの場合"
 
 #: koassistant_book_settings.lua:1011 koassistant_book_settings.lua:1535
-#: koassistant_book_settings.lua:2251
+#: koassistant_book_settings.lua:2260
 #, fuzzy
 msgid "For this book"
 msgstr "この本について"
 
 #: koassistant_book_settings.lua:1017 koassistant_book_settings.lua:1541
-#: koassistant_book_settings.lua:2260 main.lua:16409
+#: koassistant_book_settings.lua:2269 main.lua:16426
 #: koassistant_ui/prompts_manager.lua:78 koassistant_ui/prompts_manager.lua:173
 #: koassistant_ui/prompts_manager.lua:810
 #: koassistant_ui/prompts_manager.lua:814
@@ -1626,8 +1626,8 @@ msgstr "グローバル"
 
 #: koassistant_book_settings.lua:1032 koassistant_book_settings.lua:1079
 #: koassistant_book_settings.lua:1337 koassistant_book_settings.lua:1567
-#: koassistant_book_settings.lua:2275 koassistant_book_settings.lua:3738
-#: koassistant_book_settings.lua:3768
+#: koassistant_book_settings.lua:2284 koassistant_book_settings.lua:3747
+#: koassistant_book_settings.lua:3777
 #, fuzzy
 msgid "Not set (books follow global: %1)"
 msgstr "未設定（本はグローバルに従います: %1）"
@@ -1637,17 +1637,17 @@ msgstr "未設定（本はグローバルに従います: %1）"
 msgid "Research Mode"
 msgstr "リサーチモード"
 
-#: koassistant_book_settings.lua:1112 koassistant_book_settings.lua:2625
+#: koassistant_book_settings.lua:1112 koassistant_book_settings.lua:2634
 #: koassistant_group_settings.lua:372
 #, fuzzy
 msgid "Background: %1"
 msgstr "背景設定: %1"
 
 #: koassistant_book_settings.lua:1119 koassistant_book_settings.lua:1597
-#: koassistant_book_settings.lua:2750 koassistant_book_settings.lua:2894
-#: koassistant_book_settings.lua:3228 koassistant_book_settings.lua:3327
-#: koassistant_book_settings.lua:3439 koassistant_book_settings.lua:3657
-#: koassistant_book_settings.lua:3820 koassistant_chat_history_dialog.lua:1205
+#: koassistant_book_settings.lua:2759 koassistant_book_settings.lua:2903
+#: koassistant_book_settings.lua:3237 koassistant_book_settings.lua:3336
+#: koassistant_book_settings.lua:3448 koassistant_book_settings.lua:3666
+#: koassistant_book_settings.lua:3829 koassistant_chat_history_dialog.lua:1205
 #: koassistant_chat_history_dialog.lua:1232
 #: koassistant_chat_history_dialog.lua:1391 koassistant_chatgptviewer.lua:1782
 #: koassistant_chatgptviewer.lua:2364 koassistant_chatgptviewer.lua:2562
@@ -1664,8 +1664,8 @@ msgstr "背景設定: %1"
 #: koassistant_xray_browser.lua:3019 koassistant_xray_browser.lua:3578
 #: koassistant_xray_dedup.lua:1125 koassistant_xray_dedup.lua:1181
 #: main.lua:2365 main.lua:2695 main.lua:2941 main.lua:3916 main.lua:5394
-#: main.lua:6182 main.lua:16337 main.lua:16480 main.lua:16633 main.lua:16671
-#: main.lua:19809 main.lua:22399 koassistant_ui/behavior_manager.lua:403
+#: main.lua:6182 main.lua:16354 main.lua:16497 main.lua:16650 main.lua:16688
+#: main.lua:19826 main.lua:22416 koassistant_ui/behavior_manager.lua:403
 #: koassistant_ui/domain_manager.lua:412
 #: koassistant_ui/settings_manager.lua:253
 #: koassistant_ui/settings_manager.lua:346
@@ -1727,7 +1727,7 @@ msgstr "%1: %2(全体)"
 
 #: koassistant_book_settings.lua:1622 koassistant_xray_browser.lua:1573
 #: koassistant_xray_browser.lua:2329 koassistant_xray_dedup.lua:938
-#: main.lua:4691 main.lua:16771 main.lua:22380 main.lua:22387
+#: main.lua:4691 main.lua:16788 main.lua:22397 main.lua:22404
 #: koassistant_ui/settings_manager.lua:210
 #: koassistant_ui/settings_manager.lua:295
 #, fuzzy
@@ -1739,7 +1739,7 @@ msgstr "%1：%2"
 msgid "AI Book Tools"
 msgstr "AI書籍ツール"
 
-#: koassistant_book_settings.lua:1657 koassistant_book_settings.lua:2868
+#: koassistant_book_settings.lua:1657 koassistant_book_settings.lua:2877
 #, fuzzy
 msgid "Lookup effort: %1"
 msgstr "検索労力: %1"
@@ -1751,7 +1751,7 @@ msgstr "検索労力: %1"
 msgid "Web Search"
 msgstr "Web検索"
 
-#: koassistant_book_settings.lua:1696 koassistant_book_settings.lua:2876
+#: koassistant_book_settings.lua:1696 koassistant_book_settings.lua:2885
 #, fuzzy
 msgid "Search depth: %1"
 msgstr "検索の深さ: %1"
@@ -1927,30 +1927,30 @@ msgstr "人物と場所"
 msgid "All entities"
 msgstr "全エンティティ"
 
-#: koassistant_book_settings.lua:2024 koassistant_book_settings.lua:2478
+#: koassistant_book_settings.lua:2024 koassistant_book_settings.lua:2487
 #, fuzzy
 msgid "Floating popup"
 msgstr "フローティングポップアップ"
 
 #: koassistant_book_settings.lua:2025 koassistant_book_settings.lua:2030
-#: koassistant_book_settings.lua:2479 koassistant_book_settings.lua:2492
+#: koassistant_book_settings.lua:2488 koassistant_book_settings.lua:2501
 #: koassistant_settings_schema.lua:1079
 #, fuzzy
 msgid "Full entry"
 msgstr "全文表示"
 
-#: koassistant_book_settings.lua:2026 koassistant_book_settings.lua:2477
+#: koassistant_book_settings.lua:2026 koassistant_book_settings.lua:2486
 #, fuzzy
 msgid "Footnote panel"
 msgstr "脚注パネル"
 
 #: koassistant_book_settings.lua:2031 koassistant_book_settings.lua:2035
-#: koassistant_book_settings.lua:2491
+#: koassistant_book_settings.lua:2500
 #, fuzzy
 msgid "First sentence"
 msgstr "最初の文"
 
-#: koassistant_book_settings.lua:2036 koassistant_book_settings.lua:2505
+#: koassistant_book_settings.lua:2036 koassistant_book_settings.lua:2514
 #, fuzzy
 msgid "Name only, tap to show"
 msgstr "名前のみ、タップで表示"
@@ -1980,828 +1980,828 @@ msgstr "用語と語彙"
 msgid "Timeline & development"
 msgstr "時系列と展開"
 
-#: koassistant_book_settings.lua:2091
+#: koassistant_book_settings.lua:2095
 #, fuzzy
 msgid "Deep"
 msgstr "詳細"
 
-#: koassistant_book_settings.lua:2102
+#: koassistant_book_settings.lua:2106
 #, fuzzy
 msgid "Depth of new X-Rays"
 msgstr "新規X-Rayの深さ"
 
-#: koassistant_book_settings.lua:2103
+#: koassistant_book_settings.lua:2107
 #, fuzzy
 msgid ""
 "How much each entry carries. Applies to new builds and rebuilds; checkpoints and updates keep the depth the X-Ray was started with."
 msgstr "各エントリがどれだけの情報を持つか。新規作成と再構築に適用されます。チェックポイントと更新は、X-Rayが開始された時点の深さを保持します。"
 
-#: koassistant_book_settings.lua:2115
+#: koassistant_book_settings.lua:2119
 #, fuzzy
 msgid "Light (one line per entry, recurring figures and turning points only)"
 msgstr "簡易（エントリごとに1行、繰り返し登場する人物と転換点のみ）"
 
-#: koassistant_book_settings.lua:2116
+#: koassistant_book_settings.lua:2120
 #, fuzzy
 msgid "Standard (a few sentences per entry, everything the reader meets)"
 msgstr "標準（エントリごとに数文、読者が出会うすべて）"
 
-#: koassistant_book_settings.lua:2117
+#: koassistant_book_settings.lua:2121
 #, fuzzy
 msgid ""
 "Deep (longer entries, every figure and development, richer connections)"
 msgstr "詳細（より長いエントリ、すべての人物と展開、より豊かなつながり）"
 
-#: koassistant_book_settings.lua:2134 koassistant_book_settings.lua:2297
+#: koassistant_book_settings.lua:2138 koassistant_book_settings.lua:2306
 #, fuzzy
 msgid "All categories"
 msgstr "すべてのカテゴリ"
 
-#: koassistant_book_settings.lua:2135 koassistant_book_settings.lua:2329
+#: koassistant_book_settings.lua:2139 koassistant_book_settings.lua:2338
 #, fuzzy
 msgid "Characters only"
 msgstr "登場人物のみ"
 
-#: koassistant_book_settings.lua:2136
+#: koassistant_book_settings.lua:2140
 #, fuzzy
 msgid "Characters and story"
 msgstr "登場人物とストーリー"
 
-#: koassistant_book_settings.lua:2137
+#: koassistant_book_settings.lua:2141
 #, fuzzy
 msgid "Reference"
 msgstr "リファレンス"
 
-#: koassistant_book_settings.lua:2140
+#: koassistant_book_settings.lua:2144
 #, fuzzy
 msgid "%1 of %2"
 msgstr "%2件中%1件目"
 
-#: koassistant_book_settings.lua:2296
+#: koassistant_book_settings.lua:2305
 #, fuzzy
 msgid "Presets"
 msgstr "プリセット"
 
-#: koassistant_book_settings.lua:2309
+#: koassistant_book_settings.lua:2318
 #, fuzzy
 msgid "Characters and story (people, timeline)"
 msgstr "登場人物とストーリー（人物、タイムライン）"
 
-#: koassistant_book_settings.lua:2321
+#: koassistant_book_settings.lua:2330
 #, fuzzy
 msgid "Reference (everything except the timeline)"
 msgstr "リファレンス（タイムライン以外のすべて）"
 
-#: koassistant_book_settings.lua:2336
+#: koassistant_book_settings.lua:2345
 #, fuzzy
 msgid "Pick one by one"
 msgstr "一つずつ選ぶ"
 
-#: koassistant_book_settings.lua:2342
+#: koassistant_book_settings.lua:2351
 #, fuzzy
 msgid "At least one category must stay selected."
 msgstr "少なくとも1つのカテゴリを選択したままにしてください。"
 
-#: koassistant_book_settings.lua:2356
+#: koassistant_book_settings.lua:2365
 #, fuzzy
 msgid "Categories for new X-Rays (global)"
 msgstr "新規X-Rayのカテゴリ（グローバル）"
 
-#: koassistant_book_settings.lua:2357
+#: koassistant_book_settings.lua:2366
 #, fuzzy
 msgid "Categories for new X-Rays (this book)"
 msgstr "新規X-Rayのカテゴリ（この本）"
 
-#: koassistant_book_settings.lua:2358
+#: koassistant_book_settings.lua:2367
 #, fuzzy
 msgid ""
 "Applies to new builds and rebuilds. Fewer categories are faster and cheaper."
 msgstr "新規生成と再生成に適用されます。カテゴリ数が少ないほど、速く安価になります。"
 
-#: koassistant_book_settings.lua:2394
+#: koassistant_book_settings.lua:2403
 #, fuzzy
 msgid "Marking Density"
 msgstr "マーキング密度"
 
-#: koassistant_book_settings.lua:2408
+#: koassistant_book_settings.lua:2417
 #, fuzzy
 msgid "Entities to Mark"
 msgstr "マークするエンティティ"
 
-#: koassistant_book_settings.lua:2418
+#: koassistant_book_settings.lua:2427
 #, fuzzy
 msgid "Tap Marked Words"
 msgstr "マークされた単語をタップ"
 
-#: koassistant_book_settings.lua:2432 koassistant_settings_schema.lua:1034
+#: koassistant_book_settings.lua:2441 koassistant_settings_schema.lua:1034
 #, fuzzy
 msgid "Upcoming Entities"
 msgstr "今後登場するエンティティ"
 
-#: koassistant_book_settings.lua:2445
+#: koassistant_book_settings.lua:2454
 #, fuzzy
 msgid "Matching Selections Open Entries"
 msgstr "一致する選択範囲でエントリを開く"
 
-#: koassistant_book_settings.lua:2460
+#: koassistant_book_settings.lua:2469
 #, fuzzy
 msgid "Exact Hits Open"
 msgstr "完全一致で開く"
 
-#: koassistant_book_settings.lua:2485
+#: koassistant_book_settings.lua:2494
 #, fuzzy
 msgid "Card Shows"
 msgstr "カードを表示"
 
-#: koassistant_book_settings.lua:2499
+#: koassistant_book_settings.lua:2508
 #, fuzzy
 msgid "Upcoming Entity Cards"
 msgstr "今後のエンティティカード"
 
-#: koassistant_book_settings.lua:2506 koassistant_settings_schema.lua:1059
+#: koassistant_book_settings.lua:2515 koassistant_settings_schema.lua:1059
 #, fuzzy
 msgid "First sentence right away"
 msgstr "最初の文をすぐに表示"
 
-#: koassistant_book_settings.lua:2511 koassistant_settings_schema.lua:1002
+#: koassistant_book_settings.lua:2520 koassistant_settings_schema.lua:1002
 #, fuzzy
 msgid "Passive Marking"
 msgstr "パッシブマーキング"
 
-#: koassistant_book_settings.lua:2622 koassistant_group_settings.lua:369
-#: main.lua:17117
+#: koassistant_book_settings.lua:2631 koassistant_group_settings.lua:369
+#: main.lua:17134
 #, fuzzy
 msgid "Domain: %1"
 msgstr "ドメイン: %1"
 
-#: koassistant_book_settings.lua:2633 koassistant_group_settings.lua:371
+#: koassistant_book_settings.lua:2642 koassistant_group_settings.lua:371
 #, fuzzy
 msgid "Research mode: %1"
 msgstr "リサーチモード: %1"
 
-#: koassistant_book_settings.lua:2645
+#: koassistant_book_settings.lua:2654
 #, fuzzy
 msgid "Spoiler protection: %1 (off: research mode)"
 msgstr "ネタバレ防止：%1（オフ：研究モード）"
 
-#: koassistant_book_settings.lua:2647
+#: koassistant_book_settings.lua:2656
 #, fuzzy
 msgid "Spoiler protection: %1 (off: book finished)"
 msgstr "ネタバレ防止：%1（オフ：本を読了）"
 
-#: koassistant_book_settings.lua:2649 koassistant_group_settings.lua:373
+#: koassistant_book_settings.lua:2658 koassistant_group_settings.lua:373
 #, fuzzy
 msgid "Spoiler protection: %1"
 msgstr "ネタバレ防止：%1"
 
-#: koassistant_book_settings.lua:2692
+#: koassistant_book_settings.lua:2701
 #, fuzzy
 msgid "%1 (%2) ▸"
 msgstr "%1（%2）▸"
 
-#: koassistant_book_settings.lua:2692
+#: koassistant_book_settings.lua:2701
 #, fuzzy
 msgid "%1 ▸"
 msgstr "%1 ▸"
 
-#: koassistant_book_settings.lua:2711
+#: koassistant_book_settings.lua:2720
 #, fuzzy
 msgid "Chat behavior"
 msgstr "チャットの動作"
 
-#: koassistant_book_settings.lua:2717 koassistant_setup_wizard.lua:948
+#: koassistant_book_settings.lua:2726 koassistant_setup_wizard.lua:948
 #, fuzzy
 msgid "Privacy"
 msgstr "プライバシー"
 
-#: koassistant_book_settings.lua:2721
+#: koassistant_book_settings.lua:2730
 #, fuzzy
 msgid "Identity"
 msgstr "アイデンティティ"
 
-#: koassistant_book_settings.lua:2724
+#: koassistant_book_settings.lua:2733
 #, fuzzy
 msgid "Quiz settings"
 msgstr "クイズ設定"
 
-#: koassistant_book_settings.lua:2726
+#: koassistant_book_settings.lua:2735
 #, fuzzy
 msgid "Languages"
 msgstr "言語"
 
-#: koassistant_book_settings.lua:2737
+#: koassistant_book_settings.lua:2746
 #, fuzzy
 msgid "Reset book settings"
 msgstr "本の設定をリセット"
 
-#: koassistant_book_settings.lua:2740
+#: koassistant_book_settings.lua:2749
 #, fuzzy
 msgid ""
 "Reset all KOAssistant settings for this book to follow the global defaults?"
 msgstr "この本のすべてのKOAssistant設定をグローバルのデフォルトに戻しますか？"
 
-#: koassistant_book_settings.lua:2741
+#: koassistant_book_settings.lua:2750
 #, fuzzy
 msgid "Reset"
 msgstr "リセット"
 
-#: koassistant_book_settings.lua:2755
+#: koassistant_book_settings.lua:2764
 #, fuzzy
 msgid "Book Settings (%1 customized)"
 msgstr "本の設定（%1 件カスタマイズ済み）"
 
-#: koassistant_book_settings.lua:2811 koassistant_book_settings.lua:2831
+#: koassistant_book_settings.lua:2820 koassistant_book_settings.lua:2840
 #: koassistant_settings_schema.lua:648
 #, fuzzy
 msgid "Title only"
 msgstr "タイトルのみ"
 
-#: koassistant_book_settings.lua:2812 koassistant_book_settings.lua:2833
+#: koassistant_book_settings.lua:2821 koassistant_book_settings.lua:2842
 #: koassistant_settings_schema.lua:650
 #, fuzzy
 msgid "Title, author & position"
 msgstr "タイトル、著者、および位置"
 
-#: koassistant_book_settings.lua:2813 koassistant_book_settings.lua:2832
+#: koassistant_book_settings.lua:2822 koassistant_book_settings.lua:2841
 #: koassistant_settings_schema.lua:649
 #, fuzzy
 msgid "Title & author"
 msgstr "タイトルと著者"
 
-#: koassistant_book_settings.lua:2837
+#: koassistant_book_settings.lua:2846
 #, fuzzy
 msgid "Book info in chat (this book)"
 msgstr "チャット内の本の情報（この本）"
 
-#: koassistant_book_settings.lua:2866
+#: koassistant_book_settings.lua:2875
 #, fuzzy
 msgid "AI Book Tools: %1"
 msgstr "AIブックツール：%1"
 
-#: koassistant_book_settings.lua:2873
+#: koassistant_book_settings.lua:2882
 #, fuzzy
 msgid "Web search: %1"
 msgstr "ウェブ検索：%1"
 
-#: koassistant_book_settings.lua:2881
+#: koassistant_book_settings.lua:2890
 #, fuzzy
 msgid "Quick answer default: %1"
 msgstr "クイックアンサーのデフォルト：%1"
 
-#: koassistant_book_settings.lua:2884
+#: koassistant_book_settings.lua:2893
 #, fuzzy
 msgid "Book info: %1"
 msgstr "本の情報: %1"
 
-#: koassistant_book_settings.lua:2888
+#: koassistant_book_settings.lua:2897
 #, fuzzy
 msgid "Highlight context: %1"
 msgstr "ハイライトのコンテキスト：%1"
 
-#: koassistant_book_settings.lua:2891
+#: koassistant_book_settings.lua:2900
 #, fuzzy
 msgid "Dictionary context: %1"
 msgstr "辞書のコンテキスト：%1"
 
-#: koassistant_book_settings.lua:2900
+#: koassistant_book_settings.lua:2909
 #, fuzzy
 msgid "Chat behavior (this book)"
 msgstr "チャットの動作（この本）"
 
-#: koassistant_book_settings.lua:2971 koassistant_group_settings.lua:374
-#: main.lua:9697 main.lua:10125
+#: koassistant_book_settings.lua:2980 koassistant_group_settings.lua:374
+#: main.lua:9714 main.lua:10142
 #, fuzzy
 msgid "Automatic X-Ray: %1"
 msgstr "自動X-Ray：%1"
 
-#: koassistant_book_settings.lua:2973
+#: koassistant_book_settings.lua:2982
 #, fuzzy
 msgid "(no effect: page-based book)"
 msgstr "（効果なし：ページベースの本）"
 
-#: koassistant_book_settings.lua:2993
+#: koassistant_book_settings.lua:3002
 #, fuzzy
 msgid "X-Ray updates: %1"
 msgstr "X-Ray更新：%1"
 
-#: koassistant_book_settings.lua:2995
+#: koassistant_book_settings.lua:3004
 #, fuzzy
 msgid "Follow my position"
 msgstr "自分の位置に追従"
 
-#: koassistant_book_settings.lua:2995
+#: koassistant_book_settings.lua:3004
 #, fuzzy
 msgid "Newest first"
 msgstr "新しい順"
 
-#: koassistant_book_settings.lua:3015
+#: koassistant_book_settings.lua:3024
 #, fuzzy
 msgid "X-Ray updates (this book)"
 msgstr "X-Rayの更新（この書籍）"
 
-#: koassistant_book_settings.lua:3021
+#: koassistant_book_settings.lua:3030
 #, fuzzy
 msgid ""
 "Spoiler protection is on: updates follow your position regardless of this pick."
 msgstr "ネタバレ防止がオンです：この設定に関わらず、更新は現在の読書位置に従います。"
 
-#: koassistant_book_settings.lua:3024
+#: koassistant_book_settings.lua:3033
 #, fuzzy
 msgid "Newest first (default: install checkpoints as they are built)"
 msgstr "新しい順（デフォルト：構築されたチェックポイントを順にインストール）"
 
-#: koassistant_book_settings.lua:3026
+#: koassistant_book_settings.lua:3035
 #, fuzzy
 msgid "Follow my reading position"
 msgstr "自分の読書位置に従う"
 
-#: koassistant_book_settings.lua:3045
+#: koassistant_book_settings.lua:3054
 #, fuzzy
 msgid "Build up to: %1"
 msgstr "構築範囲：%1"
 
-#: koassistant_book_settings.lua:3046 main.lua:14957
+#: koassistant_book_settings.lua:3055 main.lua:14974
 #, fuzzy
 msgid "%1%"
 msgstr "%1%"
 
-#: koassistant_book_settings.lua:3046
+#: koassistant_book_settings.lua:3055
 #, fuzzy
 msgid "Whole book"
 msgstr "書籍全体"
 
-#: koassistant_book_settings.lua:3058
+#: koassistant_book_settings.lua:3067
 #, fuzzy
 msgid "Whole book (default)"
 msgstr "書籍全体（デフォルト）"
 
-#: koassistant_book_settings.lua:3063
+#: koassistant_book_settings.lua:3072
 #, fuzzy
 msgid "To the end of a section… (now %1%)"
 msgstr "セクションの終わりまで…（現在%1%）"
 
-#: koassistant_book_settings.lua:3064 main.lua:11161
+#: koassistant_book_settings.lua:3073 main.lua:11178
 #, fuzzy
 msgid "To the end of a section…"
 msgstr "セクションの終わりまで…"
 
-#: koassistant_book_settings.lua:3068
+#: koassistant_book_settings.lua:3077
 #, fuzzy
 msgid "Build the X-Ray up to the end of…"
 msgstr "X-Rayを次の終わりまで構築…"
 
-#: koassistant_book_settings.lua:3087
+#: koassistant_book_settings.lua:3096
 #, fuzzy
 msgid "Build the X-Ray up to (this book)"
 msgstr "X-Rayの構築範囲（この書籍）"
 
-#: koassistant_book_settings.lua:3088
+#: koassistant_book_settings.lua:3097
 #, fuzzy
 msgid ""
 "The limit for automatic building: checkpoints stop here until you raise it. It exists so a section target picked in the create/extend form keeps bounding automatic building afterwards. Whole book = no limit."
 msgstr "自動構築の上限：この値を上げるまで、チェックポイントはここで停止します。作成・拡張フォームで選択したセクションの目標が、その後も自動構築を制限し続けるために存在します。書籍全体＝上限なし。"
 
-#: koassistant_book_settings.lua:3090
+#: koassistant_book_settings.lua:3099
 #, fuzzy
 msgid "Open the book to pick a section target."
 msgstr "セクションの目標を選択するには書籍を開いてください。"
 
-#: koassistant_book_settings.lua:3099 koassistant_group_settings.lua:377
+#: koassistant_book_settings.lua:3108 koassistant_group_settings.lua:377
 #, fuzzy
 msgid "New X-Ray depth: %1"
 msgstr "新規X-Rayの深さ: %1"
 
-#: koassistant_book_settings.lua:3121 koassistant_group_settings.lua:376
+#: koassistant_book_settings.lua:3130 koassistant_group_settings.lua:376
 #, fuzzy
 msgid "New X-Ray categories: %1"
 msgstr "新しいX-Rayカテゴリー：%1"
 
-#: koassistant_book_settings.lua:3142
+#: koassistant_book_settings.lua:3151
 #, fuzzy
 msgid "Checkpoint spacing: %1"
 msgstr "チェックポイントの間隔：%1"
 
-#: koassistant_book_settings.lua:3143
+#: koassistant_book_settings.lua:3152
 #, fuzzy
 msgid "every %1%"
 msgstr "%1%ごと"
 
-#: koassistant_book_settings.lua:3143
+#: koassistant_book_settings.lua:3152
 #, fuzzy
 msgid "Recommended"
 msgstr "おすすめ"
 
-#: koassistant_book_settings.lua:3156 main.lua:11392
+#: koassistant_book_settings.lua:3165 main.lua:11409
 #, fuzzy
 msgid "Checkpoint spacing for this book:"
 msgstr "この書籍のチェックポイント間隔："
 
-#: koassistant_book_settings.lua:3179
+#: koassistant_book_settings.lua:3188
 #, fuzzy
 msgid "Passive marking: %1"
 msgstr "パッシブマーキング：%1"
 
-#: koassistant_book_settings.lua:3182
+#: koassistant_book_settings.lua:3191
 #, fuzzy
 msgid "Marking density: %1"
 msgstr "マーキング密度：%1"
 
-#: koassistant_book_settings.lua:3187
+#: koassistant_book_settings.lua:3196
 #, fuzzy
 msgid "Entities to mark: %1"
 msgstr "マークするエンティティ：%1"
 
-#: koassistant_book_settings.lua:3192
+#: koassistant_book_settings.lua:3201
 #, fuzzy
 msgid "Tap marked words: %1"
 msgstr "マークされた単語をタップ：%1"
 
-#: koassistant_book_settings.lua:3198
+#: koassistant_book_settings.lua:3207
 #, fuzzy
 msgid "Upcoming entities: %1"
 msgstr "今後登場するエンティティ：%1"
 
-#: koassistant_book_settings.lua:3203
+#: koassistant_book_settings.lua:3212
 #, fuzzy
 msgid "Upcoming entity cards: %1"
 msgstr "今後のエンティティカード: %1"
 
-#: koassistant_book_settings.lua:3209
+#: koassistant_book_settings.lua:3218
 #, fuzzy
 msgid "Card shows: %1"
 msgstr "カード表示: %1"
 
-#: koassistant_book_settings.lua:3216
+#: koassistant_book_settings.lua:3225
 #, fuzzy
 msgid "Matching selections open entries: %1"
 msgstr "一致する選択で開くエントリー：%1"
 
-#: koassistant_book_settings.lua:3223
+#: koassistant_book_settings.lua:3232
 #, fuzzy
 msgid "Exact hits open: %1"
 msgstr "完全一致で開く：%1"
 
-#: koassistant_book_settings.lua:3233
+#: koassistant_book_settings.lua:3242
 #, fuzzy
 msgid "X-Ray (this book)"
 msgstr "X-Ray（この書籍）"
 
-#: koassistant_book_settings.lua:3296
+#: koassistant_book_settings.lua:3305
 #, fuzzy
 msgid "Highlights sharing: %1"
 msgstr "ハイライトの共有：%1"
 
-#: koassistant_book_settings.lua:3300
+#: koassistant_book_settings.lua:3309
 #, fuzzy
 msgid "Highlights sharing (this book)"
 msgstr "ハイライトの共有（この書籍）"
 
-#: koassistant_book_settings.lua:3303
+#: koassistant_book_settings.lua:3312
 #, fuzzy
 msgid "Annotations sharing: %1"
 msgstr "注釈の共有：%1"
 
-#: koassistant_book_settings.lua:3307
+#: koassistant_book_settings.lua:3316
 #, fuzzy
 msgid "Annotations sharing (this book)"
 msgstr "注釈の共有（この書籍）"
 
-#: koassistant_book_settings.lua:3309
+#: koassistant_book_settings.lua:3318
 #, fuzzy
 msgid "Notebook sharing: %1"
 msgstr "ノートブックの共有：%1"
 
-#: koassistant_book_settings.lua:3313
+#: koassistant_book_settings.lua:3322
 #, fuzzy
 msgid "Notebook sharing (this book)"
 msgstr "ノートブックの共有（この書籍）"
 
-#: koassistant_book_settings.lua:3315
+#: koassistant_book_settings.lua:3324
 #, fuzzy
 msgid "Text extraction: %1"
 msgstr "テキスト抽出：%1"
 
-#: koassistant_book_settings.lua:3319
+#: koassistant_book_settings.lua:3328
 #, fuzzy
 msgid "Text extraction (this book)"
 msgstr "テキスト抽出（この書籍）"
 
-#: koassistant_book_settings.lua:3322
+#: koassistant_book_settings.lua:3331
 #, fuzzy
 msgid "How overrides work…"
 msgstr "上書き設定の仕組み…"
 
-#: koassistant_book_settings.lua:3324
+#: koassistant_book_settings.lua:3333
 #, fuzzy
 msgid ""
 "These override the global privacy toggles for this book. Deny always wins — even over trusted providers. Allow satisfies only the global gate: actions still need their own data-access settings. Allowing annotations implies highlights; denying highlights denies annotations."
 msgstr "これらはこの書籍に対してグローバルなプライバシー切り替えを上書きします。「拒否」は常に優先されます — 信頼できるプロバイダーに対してもです。「許可」はグローバルなゲートを満たすだけで、各操作には個別のデータアクセス設定が引き続き必要です。注釈を許可するとハイライトも許可されたことになり、ハイライトを拒否すると注釈も拒否されます。"
 
-#: koassistant_book_settings.lua:3333
+#: koassistant_book_settings.lua:3342
 #, fuzzy
 msgid "Privacy (this book)"
 msgstr "プライバシー（この書籍）"
 
-#: koassistant_book_settings.lua:3372
+#: koassistant_book_settings.lua:3381
 #, fuzzy
 msgid "What the AI should see for this book"
 msgstr "この本についてAIが参照する内容"
 
-#: koassistant_book_settings.lua:3404
+#: koassistant_book_settings.lua:3413
 #, fuzzy
 msgid "Custom: %1"
 msgstr "カスタム: %1"
 
-#: koassistant_book_settings.lua:3404 koassistant_book_settings.lua:3752
+#: koassistant_book_settings.lua:3413 koassistant_book_settings.lua:3761
 #, fuzzy
 msgid "Custom…"
 msgstr "カスタム…"
 
-#: koassistant_book_settings.lua:3406
+#: koassistant_book_settings.lua:3415
 #, fuzzy
 msgid "Use the book's real metadata"
 msgstr "本の実際のメタデータを使用する"
 
-#: koassistant_book_settings.lua:3410
+#: koassistant_book_settings.lua:3419
 #, fuzzy
 msgid "Send empty"
 msgstr "空で送信"
 
-#: koassistant_book_settings.lua:3422
+#: koassistant_book_settings.lua:3431
 #, fuzzy
 msgid "using metadata"
 msgstr "メタデータを使用"
 
-#: koassistant_book_settings.lua:3423
+#: koassistant_book_settings.lua:3432
 #, fuzzy
 msgid "empty"
 msgstr "空"
 
-#: koassistant_book_settings.lua:3429
+#: koassistant_book_settings.lua:3438
 #, fuzzy
 msgid "AI title: %1"
 msgstr "AIタイトル: %1"
 
-#: koassistant_book_settings.lua:3432
+#: koassistant_book_settings.lua:3441
 #, fuzzy
 msgid "AI title (this book)"
 msgstr "AIタイトル（この本）"
 
-#: koassistant_book_settings.lua:3432
+#: koassistant_book_settings.lua:3441
 #, fuzzy
 msgid "Custom AI title"
 msgstr "カスタムAIタイトル"
 
-#: koassistant_book_settings.lua:3434
+#: koassistant_book_settings.lua:3443
 #, fuzzy
 msgid "AI author: %1"
 msgstr "AI著者: %1"
 
-#: koassistant_book_settings.lua:3437
+#: koassistant_book_settings.lua:3446
 #, fuzzy
 msgid "AI author (this book)"
 msgstr "AI著者（この本）"
 
-#: koassistant_book_settings.lua:3437
+#: koassistant_book_settings.lua:3446
 #, fuzzy
 msgid "Custom AI author"
 msgstr "カスタムAI著者"
 
-#: koassistant_book_settings.lua:3445
+#: koassistant_book_settings.lua:3454
 #, fuzzy
 msgid "Identity (this book)"
 msgstr "アイデンティティ（この書籍）"
 
-#: koassistant_book_settings.lua:3452 koassistant_book_settings.lua:3615
+#: koassistant_book_settings.lua:3461 koassistant_book_settings.lua:3624
 #: koassistant_settings_schema.lua:870
 #, fuzzy
 msgid "Easy"
 msgstr "簡単"
 
-#: koassistant_book_settings.lua:3453 koassistant_book_settings.lua:3617
+#: koassistant_book_settings.lua:3462 koassistant_book_settings.lua:3626
 #: koassistant_settings_schema.lua:872
 #, fuzzy
 msgid "Hard"
 msgstr "難しい"
 
-#: koassistant_book_settings.lua:3454 koassistant_book_settings.lua:3616
+#: koassistant_book_settings.lua:3463 koassistant_book_settings.lua:3625
 #: koassistant_settings_schema.lua:871 koassistant_settings_schema.lua:2958
 #: reasoning_prefs.lua:31
 #, fuzzy
 msgid "Medium"
 msgstr "中"
 
-#: koassistant_book_settings.lua:3457 koassistant_book_settings.lua:3638
+#: koassistant_book_settings.lua:3466 koassistant_book_settings.lua:3647
 #: koassistant_settings_schema.lua:816
 #, fuzzy
 msgid "Auto-detect"
 msgstr "自動検出"
 
-#: koassistant_book_settings.lua:3458 koassistant_book_settings.lua:3639
+#: koassistant_book_settings.lua:3467 koassistant_book_settings.lua:3648
 #: koassistant_settings_schema.lua:817
 #, fuzzy
 msgid "Top level (Level 1)"
 msgstr "トップレベル（レベル1）"
 
-#: koassistant_book_settings.lua:3459 koassistant_book_settings.lua:3462
-#: koassistant_book_settings.lua:3640 koassistant_settings_schema.lua:818
+#: koassistant_book_settings.lua:3468 koassistant_book_settings.lua:3471
+#: koassistant_book_settings.lua:3649 koassistant_settings_schema.lua:818
 #, fuzzy
 msgid "Level 2"
 msgstr "レベル2"
 
-#: koassistant_book_settings.lua:3460 koassistant_book_settings.lua:3641
+#: koassistant_book_settings.lua:3469 koassistant_book_settings.lua:3650
 #: koassistant_settings_schema.lua:819
 #, fuzzy
 msgid "Level 3"
 msgstr "レベル3"
 
-#: koassistant_book_settings.lua:3461 koassistant_book_settings.lua:3642
+#: koassistant_book_settings.lua:3470 koassistant_book_settings.lua:3651
 #: koassistant_settings_schema.lua:820
 #, fuzzy
 msgid "All TOC headings"
 msgstr "すべての目次見出し"
 
-#: koassistant_book_settings.lua:3578 koassistant_book_settings.lua:3582
+#: koassistant_book_settings.lua:3587 koassistant_book_settings.lua:3591
 #, fuzzy
 msgid "No minimum"
 msgstr "最小値なし"
 
-#: koassistant_book_settings.lua:3579
+#: koassistant_book_settings.lua:3588
 #, fuzzy
 msgid "%1 pages"
 msgstr "%1ページ"
 
-#: koassistant_book_settings.lua:3583
+#: koassistant_book_settings.lua:3592
 #, fuzzy
 msgid "%1 min"
 msgstr "%1分"
 
-#: koassistant_book_settings.lua:3593
+#: koassistant_book_settings.lua:3602
 #, fuzzy
 msgid "Off (this book)"
 msgstr "オフ（この本）"
 
-#: koassistant_book_settings.lua:3598
+#: koassistant_book_settings.lua:3607
 #, fuzzy
 msgid "Chapter-end quiz: %1"
 msgstr "チャプター末クイズ：%1"
 
-#: koassistant_book_settings.lua:3600
+#: koassistant_book_settings.lua:3609
 #, fuzzy
 msgid "Chapter-end quiz (this book)"
 msgstr "チャプター末クイズ（この本）"
 
-#: koassistant_book_settings.lua:3602
+#: koassistant_book_settings.lua:3611
 #, fuzzy
 msgid "Off: never quiz this book"
 msgstr "オフ：この書籍では出題しない"
 
-#: koassistant_book_settings.lua:3604
+#: koassistant_book_settings.lua:3613
 #, fuzzy
 msgid "Question count: %1"
 msgstr "問題数：%1"
 
-#: koassistant_book_settings.lua:3606
+#: koassistant_book_settings.lua:3615
 #, fuzzy
 msgid "Question count (this book)"
 msgstr "問題数（この本）"
 
-#: koassistant_book_settings.lua:3609
+#: koassistant_book_settings.lua:3618
 #, fuzzy
 msgid "Difficulty: %1"
 msgstr "難易度：%1"
 
-#: koassistant_book_settings.lua:3613
+#: koassistant_book_settings.lua:3622
 #, fuzzy
 msgid "Difficulty (this book)"
 msgstr "難易度（この本）"
 
-#: koassistant_book_settings.lua:3620
+#: koassistant_book_settings.lua:3629
 #, fuzzy
 msgid "Multiple choice: %1"
 msgstr "多肢選択：%1"
 
-#: koassistant_book_settings.lua:3622
+#: koassistant_book_settings.lua:3631
 #, fuzzy
 msgid "Multiple choice (this book)"
 msgstr "多肢選択（この本）"
 
-#: koassistant_book_settings.lua:3624
+#: koassistant_book_settings.lua:3633
 #, fuzzy
 msgid "Short answer: %1"
 msgstr "短答式：%1"
 
-#: koassistant_book_settings.lua:3626
+#: koassistant_book_settings.lua:3635
 #, fuzzy
 msgid "Short answer (this book)"
 msgstr "短答式（この本）"
 
-#: koassistant_book_settings.lua:3628
+#: koassistant_book_settings.lua:3637
 #, fuzzy
 msgid "Discussion: %1"
 msgstr "ディスカッション：%1"
 
-#: koassistant_book_settings.lua:3630
+#: koassistant_book_settings.lua:3639
 #, fuzzy
 msgid "Discussion (this book)"
 msgstr "ディスカッション（この本）"
 
-#: koassistant_book_settings.lua:3632
+#: koassistant_book_settings.lua:3641
 #, fuzzy
 msgid "Chapter level: %1"
 msgstr "チャプターレベル：%1"
 
-#: koassistant_book_settings.lua:3636
+#: koassistant_book_settings.lua:3645
 #, fuzzy
 msgid "Quiz chapter level (this book)"
 msgstr "クイズチャプターレベル（この本）"
 
-#: koassistant_book_settings.lua:3645
+#: koassistant_book_settings.lua:3654
 #, fuzzy
 msgid "Min chapter length: %1"
 msgstr "最小チャプター長：%1"
 
-#: koassistant_book_settings.lua:3648
+#: koassistant_book_settings.lua:3657
 #, fuzzy
 msgid "Min chapter length, pages (this book)"
 msgstr "最小チャプター長、ページ数（この本）"
 
-#: koassistant_book_settings.lua:3651
+#: koassistant_book_settings.lua:3660
 #, fuzzy
 msgid "Min reading time: %1"
 msgstr "最小読書時間：%1"
 
-#: koassistant_book_settings.lua:3654
+#: koassistant_book_settings.lua:3663
 #, fuzzy
 msgid "Min reading time, minutes (this book)"
 msgstr "最小読書時間、分（この本）"
 
-#: koassistant_book_settings.lua:3663
+#: koassistant_book_settings.lua:3672
 #, fuzzy
 msgid "Quiz settings (this book)"
 msgstr "クイズ設定（この本）"
 
-#: koassistant_book_settings.lua:3702
+#: koassistant_book_settings.lua:3711
 #, fuzzy
 msgid "Language name (e.g. Spanish)"
 msgstr "言語名（例：スペイン語）"
 
-#: koassistant_book_settings.lua:3762
+#: koassistant_book_settings.lua:3771
 #, fuzzy
 msgid "primary language"
 msgstr "主要言語"
 
-#: koassistant_book_settings.lua:3805
+#: koassistant_book_settings.lua:3814
 #, fuzzy
 msgid "AI response language: %1"
 msgstr "AI応答言語：%1"
 
-#: koassistant_book_settings.lua:3808
+#: koassistant_book_settings.lua:3817
 #, fuzzy
 msgid "AI response language (this book)"
 msgstr "AI応答言語（この本）"
 
-#: koassistant_book_settings.lua:3808
+#: koassistant_book_settings.lua:3817
 #, fuzzy
 msgid "AI response language (this group)"
 msgstr "AI応答言語（このグループ）"
 
-#: koassistant_book_settings.lua:3810
+#: koassistant_book_settings.lua:3819
 #, fuzzy
 msgid "Translation language: %1"
 msgstr "翻訳言語：%1"
 
-#: koassistant_book_settings.lua:3813
+#: koassistant_book_settings.lua:3822
 #, fuzzy
 msgid "Translation language (this book)"
 msgstr "翻訳言語（この本）"
 
-#: koassistant_book_settings.lua:3813
+#: koassistant_book_settings.lua:3822
 #, fuzzy
 msgid "Translation language (this group)"
 msgstr "翻訳言語（このグループ）"
 
-#: koassistant_book_settings.lua:3815
+#: koassistant_book_settings.lua:3824
 #, fuzzy
 msgid "Dictionary language: %1"
 msgstr "辞書言語：%1"
 
-#: koassistant_book_settings.lua:3818
+#: koassistant_book_settings.lua:3827
 #, fuzzy
 msgid "Dictionary language (this book)"
 msgstr "辞書言語（この本）"
 
-#: koassistant_book_settings.lua:3818
+#: koassistant_book_settings.lua:3827
 #, fuzzy
 msgid "Dictionary language (this group)"
 msgstr "辞書言語（このグループ）"
 
-#: koassistant_book_settings.lua:3826
+#: koassistant_book_settings.lua:3835
 #, fuzzy
 msgid "Languages (this book)"
 msgstr "言語（この本）"
 
-#: koassistant_book_settings.lua:3826
+#: koassistant_book_settings.lua:3835
 #, fuzzy
 msgid "Languages (this group)"
 msgstr "言語（このグループ）"
@@ -2921,13 +2921,13 @@ msgstr ""
 "\n"
 "この操作は元に戻せません。"
 
-#: koassistant_chat_history_dialog.lua:139 main.lua:20172
+#: koassistant_chat_history_dialog.lua:139 main.lua:20189
 #, fuzzy
 msgid "Deleted %1 chat(s) from %2 book(s)"
 msgstr "%2冊の本から%1件のチャットを削除しました"
 
 #: koassistant_chat_history_dialog.lua:306
-#: koassistant_chat_history_dialog.lua:507 main.lua:6750
+#: koassistant_chat_history_dialog.lua:507 main.lua:6767
 #, fuzzy
 msgid "No saved chats found"
 msgstr "保存されたチャットが見つかりません"
@@ -3061,13 +3061,13 @@ msgid "Error: Cannot load chat data."
 msgstr "エラー: チャットデータを読み込めません。"
 
 #: koassistant_chat_history_dialog.lua:943 koassistant_xray_browser.lua:6791
-#: koassistant_xray_browser.lua:6793 main.lua:6892
+#: koassistant_xray_browser.lua:6793 main.lua:6909
 #, fuzzy
 msgid "Date:"
 msgstr "日付:"
 
 #: koassistant_chat_history_dialog.lua:944 koassistant_xray_browser.lua:6781
-#: main.lua:6889
+#: main.lua:6906
 #, fuzzy
 msgid "Model:"
 msgstr "モデル:"
@@ -3373,7 +3373,7 @@ msgstr ""
 "%1"
 
 #: koassistant_chat_history_dialog.lua:2502 koassistant_chatgptviewer.lua:5404
-#: main.lua:23521
+#: main.lua:23538
 #, fuzzy
 msgid "Failed to save: %1"
 msgstr "保存に失敗しました: %1"
@@ -3638,7 +3638,7 @@ msgstr "単語を語彙ビルダーに追加しました"
 msgid "+Vocab"
 msgstr "+語彙"
 
-#: koassistant_chatgptviewer.lua:2080 main.lua:19114
+#: koassistant_chatgptviewer.lua:2080 main.lua:19131
 #, fuzzy
 msgid "AI Dictionary lookup"
 msgstr "AI辞書検索"
@@ -3691,7 +3691,7 @@ msgid "Configure languages in Settings first"
 msgstr "まず設定で言語を設定してください"
 
 #: koassistant_chatgptviewer.lua:2200 koassistant_constants.lua:279
-#: main.lua:17429 main.lua:18403
+#: main.lua:17446 main.lua:18420
 #, fuzzy
 msgid "Dictionary Language"
 msgstr "辞書言語"
@@ -3815,7 +3815,7 @@ msgid "Start a new chat about this artifact"
 msgstr "このArtifactについて新しいチャットを開始"
 
 #: koassistant_chatgptviewer.lua:3030 koassistant_xray_browser.lua:6861
-#: main.lua:21797 koassistant_ui/prompts_manager.lua:1557
+#: main.lua:21814 koassistant_ui/prompts_manager.lua:1557
 #: koassistant_ui/prompts_manager.lua:2243
 #, fuzzy
 msgid "Info"
@@ -3827,14 +3827,14 @@ msgid "Open in Reader"
 msgstr "リーダーで開く"
 
 #: koassistant_chatgptviewer.lua:3053 koassistant_notebook_manager.lua:192
-#: main.lua:18203 koassistant_ui/behavior_manager.lua:325
+#: main.lua:18220 koassistant_ui/behavior_manager.lua:325
 #: koassistant_ui/domain_manager.lua:335
 #, fuzzy
 msgid "Edit"
 msgstr "編集"
 
 #: koassistant_chatgptviewer.lua:3064 koassistant_dialogs.lua:12694
-#: koassistant_xray_browser.lua:3964 main.lua:13442 main.lua:13478
+#: koassistant_xray_browser.lua:3964 main.lua:13459 main.lua:13495
 #, fuzzy
 msgid "Regenerate"
 msgstr "再生成"
@@ -3987,7 +3987,7 @@ msgstr "クリップボードにコピーしました。"
 
 #: koassistant_chatgptviewer.lua:4643 koassistant_ui/prompts_manager.lua:2174
 #: koassistant_ui/prompts_manager.lua:2192
-#: koassistant_ui/prompts_manager.lua:2249 prompts/actions.lua:2423
+#: koassistant_ui/prompts_manager.lua:2249 prompts/actions.lua:2446
 #, fuzzy
 msgid "Dictionary"
 msgstr "辞書"
@@ -4005,7 +4005,7 @@ msgstr "X-Rayで調べる"
 #: koassistant_chatgptviewer.lua:4690 koassistant_update_checker.lua:825
 #: koassistant_ui/prompts_manager.lua:2172
 #: koassistant_ui/prompts_manager.lua:2194
-#: koassistant_ui/prompts_manager.lua:2251 prompts/actions.lua:2369
+#: koassistant_ui/prompts_manager.lua:2251 prompts/actions.lua:2392
 #, fuzzy
 msgid "Translate"
 msgstr "翻訳"
@@ -4040,7 +4040,7 @@ msgstr "ノートブックに追加しました"
 msgid "No highlight selection data available"
 msgstr "ハイライト選択データがありません"
 
-#: koassistant_chatgptviewer.lua:5080 main.lua:18331
+#: koassistant_chatgptviewer.lua:5080 main.lua:18348
 #, fuzzy
 msgid "No document open"
 msgstr "ドキュメントが開かれていません"
@@ -4113,13 +4113,13 @@ msgid "No export metadata available."
 msgstr "エクスポートメタデータがありません。"
 
 #: koassistant_chatgptviewer.lua:5509 koassistant_chatgptviewer.lua:5841
-#: main.lua:23447
+#: main.lua:23464
 #, fuzzy
 msgid "Saved to %1"
 msgstr "%1に保存しました"
 
 #: koassistant_chatgptviewer.lua:5514 koassistant_chatgptviewer.lua:5843
-#: main.lua:23452
+#: main.lua:23469
 #, fuzzy
 msgid "Export failed: %1"
 msgstr "エクスポート失敗: %1"
@@ -4373,47 +4373,47 @@ msgstr "設定"
 msgid "Font size set to %1"
 msgstr "フォントサイズを %1 に設定しました"
 
-#: koassistant_chatgptviewer.lua:6554 main.lua:20414
+#: koassistant_chatgptviewer.lua:6554 main.lua:20431
 #, fuzzy
 msgid "Settings reset to defaults"
 msgstr "設定をデフォルトにリセットしました"
 
-#: koassistant_constants.lua:143 main.lua:22284
+#: koassistant_constants.lua:143 main.lua:22301
 #, fuzzy
 msgid "Translate Page"
 msgstr "ページを翻訳"
 
-#: koassistant_constants.lua:145 koassistant_constants.lua:289 main.lua:17588
-#: main.lua:22281
+#: koassistant_constants.lua:145 koassistant_constants.lua:289 main.lua:17605
+#: main.lua:22298
 #, fuzzy
 msgid "Continue Last Chat"
 msgstr "最後のチャットを続ける"
 
 #: koassistant_constants.lua:146 koassistant_constants.lua:288
-#: koassistant_settings_schema.lua:67 main.lua:17579 main.lua:22274
+#: koassistant_settings_schema.lua:67 main.lua:17596 main.lua:22291
 #, fuzzy
 msgid "General Chat/Action"
 msgstr "一般チャット/アクション"
 
 #: koassistant_constants.lua:149 koassistant_dialogs.lua:9998
-#: koassistant_dialogs.lua:10047 main.lua:687 main.lua:770 main.lua:7057
-#: main.lua:17799 koassistant_ui/prompts_manager.lua:6273
+#: koassistant_dialogs.lua:10047 main.lua:687 main.lua:770 main.lua:7074
+#: main.lua:17816 koassistant_ui/prompts_manager.lua:6273
 #, fuzzy
 msgid "View Artifacts"
 msgstr "アーティファクトを表示"
 
-#: koassistant_constants.lua:150 main.lua:17813
+#: koassistant_constants.lua:150 main.lua:17830
 #, fuzzy
 msgid "Group Hub"
 msgstr "グループハブ"
 
-#: koassistant_constants.lua:154 koassistant_dialogs.lua:10431 main.lua:17655
-#: main.lua:22279
+#: koassistant_constants.lua:154 koassistant_dialogs.lua:10431 main.lua:17672
+#: main.lua:22296
 #, fuzzy
 msgid "Quick Settings"
 msgstr "クイック設定"
 
-#: koassistant_constants.lua:267 main.lua:17091
+#: koassistant_constants.lua:267 main.lua:17108
 #, fuzzy
 msgid "Provider"
 msgstr "プロバイダー"
@@ -4432,7 +4432,7 @@ msgid "Domain"
 msgstr "ドメイン"
 
 #: koassistant_constants.lua:271 koassistant_settings_schema.lua:2695
-#: main.lua:16489 koassistant_ui/prompts_manager.lua:919
+#: main.lua:16506 koassistant_ui/prompts_manager.lua:919
 #, fuzzy
 msgid "Reasoning"
 msgstr "推論"
@@ -4453,7 +4453,7 @@ msgstr "クイックアンサー"
 msgid "Minimal Popup"
 msgstr "ミニマルポップアップ"
 
-#: koassistant_constants.lua:278 main.lua:17416
+#: koassistant_constants.lua:278 main.lua:17433
 #: koassistant_ui/prompts_manager.lua:5289
 #, fuzzy
 msgid "Translation Language"
@@ -4475,32 +4475,32 @@ msgid "Text Extraction"
 msgstr "テキスト抽出"
 
 #: koassistant_constants.lua:284 koassistant_settings_schema.lua:88
-#: main.lua:17537
+#: main.lua:17554
 #, fuzzy
 msgid "Browse Notebooks"
 msgstr "ノートブックを閲覧"
 
 #: koassistant_constants.lua:285 koassistant_settings_schema.lua:95
-#: main.lua:17546
+#: main.lua:17563
 #, fuzzy
 msgid "Browse Artifacts"
 msgstr "アーティファクトを参照"
 
 #: koassistant_constants.lua:286 koassistant_group_page.lua:492
-#: koassistant_settings_schema.lua:102 main.lua:7537 main.lua:17561
+#: koassistant_settings_schema.lua:102 main.lua:7554 main.lua:17578
 #, fuzzy
 msgid "Groups"
 msgstr "グループ"
 
 #: koassistant_constants.lua:287 koassistant_dialogs.lua:10355
 #: koassistant_dialogs.lua:10372 koassistant_dialogs.lua:10376
-#: koassistant_settings_schema.lua:74 main.lua:17570 main.lua:22276
+#: koassistant_settings_schema.lua:74 main.lua:17587 main.lua:22293
 #, fuzzy
 msgid "Library Chat/Action"
 msgstr "ライブラリチャット／アクション"
 
 #: koassistant_constants.lua:290 koassistant_settings_schema.lua:1857
-#: main.lua:17597 koassistant_ui/prompts_manager.lua:564
+#: main.lua:17614 koassistant_ui/prompts_manager.lua:564
 #: koassistant_ui/prompts_manager.lua:613
 #: koassistant_ui/prompts_manager.lua:778
 #: koassistant_ui/prompts_manager.lua:5661
@@ -4588,7 +4588,7 @@ msgstr "モデル・%1"
 msgid "%1 (no key)"
 msgstr "%1（キーなし）"
 
-#: koassistant_dialogs.lua:1103 main.lua:3493 main.lua:16664
+#: koassistant_dialogs.lua:1103 main.lua:3493 main.lua:16681
 #: koassistant_ui/prompts_manager.lua:3293
 #: koassistant_ui/prompts_manager.lua:4130
 #: koassistant_ui/prompts_manager.lua:5112
@@ -4627,7 +4627,7 @@ msgstr "フラッグシップ"
 msgid "Frontier"
 msgstr "フロンティア"
 
-#: koassistant_dialogs.lua:1175 main.lua:22384
+#: koassistant_dialogs.lua:1175 main.lua:22401
 #, fuzzy
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
@@ -4819,12 +4819,12 @@ msgid "Skip book background"
 msgstr "書籍の背景情報をスキップ"
 
 #: koassistant_dialogs.lua:1497 koassistant_settings_schema.lua:596
-#: main.lua:17106
+#: main.lua:17123
 #, fuzzy
 msgid "Behavior: %1"
 msgstr "動作: %1"
 
-#: koassistant_dialogs.lua:1507 main.lua:4216 main.lua:17096
+#: koassistant_dialogs.lua:1507 main.lua:4216 main.lua:17113
 #, fuzzy
 msgid "Model: %1"
 msgstr "モデル: %1"
@@ -4870,7 +4870,7 @@ msgstr "タグを追加するには、まずチャットを保存してくださ
 msgid "Cannot tag: no document context"
 msgstr "タグ付けできません：ドキュメントコンテキストがありません"
 
-#: koassistant_dialogs.lua:3155 main.lua:11809 main.lua:12085
+#: koassistant_dialogs.lua:3155 main.lua:11826 main.lua:12102
 #, fuzzy
 msgid "Please enter a name."
 msgstr "名前を入力してください。"
@@ -4931,7 +4931,7 @@ msgstr ""
 
 #: koassistant_dialogs.lua:5926 koassistant_dialogs.lua:6019
 #: koassistant_dialogs.lua:6167 koassistant_dialogs.lua:9713
-#: koassistant_setup_wizard.lua:529 main.lua:8669
+#: koassistant_setup_wizard.lua:529 main.lua:8686
 #, fuzzy
 msgid "Continue"
 msgstr "続行"
@@ -5054,7 +5054,7 @@ msgid "Book search failed: "
 msgstr "書籍検索に失敗しました："
 
 #: koassistant_dialogs.lua:6384 koassistant_update_checker.lua:755
-#: main.lua:21327 main.lua:21709 main.lua:21850
+#: main.lua:21344 main.lua:21726 main.lua:21867
 #, fuzzy
 msgid "Unknown error"
 msgstr "不明なエラー"
@@ -5155,9 +5155,9 @@ msgstr ""
 msgid "Attach to this chat"
 msgstr "このチャットに添付"
 
-#: koassistant_dialogs.lua:7059 koassistant_dialogs.lua:7075 main.lua:17009
-#: main.lua:17017 main.lua:17155 main.lua:17201 main.lua:17243 main.lua:17338
-#: main.lua:17398 main.lua:17411 main.lua:17424 main.lua:17484
+#: koassistant_dialogs.lua:7059 koassistant_dialogs.lua:7075 main.lua:17026
+#: main.lua:17034 main.lua:17172 main.lua:17218 main.lua:17260 main.lua:17355
+#: main.lua:17415 main.lua:17428 main.lua:17441 main.lua:17501
 #, fuzzy
 msgid " (book)"
 msgstr "（本）"
@@ -5179,8 +5179,8 @@ msgstr "エラー："
 msgid "yesterday"
 msgstr "昨日"
 
-#: koassistant_dialogs.lua:7386 main.lua:8167 main.lua:8347 main.lua:9800
-#: main.lua:15781
+#: koassistant_dialogs.lua:7386 main.lua:8184 main.lua:8364 main.lua:9817
+#: main.lua:15798
 #, fuzzy
 msgid "View %1"
 msgstr "%1を表示"
@@ -5190,36 +5190,36 @@ msgstr "%1を表示"
 msgid "now"
 msgstr "今"
 
-#: koassistant_dialogs.lua:7417 main.lua:8058 main.lua:8196 main.lua:9509
-#: main.lua:9853 main.lua:15807 main.lua:15907
+#: koassistant_dialogs.lua:7417 main.lua:8075 main.lua:8213 main.lua:9526
+#: main.lua:9870 main.lua:15824 main.lua:15924
 #, fuzzy
 msgid "View \"%1\""
 msgstr "「%1」を表示"
 
-#: koassistant_dialogs.lua:7437 main.lua:8141 main.lua:15827
+#: koassistant_dialogs.lua:7437 main.lua:8158 main.lua:15844
 #, fuzzy
 msgid "Update %1"
 msgstr "%1を更新"
 
-#: koassistant_dialogs.lua:7437 main.lua:8141 main.lua:8685 main.lua:15827
+#: koassistant_dialogs.lua:7437 main.lua:8158 main.lua:8702 main.lua:15844
 #, fuzzy
 msgid "to %1"
 msgstr "%1まで"
 
-#: koassistant_dialogs.lua:7439 main.lua:8147 main.lua:8154 main.lua:15829
-#: main.lua:15832
+#: koassistant_dialogs.lua:7439 main.lua:8164 main.lua:8171 main.lua:15846
+#: main.lua:15849
 #, fuzzy
 msgid "Redo %1"
 msgstr "%1をやり直す"
 
-#: koassistant_dialogs.lua:7457 koassistant_dialogs.lua:7502 main.lua:15848
-#: main.lua:15920
+#: koassistant_dialogs.lua:7457 koassistant_dialogs.lua:7502 main.lua:15865
+#: main.lua:15937
 #, fuzzy
 msgid "Sections"
 msgstr "セクション"
 
-#: koassistant_dialogs.lua:7467 koassistant_dialogs.lua:7509 main.lua:15858
-#: main.lua:15927
+#: koassistant_dialogs.lua:7467 koassistant_dialogs.lua:7509 main.lua:15875
+#: main.lua:15944
 #, fuzzy
 msgid "New %1…"
 msgstr "新規 %1…"
@@ -5245,7 +5245,7 @@ msgstr "＋ フォルダーを追加…"
 msgid "Add Library Folder"
 msgstr "ライブラリフォルダーを追加"
 
-#: koassistant_dialogs.lua:7788 main.lua:20750 main.lua:21101
+#: koassistant_dialogs.lua:7788 main.lua:20767 main.lua:21118
 #, fuzzy
 msgid ""
 "Folder already added:\n"
@@ -5305,12 +5305,12 @@ msgstr "履歴に本が見つかりませんでした。"
 msgid "From a Group…"
 msgstr "グループから…"
 
-#: koassistant_dialogs.lua:7909 koassistant_xray_merge.lua:3072 main.lua:7162
+#: koassistant_dialogs.lua:7909 koassistant_xray_merge.lua:3072 main.lua:7179
 #, fuzzy
 msgid "%1 (%2 books)"
 msgstr "%1（%2冊）"
 
-#: koassistant_dialogs.lua:7917 main.lua:18280
+#: koassistant_dialogs.lua:7917 main.lua:18297
 #, fuzzy
 msgid "No books from this group are available on this device."
 msgstr "このグループの本はこのデバイスで利用できません。"
@@ -5355,7 +5355,7 @@ msgstr "%1件選択中：タップして削除"
 msgid "%1 items selected: tap to remove"
 msgstr "%1件選択中：タップして削除"
 
-#: koassistant_dialogs.lua:8221 main.lua:17118
+#: koassistant_dialogs.lua:8221 main.lua:17135
 #, fuzzy
 msgid "(research)"
 msgstr "（調査）"
@@ -5423,7 +5423,7 @@ msgid ""
 msgstr "この範囲には「テキスト抽出を許可」が必要です（設定 → プライバシーとデータ）。「現在のページ」はこれなしでも動作します。"
 
 #: koassistant_dialogs.lua:8619 koassistant_xray_browser.lua:4058
-#: koassistant_xray_browser.lua:5298 main.lua:8860 main.lua:8879 main.lua:10353
+#: koassistant_xray_browser.lua:5298 main.lua:8877 main.lua:8896 main.lua:10370
 #, fuzzy
 msgid "Page %1"
 msgstr "ページ %1"
@@ -5444,17 +5444,17 @@ msgstr "そのセクションは現在位置より先にあり、ネタバレ防
 msgid "Include it"
 msgstr "含める"
 
-#: koassistant_dialogs.lua:8684 main.lua:8887
+#: koassistant_dialogs.lua:8684 main.lua:8904
 #, fuzzy
 msgid "Range end: which section?"
 msgstr "範囲の終了:どのセクション?"
 
-#: koassistant_dialogs.lua:8688 main.lua:8891
+#: koassistant_dialogs.lua:8688 main.lua:8908
 #, fuzzy
 msgid "The end section comes before the start section."
 msgstr "終了セクションが開始セクションより前にあります。"
 
-#: koassistant_dialogs.lua:8711 main.lua:8884
+#: koassistant_dialogs.lua:8711 main.lua:8901
 #, fuzzy
 msgid "Range start: which section?"
 msgstr "範囲の開始:どのセクション?"
@@ -5485,7 +5485,7 @@ msgstr "追加の本文は含まない"
 msgid "Current page"
 msgstr "現在のページ"
 
-#: koassistant_dialogs.lua:8743 main.lua:8730 main.lua:8737 main.lua:8762
+#: koassistant_dialogs.lua:8743 main.lua:8747 main.lua:8754 main.lua:8779
 #, fuzzy
 msgid "Up to current position (%1)"
 msgstr "現在位置まで（%1）"
@@ -5495,7 +5495,7 @@ msgstr "現在位置まで（%1）"
 msgid "Up to current position"
 msgstr "現在位置まで"
 
-#: koassistant_dialogs.lua:8770 main.lua:8743
+#: koassistant_dialogs.lua:8770 main.lua:8760
 #, fuzzy
 msgid "Current chapter"
 msgstr "現在の章"
@@ -5510,12 +5510,12 @@ msgstr "現在の章（現在位置まで）"
 msgid "From section… (to current position)"
 msgstr "セクション…から（現在位置まで）"
 
-#: koassistant_dialogs.lua:8802 main.lua:8842
+#: koassistant_dialogs.lua:8802 main.lua:8859
 #, fuzzy
 msgid "Start from which section?"
 msgstr "どのセクションから開始しますか?"
 
-#: koassistant_dialogs.lua:8807 main.lua:8755
+#: koassistant_dialogs.lua:8807 main.lua:8772
 #, fuzzy
 msgid "Pick section range…"
 msgstr "セクション範囲を選択…"
@@ -5535,7 +5535,7 @@ msgstr "どのセクション?"
 msgid "Text to include with your message"
 msgstr "メッセージに含めるテキスト"
 
-#: koassistant_dialogs.lua:8831 main.lua:8715
+#: koassistant_dialogs.lua:8831 main.lua:8732
 #, fuzzy
 msgid "Scope"
 msgstr "スコープ"
@@ -5889,30 +5889,30 @@ msgid "Unknown prompt type: "
 msgstr "不明なプロンプトタイプ："
 
 #: koassistant_dialogs.lua:10657 koassistant_dialogs.lua:12405
-#: koassistant_dialogs.lua:12484 main.lua:6849 main.lua:6851
+#: koassistant_dialogs.lua:12484 main.lua:6866 main.lua:6868
 #, fuzzy
 msgid "Based on AI training data knowledge"
 msgstr "AIトレーニングデータの知識に基づく"
 
 #: koassistant_dialogs.lua:10658 koassistant_dialogs.lua:12406
-#: koassistant_dialogs.lua:12485 main.lua:6853
+#: koassistant_dialogs.lua:12485 main.lua:6870
 #, fuzzy
 msgid "Based on extracted document text"
 msgstr "抽出されたドキュメントテキストに基づく"
 
 #: koassistant_dialogs.lua:10727 koassistant_xray_browser.lua:2972
-#: main.lua:12487
+#: main.lua:12504
 #, fuzzy
 msgid "Complete"
 msgstr "完了"
 
-#: koassistant_dialogs.lua:10745 koassistant_dialogs.lua:12523 main.lua:7643
+#: koassistant_dialogs.lua:10745 koassistant_dialogs.lua:12523 main.lua:7660
 #, fuzzy
 msgid "X-Ray deleted — archived versions kept"
 msgstr "X-Rayを削除しました — アーカイブ版は保持されます"
 
-#: koassistant_dialogs.lua:10746 koassistant_dialogs.lua:12524 main.lua:7644
-#: main.lua:13397
+#: koassistant_dialogs.lua:10746 koassistant_dialogs.lua:12524 main.lua:7661
+#: main.lua:13414
 #, fuzzy
 msgid "%1 deleted"
 msgstr "%1を削除しました"
@@ -6217,7 +6217,7 @@ msgstr "不明なローカルアクションハンドラー"
 msgid "Error: No action specified"
 msgstr "エラー：アクションが指定されていません"
 
-#: koassistant_dialogs.lua:12442 main.lua:12450
+#: koassistant_dialogs.lua:12442 main.lua:12467
 #, fuzzy
 msgid "Section X-Ray '%1' deleted"
 msgstr "セクション X-Ray「%1」が削除されました"
@@ -6340,7 +6340,7 @@ msgstr "グループのチャット/操作…"
 msgid "Tap a book for its hub. Hold it to move, open or remove it."
 msgstr "本をタップするとハブが開きます。長押しで移動、開く、削除ができます。"
 
-#: koassistant_group_page.lua:275 main.lua:7356
+#: koassistant_group_page.lua:275 main.lua:7373
 #, fuzzy
 msgid "(missing)"
 msgstr "（欠落）"
@@ -6827,7 +6827,7 @@ msgstr "このドキュメントのノートブックはありません"
 msgid "No text selected"
 msgstr "テキストが選択されていません"
 
-#: koassistant_notebook.lua:525 main.lua:23346
+#: koassistant_notebook.lua:525 main.lua:23363
 #, fuzzy
 msgid "Failed to create notebook: %1"
 msgstr "ノートブックの作成に失敗しました: %1"
@@ -7910,8 +7910,8 @@ msgstr "新しいX-Rayのカテゴリ"
 #: koassistant_settings_schema.lua:971
 #, fuzzy
 msgid ""
-"Which category groups a new X-Ray tracks by default: everything, or a narrower preset such as Reference (no timeline) or Characters only. Applies when an X-Ray is created or rebuilt; individual books can pick their own categories in Book Settings."
-msgstr "新規X-Rayがデフォルトで追跡するカテゴリグループ: すべて、または「参考情報（タイムラインなし）」や「登場人物のみ」といった、より限定的なプリセット。X-Rayが作成または再構築される際に適用されます。個々の本は本の設定で独自のカテゴリを選択できます。"
+"Which category groups a new X-Ray tracks by default. Reference (everything except the timeline) unless changed here; All categories adds the timeline or argument development, Characters only is the lightest. Applies when an X-Ray is created or rebuilt; individual books can pick their own categories in Book Settings."
+msgstr "新しいX-Rayがデフォルトでどのカテゴリでトラックをグループ化するか。ここで変更しない限り、参照設定（タイムライン以外のすべて）が使用されます。すべてのカテゴリは、タイムラインまたは議論の展開を追加し、キャラクターのみが最も軽量です。この設定はX-Rayが作成または再構築されるときに適用され、個々の書籍は書籍設定で独自のカテゴリを選択できます。"
 
 #: koassistant_settings_schema.lua:976
 #, fuzzy
@@ -8651,7 +8651,7 @@ msgstr "テキストを選択した際、ハイライトメニューをスキッ
 msgid "Action to trigger when highlight bypass is enabled"
 msgstr "ハイライトバイパス有効時に実行するアクション"
 
-#: koassistant_settings_schema.lua:1851 main.lua:22829
+#: koassistant_settings_schema.lua:1851 main.lua:22846
 #, fuzzy
 msgid "Actions & Prompts"
 msgstr "アクションとプロンプト"
@@ -8792,17 +8792,17 @@ msgstr ""
 "\n"
 "カスタムフォルダー：任意の場所を選択できます（例：Obsidian ボールト）。"
 
-#: koassistant_settings_schema.lua:2001 main.lua:22826
+#: koassistant_settings_schema.lua:2001 main.lua:22843
 #, fuzzy
 msgid "Privacy & Data"
 msgstr "プライバシーとデータ"
 
-#: koassistant_settings_schema.lua:2012 main.lua:20660
+#: koassistant_settings_schema.lua:2012 main.lua:20677
 #, fuzzy
 msgid "Trusted Providers: None"
 msgstr "信頼できるプロバイダー: なし"
 
-#: koassistant_settings_schema.lua:2014 main.lua:20662
+#: koassistant_settings_schema.lua:2014 main.lua:20679
 #, fuzzy
 msgid "Trusted Providers: %1"
 msgstr "信頼できるプロバイダー: %1"
@@ -8856,7 +8856,7 @@ msgstr "すべてのデータ共有を有効にして完全な機能を使用し
 msgid "Tip: Per-book overrides"
 msgstr "ヒント:書籍ごとの上書き設定"
 
-#: koassistant_settings_schema.lua:2052 main.lua:20552
+#: koassistant_settings_schema.lua:2052 main.lua:20569
 #, fuzzy
 msgid ""
 "Every sharing toggle here can be overridden per book (Book Settings → Privacy). Two patterns: keep a global toggle off and allow it for specific books, or keep it on and deny it for sensitive books. A per-book deny always wins — even over trusted providers."
@@ -9051,7 +9051,7 @@ msgstr ""
 "\n"
 "自分のモデルの制限を把握していて、この通知が不要な場合はチェックしてください。"
 
-#: koassistant_settings_schema.lua:2215 main.lua:17989
+#: koassistant_settings_schema.lua:2215 main.lua:18006
 #, fuzzy
 msgid "Delete Book Artifacts"
 msgstr "書籍のアーティファクトを削除"
@@ -9280,7 +9280,7 @@ msgstr "ファイルブラウザの長押しメニューに表示するボタン
 msgid "Quick panels"
 msgstr "クイックパネル"
 
-#: koassistant_settings_schema.lua:2453 main.lua:17859
+#: koassistant_settings_schema.lua:2453 main.lua:17876
 #, fuzzy
 msgid "Panel Actions"
 msgstr "パネルアクション"
@@ -9290,7 +9290,7 @@ msgstr "パネルアクション"
 msgid "Choose which actions appear on the Quick Actions panel."
 msgstr "クイックアクションパネルに表示するアクションを選択します。"
 
-#: koassistant_settings_schema.lua:2461 main.lua:17866
+#: koassistant_settings_schema.lua:2461 main.lua:17883
 #, fuzzy
 msgid "Panel Utilities"
 msgstr "パネルユーティリティ"
@@ -9315,7 +9315,7 @@ msgstr "クイック設定パネルのタイルを選択し、順序を設定し
 msgid "Gestures"
 msgstr "ジェスチャー"
 
-#: koassistant_settings_schema.lua:2484 main.lua:22402
+#: koassistant_settings_schema.lua:2484 main.lua:22419
 #, fuzzy
 msgid "Shortcuts"
 msgstr "ショートカット"
@@ -9363,7 +9363,7 @@ msgstr "KOReaderのビューア（辞書、TextViewerなど）のテキスト選
 msgid "Backup & Reset"
 msgstr "バックアップとリセット"
 
-#: koassistant_settings_schema.lua:2543 main.lua:21234
+#: koassistant_settings_schema.lua:2543 main.lua:21251
 #, fuzzy
 msgid "Create Backup"
 msgstr "バックアップを作成"
@@ -9694,7 +9694,7 @@ msgstr "最小"
 #: koassistant_settings_schema.lua:2932 koassistant_settings_schema.lua:2938
 #: koassistant_settings_schema.lua:2950 koassistant_settings_schema.lua:2956
 #: koassistant_settings_schema.lua:2968 koassistant_settings_schema.lua:2974
-#: koassistant_setup_wizard.lua:673 main.lua:17029 reasoning_prefs.lua:118
+#: koassistant_setup_wizard.lua:673 main.lua:17046 reasoning_prefs.lua:118
 #, fuzzy
 msgid "Default"
 msgstr "デフォルト"
@@ -9715,17 +9715,17 @@ msgid ""
 "How much reasoning across all models, as far as each model allows. Override individual models below."
 msgstr "各モデルが許す範囲で、全モデルにわたる推論量。以下で個別モデルを上書きできます。"
 
-#: koassistant_settings_schema.lua:2711 main.lua:16425
+#: koassistant_settings_schema.lua:2711 main.lua:16442
 #, fuzzy
 msgid "Minimal (off where possible)"
 msgstr "最小（可能な限りオフ）"
 
-#: koassistant_settings_schema.lua:2712 main.lua:16426
+#: koassistant_settings_schema.lua:2712 main.lua:16443
 #, fuzzy
 msgid "Default (let each model decide)"
 msgstr "デフォルト（各モデルに任せる）"
 
-#: koassistant_settings_schema.lua:2713 main.lua:16427
+#: koassistant_settings_schema.lua:2713 main.lua:16444
 #, fuzzy
 msgid "Maximum (most reasoning)"
 msgstr "最大（最も多い推論）"
@@ -9906,7 +9906,7 @@ msgid "Follow main provider"
 msgstr "メインプロバイダーに従う"
 
 #: koassistant_settings_schema.lua:2876 koassistant_setup_wizard.lua:561
-#: main.lua:3336 main.lua:17086
+#: main.lua:3336 main.lua:17103
 #, fuzzy
 msgid "Provider: %1"
 msgstr "プロバイダー：%1"
@@ -10524,12 +10524,12 @@ msgid ""
 "Emoji font installed and registered. After the restart, the wizard shows a quick glyph test to confirm it works."
 msgstr "絵文字フォントがインストールされ、登録されました。再起動後、ウィザードが動作確認のための簡単なグリフテストを表示します。"
 
-#: koassistant_setup_wizard.lua:397 main.lua:22740
+#: koassistant_setup_wizard.lua:397 main.lua:22757
 #, fuzzy
 msgid "EMOJI DISPLAY TEST"
 msgstr "絵文字表示テスト"
 
-#: koassistant_setup_wizard.lua:398 main.lua:22741
+#: koassistant_setup_wizard.lua:398 main.lua:22758
 #, fuzzy
 msgid "Do these icons display correctly on your device?"
 msgstr "お使いのデバイスでこれらのアイコンは正しく表示されていますか？"
@@ -10540,17 +10540,17 @@ msgid ""
 "Emoji appear in plugin menus, buttons and panels — not in the Markdown chat view (a KOReader renderer limit)."
 msgstr "絵文字はプラグインメニュー、ボタン、パネルに表示されます — Markdownチャットビューには表示されません（KOReaderレンダラーの制限）。"
 
-#: koassistant_setup_wizard.lua:403 main.lua:22746
+#: koassistant_setup_wizard.lua:403 main.lua:22763
 #, fuzzy
 msgid "If you see blank boxes or question marks, choose \"No\"."
 msgstr "空白のボックスや疑問符が表示される場合は「いいえ」を選択してください。"
 
-#: koassistant_setup_wizard.lua:416 main.lua:22752
+#: koassistant_setup_wizard.lua:416 main.lua:22769
 #, fuzzy
 msgid "Yes, enable"
 msgstr "はい、有効にする"
 
-#: koassistant_setup_wizard.lua:417 main.lua:22753
+#: koassistant_setup_wizard.lua:417 main.lua:22770
 #, fuzzy
 msgid "No, skip"
 msgstr "いいえ、スキップ"
@@ -10560,7 +10560,7 @@ msgstr "いいえ、スキップ"
 msgid "Emoji icons enabled"
 msgstr "絵文字アイコンが有効になりました"
 
-#: koassistant_setup_wizard.lua:450 main.lua:22601
+#: koassistant_setup_wizard.lua:450 main.lua:22618
 #, fuzzy
 msgid "Welcome to KOAssistant!"
 msgstr "KOAssistantへようこそ!"
@@ -10688,7 +10688,7 @@ msgid ""
 "What may KOAssistant share with your AI provider? Everything here is off until you allow it, and per-book overrides exist for all of it."
 msgstr "KOAssistantがAIプロバイダーと共有してよい情報は何ですか？ここにある項目はすべて許可するまでオフになっており、すべてに本ごとの上書き設定があります。"
 
-#: koassistant_setup_wizard.lua:665 main.lua:22828
+#: koassistant_setup_wizard.lua:665 main.lua:22845
 #, fuzzy
 msgid ""
 "Tip: keep a toggle off globally and allow it per book — or on globally and deny it for sensitive books. A per-book deny always wins."
@@ -10737,13 +10737,13 @@ msgid ""
 "Icons appear in plugin menus, buttons and panels — not in the Markdown chat view. Requires a KOReader restart; a glyph test follows after it."
 msgstr "アイコンはプラグインのメニュー、ボタン、パネルに表示されます — Markdownチャットビューには表示されません。KOReaderの再起動が必要で、その後にグリフのテストが行われます。"
 
-#: koassistant_setup_wizard.lua:726 main.lua:12931 main.lua:13120
-#: main.lua:14676
+#: koassistant_setup_wizard.lua:726 main.lua:12948 main.lua:13137
+#: main.lua:14693
 #, fuzzy
 msgid "Install"
 msgstr "インストール"
 
-#: koassistant_setup_wizard.lua:727 main.lua:15627 main.lua:15664
+#: koassistant_setup_wizard.lua:727 main.lua:15644 main.lua:15681
 #, fuzzy
 msgid "Skip"
 msgstr "スキップ"
@@ -10764,7 +10764,7 @@ msgstr "KOAssistantのパネルは、KOReaderの設定（歯車アイコン）> 
 msgid "Gestures assigned: %1 (restart pending)"
 msgstr "ジェスチャーが割り当てられました: %1（再起動待ち）"
 
-#: koassistant_setup_wizard.lua:805 main.lua:22462
+#: koassistant_setup_wizard.lua:805 main.lua:22479
 #, fuzzy
 msgid "taken"
 msgstr "使用中"
@@ -10924,7 +10924,7 @@ msgstr ""
 "%2"
 
 #: koassistant_update_checker.lua:695 koassistant_update_checker.lua:787
-#: main.lua:21974
+#: main.lua:21991
 #, fuzzy
 msgid "Later"
 msgstr "後で"
@@ -11058,14 +11058,14 @@ msgstr "注意：一部のユーザーファイル（APIキー、カスタムア
 msgid "← X-Ray"
 msgstr "← X-Ray"
 
-#: koassistant_xray_browser.lua:164 main.lua:12290 main.lua:12433
-#: main.lua:13215
+#: koassistant_xray_browser.lua:164 main.lua:12307 main.lua:12450
+#: main.lua:13232
 #, fuzzy
 msgid "Section X-Ray: %1"
 msgstr "セクション X-Ray：%1"
 
 #: koassistant_xray_browser.lua:516 koassistant_xray_browser.lua:614
-#: main.lua:11789
+#: main.lua:11806
 #, fuzzy
 msgid "Pages %1–%2"
 msgstr "ページ%1〜%2"
@@ -11155,8 +11155,8 @@ msgstr "位置がアクティブなHidden Flowの外にあります"
 msgid "X-Ray § %1"
 msgstr "X-Ray § %1"
 
-#: koassistant_xray_browser.lua:1221 main.lua:9826 main.lua:12838
-#: main.lua:13093
+#: koassistant_xray_browser.lua:1221 main.lua:9843 main.lua:12855
+#: main.lua:13110
 #, fuzzy
 msgid "X-Ray Version"
 msgstr "X-Rayバージョン"
@@ -11676,7 +11676,7 @@ msgstr ""
 #: koassistant_xray_browser.lua:4472 koassistant_xray_browser.lua:4638
 #: koassistant_xray_browser.lua:4673 koassistant_xray_browser.lua:4702
 #: koassistant_xray_browser.lua:4923 koassistant_xray_browser.lua:5343
-#: main.lua:19440
+#: main.lua:19457
 #, fuzzy
 msgid "Reveal"
 msgstr "表示"
@@ -12010,22 +12010,22 @@ msgstr "メインのX-Rayとその他のセクションを検索（%1）"
 msgid "Search this book's section X-Rays (%1)"
 msgstr "この書籍のセクションX-Rayを検索（%1）"
 
-#: koassistant_xray_browser.lua:6485 main.lua:10007
+#: koassistant_xray_browser.lua:6485 main.lua:10024
 #, fuzzy
 msgid "Extend…"
 msgstr "拡張…"
 
-#: koassistant_xray_browser.lua:6491 main.lua:10011
+#: koassistant_xray_browser.lua:6491 main.lua:10028
 #, fuzzy
 msgid "Rebuild…"
 msgstr "再構築…"
 
-#: koassistant_xray_browser.lua:6501 main.lua:10024
+#: koassistant_xray_browser.lua:6501 main.lua:10041
 #, fuzzy
 msgid "Rebuild X-Ray…"
 msgstr "X-Rayを再構築…"
 
-#: koassistant_xray_browser.lua:6503 main.lua:9480 main.lua:10024
+#: koassistant_xray_browser.lua:6503 main.lua:9497 main.lua:10041
 #, fuzzy
 msgid "Create X-Ray…"
 msgstr "X-Rayを作成…"
@@ -12050,12 +12050,12 @@ msgstr "セクション X-Ray「%1」を削除しますか？この操作は元�
 msgid "Delete this X-Ray? This cannot be undone."
 msgstr "このX-Rayを削除しますか?この操作は取り消せません。"
 
-#: koassistant_xray_browser.lua:6605 main.lua:9551 main.lua:10085
+#: koassistant_xray_browser.lua:6605 main.lua:9568 main.lua:10102
 #, fuzzy
 msgid "Merge section X-Rays (%1)…"
 msgstr "セクションX-Rayをマージ (%1)…"
 
-#: koassistant_xray_browser.lua:6635 main.lua:10093
+#: koassistant_xray_browser.lua:6635 main.lua:10110
 #, fuzzy
 msgid "Merge from another book…"
 msgstr "他の書籍からマージ…"
@@ -12080,7 +12080,7 @@ msgstr "このバージョンをインストールまたは削除…"
 msgid "Other versions…"
 msgstr "他のバージョン…"
 
-#: koassistant_xray_browser.lua:6749 main.lua:10100
+#: koassistant_xray_browser.lua:6749 main.lua:10117
 #, fuzzy
 msgid "Find duplicate entities…"
 msgstr "重複エンティティを検索…"
@@ -12095,12 +12095,12 @@ msgstr "セクション："
 msgid "Pages:"
 msgstr "ページ："
 
-#: koassistant_xray_browser.lua:6786 main.lua:6882
+#: koassistant_xray_browser.lua:6786 main.lua:6899
 #, fuzzy
 msgid "updated from"
 msgstr "更新元"
 
-#: koassistant_xray_browser.lua:6788 main.lua:6885
+#: koassistant_xray_browser.lua:6788 main.lua:6902
 #, fuzzy
 msgid "Progress:"
 msgstr "進行状況:"
@@ -12125,25 +12125,25 @@ msgstr "ノンフィクション"
 msgid "Type:"
 msgstr "タイプ:"
 
-#: koassistant_xray_browser.lua:6800 main.lua:6887
+#: koassistant_xray_browser.lua:6800 main.lua:6904
 #, fuzzy
 msgid "Source:"
 msgstr "ソース:"
 
-#: koassistant_xray_browser.lua:6803 main.lua:6898
+#: koassistant_xray_browser.lua:6803 main.lua:6915
 #, fuzzy
 msgid "Reasoning:"
 msgstr "推論:"
 
 #: koassistant_xray_browser.lua:6803 koassistant_xray_browser.lua:6806
-#: main.lua:6898 main.lua:6901 koassistant_ui/prompts_manager.lua:866
+#: main.lua:6915 main.lua:6918 koassistant_ui/prompts_manager.lua:866
 #: koassistant_ui/prompts_manager.lua:894
 #: koassistant_ui/prompts_manager.lua:901
 #, fuzzy
 msgid "Yes"
 msgstr "はい"
 
-#: koassistant_xray_browser.lua:6806 main.lua:6901
+#: koassistant_xray_browser.lua:6806 main.lua:6918
 #, fuzzy
 msgid "Web search:"
 msgstr "Web検索:"
@@ -12520,13 +12520,13 @@ msgstr "X-Rayを統合"
 msgid "Merge anyway"
 msgstr "それでも統合する"
 
-#: koassistant_xray_merge.lua:1998 main.lua:11825
+#: koassistant_xray_merge.lua:1998 main.lua:11842
 #, fuzzy
 msgid "A Section X-Ray named '%1' already exists. Replace it?"
 msgstr "「%1」という名前のセクションX-Rayが既に存在します。置き換えますか？"
 
-#: koassistant_xray_merge.lua:2001 main.lua:9226 main.lua:11828 main.lua:12104
-#: main.lua:12130
+#: koassistant_xray_merge.lua:2001 main.lua:9243 main.lua:11845 main.lua:12121
+#: main.lua:12147
 #, fuzzy
 msgid "Replace"
 msgstr "置き換える"
@@ -12603,7 +12603,7 @@ msgid ""
 "These X-Rays were built from extracted book text. Enable \"Allow book text extraction\" (or use a trusted provider) to merge them."
 msgstr "これらのX-Rayは抽出した書籍テキストから作成されました。統合するには「書籍テキストの抽出を許可」を有効にするか、信頼できるプロバイダーを使用してください。"
 
-#: koassistant_xray_merge.lua:2270 main.lua:12281
+#: koassistant_xray_merge.lua:2270 main.lua:12298
 #, fuzzy
 msgid "merged"
 msgstr "統合済み"
@@ -12994,7 +12994,7 @@ msgstr "X-Rayのある他の本 (%1)…"
 msgid "Merge into \"%1\": other books with an X-Ray"
 msgstr "「%1」に統合: X-Rayのある他の本"
 
-#: koassistant_xray_merge.lua:3510 main.lua:7530
+#: koassistant_xray_merge.lua:3510 main.lua:7547
 #, fuzzy
 msgid "Manage groups…"
 msgstr "グループを管理…"
@@ -13160,7 +13160,7 @@ msgstr "影響:"
 msgid "Background — \"%1\": %2"
 msgstr "バックグラウンド — 「%1」: %2"
 
-#: koassistant_xray_rows.lua:118 main.lua:8359
+#: koassistant_xray_rows.lua:118 main.lua:8376
 #, fuzzy
 msgid "Update %1 (to %2)"
 msgstr "%1を更新(%2まで)"
@@ -13207,7 +13207,7 @@ msgstr "%1% に更新、即時"
 msgid "Nothing to update from checkpoints: the X-Ray moved in the meantime."
 msgstr "チェックポイントから更新するものはありません: X-Rayはその間に移動しました。"
 
-#: koassistant_xray_rows.lua:205 main.lua:9614 main.lua:12693
+#: koassistant_xray_rows.lua:205 main.lua:9631 main.lua:12710
 #, fuzzy
 msgid "Switch to complete version (100%), instant"
 msgstr "完全版（100%）に切り替え、即時"
@@ -13222,7 +13222,7 @@ msgstr "あなたの位置（%1%）に戻す、即時"
 msgid "Install checkpoint to %1% (ahead), instant"
 msgstr "%1%（先）へチェックポイントをインストール、即時"
 
-#: koassistant_xray_rows.lua:258 main.lua:9602 main.lua:9678
+#: koassistant_xray_rows.lua:258 main.lua:9619 main.lua:9695
 #, fuzzy
 msgid "All versions (%1)…"
 msgstr "すべてのバージョン (%1)…"
@@ -14408,12 +14408,12 @@ msgstr "主要言語：%1"
 msgid "Follow Primary (%1)"
 msgstr "プライマリに従う（%1）"
 
-#: main.lua:5958 main.lua:5990 main.lua:6041 main.lua:17410
+#: main.lua:5958 main.lua:5990 main.lua:6041 main.lua:17427
 #, fuzzy
 msgid "Translate: %1"
 msgstr "翻訳：%1"
 
-#: main.lua:6004 main.lua:18501 koassistant_ui/prompts_manager.lua:1613
+#: main.lua:6004 main.lua:18518 koassistant_ui/prompts_manager.lua:1613
 #: koassistant_ui/prompts_manager.lua:3877
 #, fuzzy
 msgid "Custom..."
@@ -14424,7 +14424,7 @@ msgstr "カスタム..."
 msgid "Custom Translation Language"
 msgstr "カスタム翻訳言語"
 
-#: main.lua:6016 main.lua:18515
+#: main.lua:6016 main.lua:18532
 #, fuzzy
 msgid "e.g., Spanish, Japanese, French"
 msgstr "例：スペイン語、日本語、フランス語"
@@ -14490,74 +14490,74 @@ msgstr ""
 msgid "Load Full"
 msgstr "完全を読み込む"
 
-#: main.lua:6325
+#: main.lua:6342
 #, fuzzy
 msgid ""
 "Model lists are now managed through the model_lists.lua file. Please edit this file to add or remove models."
 msgstr "モデルリストはmodel_lists.luaファイルを通じて管理されるようになりました。モデルを追加または削除するには、このファイルを編集してください。"
 
-#: main.lua:6684
+#: main.lua:6701
 #, fuzzy
 msgid "Image prompt template"
 msgstr "画像プロンプトテンプレート"
 
-#: main.lua:6686 koassistant_ui/prompts_manager.lua:859
+#: main.lua:6703 koassistant_ui/prompts_manager.lua:859
 #, fuzzy
 msgid ""
 "Book title/author and surrounding text are included only when available for the request."
 msgstr "書籍のタイトル/著者と前後の文章は、リクエストに利用可能な場合のみ含まれます。"
 
-#: main.lua:6775
+#: main.lua:6792
 #, fuzzy
 msgid "No previously opened chat found"
 msgstr "以前に開いたチャットが見つかりません"
 
-#: main.lua:6792 main.lua:19976
+#: main.lua:6809 main.lua:19993
 #, fuzzy
 msgid "Configuration not found. Please set up configuration.lua first."
 msgstr "設定が見つかりません。最初にconfiguration.luaを設定してください。"
 
-#: main.lua:6824 main.lua:15723 main.lua:18136 main.lua:18154 main.lua:18172
+#: main.lua:6841 main.lua:15740 main.lua:18153 main.lua:18171 main.lua:18189
 #, fuzzy
 msgid "Please open a book first"
 msgstr "最初に本を開いてください"
 
-#: main.lua:6847 main.lua:6935
+#: main.lua:6864 main.lua:6952
 #, fuzzy
 msgid "Based on document summary"
 msgstr "ドキュメントの要約に基づく"
 
-#: main.lua:6895
+#: main.lua:6912
 #, fuzzy
 msgid "Language:"
 msgstr "言語:"
 
-#: main.lua:6904
+#: main.lua:6921
 #, fuzzy
 msgid "%1 in, %2 out"
 msgstr "入力%1、出力%2"
 
-#: main.lua:6906
+#: main.lua:6923
 #, fuzzy
 msgid "(%1 thinking)"
 msgstr "（思考%1）"
 
-#: main.lua:6908
+#: main.lua:6925
 #, fuzzy
 msgid "Tokens:"
 msgstr "トークン:"
 
-#: main.lua:6937
+#: main.lua:6954
 #, fuzzy
 msgid "Based on AI knowledge only"
 msgstr "AIの知識のみに基づく"
 
-#: main.lua:6952
+#: main.lua:6969
 #, fuzzy
 msgid "No book open"
 msgstr "本が開かれていません"
 
-#: main.lua:6967
+#: main.lua:6984
 #, fuzzy
 msgid ""
 "No artifacts found for this document.\n"
@@ -14568,64 +14568,64 @@ msgstr ""
 "\n"
 "X-Ray、Recap、X-Ray（シンプル）、ドキュメント要約、またはドキュメント分析を実行して作成してください。"
 
-#: main.lua:7171
+#: main.lua:7188
 #, fuzzy
 msgid "Which group?"
 msgstr "どのグループ？"
 
-#: main.lua:7360
+#: main.lua:7377
 #, fuzzy
 msgid "(this book)"
 msgstr "（この書籍）"
 
-#: main.lua:7439
+#: main.lua:7456
 #, fuzzy
 msgid "Not in %1's X-Ray: %2"
 msgstr "%1のX-Rayに含まれていません: %2"
 
-#: main.lua:7451
+#: main.lua:7468
 #, fuzzy
 msgid "(later in the series)"
 msgstr "(シリーズの後の巻)"
 
-#: main.lua:7455
+#: main.lua:7472
 #, fuzzy
 msgid ""
 "%1 comes later in the series and can reveal what happens in the books before it. Open it anyway?"
 msgstr "%1はシリーズの後の巻で、それ以前の巻の内容が明らかになる可能性があります。それでも開きますか?"
 
-#: main.lua:7456
+#: main.lua:7473
 #, fuzzy
 msgid "Open it"
 msgstr "開く"
 
-#: main.lua:7481
+#: main.lua:7498
 #, fuzzy
 msgid "(not in its X-Ray)"
 msgstr "（そのX-Rayには含まれていません）"
 
-#: main.lua:7505
+#: main.lua:7522
 #, fuzzy
 msgid "Merge / fold X-Rays…"
 msgstr "X-Rayを統合／折りたたむ…"
 
-#: main.lua:7523
+#: main.lua:7540
 #, fuzzy
 msgid "Group hub…"
 msgstr "グループハブ…"
 
-#: main.lua:7879
+#: main.lua:7896
 #, fuzzy
 msgid ""
 "Text extraction is disabled for this action. Re-enable it in the Action Manager."
 msgstr "このアクションではテキスト抽出が無効になっています。アクションマネージャーで再度有効にしてください。"
 
-#: main.lua:7890
+#: main.lua:7907
 #, fuzzy
 msgid "Text extraction is turned off for this book (Book Settings → Privacy)."
 msgstr "この書籍ではテキスト抽出がオフになっています（書籍設定 → プライバシー）。"
 
-#: main.lua:7891
+#: main.lua:7908
 #, fuzzy
 msgid ""
 "Text extraction is required to generate this artifact.\n"
@@ -14636,13 +14636,13 @@ msgstr ""
 "\n"
 "設定→プライバシーとデータ→テキスト抽出で有効にしてください。"
 
-#: main.lua:7899
+#: main.lua:7916
 #, fuzzy
 msgid ""
 "Library scanning is disabled for this action. Re-enable it in the Action Manager."
 msgstr "このアクションではライブラリスキャンが無効になっています。アクションマネージャーで再度有効にしてください。"
 
-#: main.lua:7907
+#: main.lua:7924
 #, fuzzy
 msgid ""
 "Library scanning is required for this action.\n"
@@ -14653,7 +14653,7 @@ msgstr ""
 "\n"
 "設定 → プライバシーとデータ → ライブラリスキャンを許可する で有効にしてください。"
 
-#: main.lua:7917
+#: main.lua:7934
 #, fuzzy
 msgid ""
 "No scan folders configured.\n"
@@ -14664,7 +14664,7 @@ msgstr ""
 "\n"
 "設定 → ライブラリ設定 → 恒久的なスキャンフォルダ でフォルダを追加してください。"
 
-#: main.lua:7926
+#: main.lua:7943
 #, fuzzy
 msgid ""
 "This action requires highlight or annotation data, but data access is disabled for this action.\n"
@@ -14675,13 +14675,13 @@ msgstr ""
 "\n"
 "アクションマネージャーで再度有効にしてください(アクションを長押し → 編集)。"
 
-#: main.lua:7938
+#: main.lua:7955
 #, fuzzy
 msgid ""
 "Highlights sharing is turned off for this book (Book Settings → Privacy)."
 msgstr "この書籍ではハイライトの共有がオフになっています（書籍設定 → プライバシー）。"
 
-#: main.lua:7939
+#: main.lua:7956
 #, fuzzy
 msgid ""
 "This action requires access to your highlights or annotations.\n"
@@ -14692,843 +14692,843 @@ msgstr ""
 "\n"
 "設定 → プライバシーとデータで共有を有効にしてください。"
 
-#: main.lua:7981
+#: main.lua:7998
 #, fuzzy
 msgid ""
 "Spoiler protection is on for this book. This covers the whole book, including parts you haven't read yet. Continue?"
 msgstr "この書籍はネタバレ保護がオンになっています。これはまだ読んでいない部分を含む書籍全体に適用されます。続けますか？"
 
-#: main.lua:7982 main.lua:9157
+#: main.lua:7999 main.lua:9174
 #, fuzzy
 msgid "Run"
 msgstr "実行"
 
-#: main.lua:8034
+#: main.lua:8051
 #, fuzzy
 msgid "Generate %1"
 msgstr "%1を生成"
 
-#: main.lua:8083 main.lua:8230
+#: main.lua:8100 main.lua:8247
 #, fuzzy
 msgid "Focus on a section…"
 msgstr "セクションに絞り込む…"
 
-#: main.lua:8088 main.lua:8235 main.lua:8915
+#: main.lua:8105 main.lua:8252 main.lua:8932
 #, fuzzy
 msgid "Select Section for %1"
 msgstr "%1 のセクションを選択"
 
-#: main.lua:8149 main.lua:8156
+#: main.lua:8166 main.lua:8173
 #, fuzzy
 msgid "Regenerate %1"
 msgstr "%1を再生成"
 
-#: main.lua:8299
+#: main.lua:8316
 #, fuzzy
 msgid "Generate %1 (to %2)"
 msgstr "%1を生成(%2まで)"
 
-#: main.lua:8307
+#: main.lua:8324
 #, fuzzy
 msgid "Generate %1 (complete)"
 msgstr "%1 を生成（完全版）"
 
-#: main.lua:8333 main.lua:9764 main.lua:15763
+#: main.lua:8350 main.lua:9781 main.lua:15780
 #, fuzzy
 msgid "introduction"
 msgstr "はじめに"
 
-#: main.lua:8361
+#: main.lua:8378
 #, fuzzy
 msgid "Redo %1 (to %2)"
 msgstr "%1をやり直す(%2まで)"
 
-#: main.lua:8375
+#: main.lua:8392
 #, fuzzy
 msgid "Redo %1 (complete)"
 msgstr "%1 をやり直す（完全版）"
 
-#: main.lua:8668
+#: main.lua:8685
 #, fuzzy
 msgid "This covers parts you haven't read yet."
 msgstr "これはまだ読んでいない部分を含みます。"
 
-#: main.lua:8728 main.lua:8760
+#: main.lua:8745 main.lua:8777
 #, fuzzy
 msgid "Full document"
 msgstr "ドキュメント全体"
 
-#: main.lua:8747
+#: main.lua:8764
 #, fuzzy
 msgid "Current chapter so far"
 msgstr "これまでの章"
 
-#: main.lua:8751
+#: main.lua:8768
 #, fuzzy
 msgid "From section… (to %1)"
 msgstr "セクション…から（%1まで）"
 
-#: main.lua:8758 main.lua:8767
+#: main.lua:8775 main.lua:8784
 #, fuzzy
 msgid "Pick section…"
 msgstr "セクションを選択…"
 
-#: main.lua:8848
+#: main.lua:8865
 #, fuzzy
 msgid "That section starts after your current position."
 msgstr "そのセクションは現在の位置より後から始まります。"
 
-#: main.lua:8968 main.lua:8976
+#: main.lua:8985 main.lua:8993
 #, fuzzy
 msgid "From \"%1\" to current position"
 msgstr "「%1」から現在の位置まで"
 
-#: main.lua:8984
+#: main.lua:9001
 #, fuzzy
 msgid "Sections not available for this action."
 msgstr "このアクションではセクションを使用できません。"
 
-#: main.lua:8984
+#: main.lua:9001
 #, fuzzy
 msgid "Use KOReader's hidden flows to limit scope."
 msgstr "KOReaderの非表示フローを使用してスコープを制限してください。"
 
-#: main.lua:8993 koassistant_ui/behavior_manager.lua:295
+#: main.lua:9010 koassistant_ui/behavior_manager.lua:295
 #: koassistant_ui/domain_manager.lua:311 koassistant_ui/prompts_manager.lua:841
 #, fuzzy
 msgid "Source"
 msgstr "ソース"
 
-#: main.lua:9008 main.lua:9009
+#: main.lua:9025 main.lua:9026
 #, fuzzy
 msgid "Extract text"
 msgstr "テキストを抽出"
 
-#: main.lua:9009 main.lua:9104
+#: main.lua:9026 main.lua:9121
 #, fuzzy
 msgid "enable in Settings → Privacy"
 msgstr "設定 → プライバシーで有効化"
 
-#: main.lua:9026 main.lua:9030 main.lua:9034 main.lua:9066 main.lua:9085
+#: main.lua:9043 main.lua:9047 main.lua:9051 main.lua:9083 main.lua:9102
 #, fuzzy
 msgid "Use summary"
 msgstr "要約を使用"
 
-#: main.lua:9030 main.lua:9123
+#: main.lua:9047 main.lua:9140
 #, fuzzy
 msgid "this action requires text extraction"
 msgstr "このアクションにはテキスト抽出が必要です"
 
-#: main.lua:9034
+#: main.lua:9051
 #, fuzzy
 msgid "not available for this action"
 msgstr "このアクションでは使用できません"
 
-#: main.lua:9041
+#: main.lua:9058
 #, fuzzy
 msgid "Use section summary"
 msgstr "セクション要約を使用"
 
-#: main.lua:9051
+#: main.lua:9068
 #, fuzzy
 msgid "Use document summary"
 msgstr "ドキュメント要約を使用"
 
-#: main.lua:9060
+#: main.lua:9077
 #, fuzzy
 msgid "Generate section summary"
 msgstr "セクション要約を生成"
 
-#: main.lua:9060 main.lua:9081
+#: main.lua:9077 main.lua:9098
 #, fuzzy
 msgid "one-time, reusable by other actions"
 msgstr "一回限り、他のアクションで再利用可能"
 
-#: main.lua:9066 main.lua:9085
+#: main.lua:9083 main.lua:9102
 #, fuzzy
 msgid "enable text extraction first"
 msgstr "先にテキスト抽出を有効にしてください"
 
-#: main.lua:9074
+#: main.lua:9091
 #, fuzzy
 msgid "Use existing summary"
 msgstr "既存の要約を使用"
 
-#: main.lua:9081
+#: main.lua:9098
 #, fuzzy
 msgid "Generate summary"
 msgstr "要約を生成"
 
-#: main.lua:9098
+#: main.lua:9115
 #, fuzzy
 msgid "Smart retrieval (AI searches the book)"
 msgstr "スマート検索（AIが書籍内を検索）"
 
-#: main.lua:9106
+#: main.lua:9123
 #, fuzzy
 msgid "not supported by this provider"
 msgstr "このプロバイダーではサポートされていません"
 
-#: main.lua:9109
+#: main.lua:9126
 #, fuzzy
 msgid "full or up-to-position only"
 msgstr "全体、または現在位置まで"
 
-#: main.lua:9123 main.lua:9126
+#: main.lua:9140 main.lua:9143
 #, fuzzy
 msgid "AI knowledge only"
 msgstr "AIの知識のみ"
 
-#: main.lua:9179
+#: main.lua:9196
 #, fuzzy
 msgid "Up to %1"
 msgstr "%1まで"
 
-#: main.lua:9189 main.lua:9198
+#: main.lua:9206 main.lua:9215
 #, fuzzy
 msgid "%1 (to %2)"
 msgstr "%1（%2まで）"
 
-#: main.lua:9223
+#: main.lua:9240
 #, fuzzy
 msgid "A full-document %1 already exists. Replace it?"
 msgstr "ドキュメント全体の %1 が既に存在します。置き換えますか？"
 
-#: main.lua:9523 main.lua:10040 main.lua:12322
+#: main.lua:9540 main.lua:10057 main.lua:12339
 #, fuzzy
 msgid "View Section X-Rays (%1)"
 msgstr "セクションX-Rayを表示（%1）"
 
-#: main.lua:9533 main.lua:10049
+#: main.lua:9550 main.lua:10066
 #, fuzzy
 msgid "Generate Section X-Ray…"
 msgstr "セクションX-Rayを生成…"
 
-#: main.lua:9540 main.lua:10056
+#: main.lua:9557 main.lua:10073
 #, fuzzy
 msgid "Generate for a section range…"
 msgstr "セクション範囲を指定して生成…"
 
-#: main.lua:9572 main.lua:9892
+#: main.lua:9589 main.lua:9909
 #, fuzzy
 msgid "Generating X-Ray to %1% in the background… (tap to cancel)"
 msgstr "X-Rayを%1%までバックグラウンドで生成中…（タップでキャンセル）"
 
-#: main.lua:9573 main.lua:9893
+#: main.lua:9590 main.lua:9910
 #, fuzzy
 msgid "Generating X-Ray in the background… (tap to cancel)"
 msgstr "X-Rayをバックグラウンドで生成中…（タップでキャンセル）"
 
-#: main.lua:9574 main.lua:9894
+#: main.lua:9591 main.lua:9911
 #, fuzzy
 msgid "Building checkpoints: %1 of %2, to %3%… (tap to cancel)"
 msgstr "チェックポイントを構築中：%1／%2、%3%まで…（タップでキャンセル）"
 
-#: main.lua:9576 main.lua:9896
+#: main.lua:9593 main.lua:9913
 #, fuzzy
 msgid "Building checkpoints: %1 of %2… (tap to cancel)"
 msgstr "チェックポイントを構築中：%1／%2…（タップでキャンセル）"
 
-#: main.lua:9634 main.lua:9960
+#: main.lua:9651 main.lua:9977
 #, fuzzy
 msgid "Resume automatic building (paused)…"
 msgstr "自動構築を再開（一時停止中）…"
 
-#: main.lua:9655
+#: main.lua:9672
 #, fuzzy
 msgid "Resume building checkpoints (%1 so far — stopped: %2)…"
 msgstr "チェックポイントの構築を再開（現在%1件 — 停止理由：%2）…"
 
-#: main.lua:9656
+#: main.lua:9673
 #, fuzzy
 msgid "Resume building checkpoints (%1 so far)…"
 msgstr "チェックポイントの構築を再開（現在%1件）…"
 
-#: main.lua:9688 main.lua:10072
+#: main.lua:9705 main.lua:10089
 #, fuzzy
 msgid "Section X-Rays (%1)…"
 msgstr "セクションX-Ray（%1）…"
 
-#: main.lua:9688 main.lua:10072
+#: main.lua:9705 main.lua:10089
 #, fuzzy
 msgid "Section X-Rays…"
 msgstr "セクションX-Ray…"
 
-#: main.lua:9689 main.lua:10073
+#: main.lua:9706 main.lua:10090
 #, fuzzy
 msgid "Section X-Rays"
 msgstr "セクションX-Ray"
 
-#: main.lua:9690 main.lua:10075
+#: main.lua:9707 main.lua:10092
 #, fuzzy
 msgid "Versions…"
 msgstr "バージョン…"
 
-#: main.lua:9690 main.lua:10076
+#: main.lua:9707 main.lua:10093
 #, fuzzy
 msgid "Versions"
 msgstr "バージョン"
 
-#: main.lua:9724 main.lua:10152
+#: main.lua:9741 main.lua:10169
 #, fuzzy
 msgid ""
 "The installed X-Ray covers the whole book — spoiler protection does not limit it"
 msgstr "インストール済みのX-Rayは本全体をカバーしています — ネタバレ防止による制限はありません"
 
-#: main.lua:9727 main.lua:10155
+#: main.lua:9744 main.lua:10172
 #, fuzzy
 msgid "The installed X-Ray reaches %1%, ahead of your reading position"
 msgstr "インストール済みのX-Rayは%1%まで到達しており、読書位置より先です"
 
-#: main.lua:9730 main.lua:10158
+#: main.lua:9747 main.lua:10175
 #, fuzzy
 msgid "Spoiler protection is on — checkpoints follow your position"
 msgstr "ネタバレ防止がオンです — チェックポイントは読書位置に追従します"
 
-#: main.lua:9775
+#: main.lua:9792
 #, fuzzy
 msgid "auto"
 msgstr "自動"
 
-#: main.lua:9817
+#: main.lua:9834
 #, fuzzy
 msgid "Introduction"
 msgstr "はじめに"
 
-#: main.lua:9822
+#: main.lua:9839
 #, fuzzy
 msgid "View earlier version (%1)"
 msgstr "以前のバージョンを表示（%1）"
 
-#: main.lua:9910
+#: main.lua:9927
 #, fuzzy
 msgid "Auto-update in progress… (tap to cancel)"
 msgstr "自動更新を実行中…（タップでキャンセル）"
 
-#: main.lua:9916
+#: main.lua:9933
 #, fuzzy
 msgid "Background update cancelled."
 msgstr "バックグラウンド更新をキャンセルしました。"
 
-#: main.lua:9984
+#: main.lua:10001
 #, fuzzy
 msgid "Resume building checkpoints (from %1% — stopped: %2)…"
 msgstr "チェックポイントの構築を再開（%1%から — 停止理由：%2）…"
 
-#: main.lua:9986
+#: main.lua:10003
 #, fuzzy
 msgid "Resume building checkpoints (from %1%)…"
 msgstr "チェックポイントの構築を再開（%1%から）…"
 
-#: main.lua:10075
+#: main.lua:10092
 #, fuzzy
 msgid "Versions (%1)…"
 msgstr "バージョン（%1）…"
 
-#: main.lua:10117
+#: main.lua:10134
 #, fuzzy
 msgid "Merge / fold…"
 msgstr "統合／折りたたみ…"
 
-#: main.lua:10117
+#: main.lua:10134
 #, fuzzy
 msgid "Merge / fold"
 msgstr "統合／折りたたみ"
 
-#: main.lua:10180
+#: main.lua:10197
 #, fuzzy
 msgid "Marking & lookup…"
 msgstr "マーキングと参照…"
 
-#: main.lua:10207
+#: main.lua:10224
 #, fuzzy
 msgid "You're at %1. A checkpoint at %2% is ready to install now, free."
 msgstr "現在位置は%1です。%2%のチェックポイントが準備でき、今すぐ無料でインストールできます。"
 
-#: main.lua:10214
+#: main.lua:10231
 #, fuzzy
 msgid ""
 "You're at %1. The next checkpoint (%2%) is built and installs on the next page turn."
 msgstr "現在位置は%1です。次のチェックポイント（%2%）は構築済みで、次のページめくり時にインストールされます。"
 
-#: main.lua:10216
+#: main.lua:10233
 #, fuzzy
 msgid ""
 "You're at %1. The next checkpoint (%2%) is already built and installs when you reach it."
 msgstr "現在位置は%1です。次のチェックポイント（%2%）はすでに構築済みで、到達時にインストールされます。"
 
-#: main.lua:10219
+#: main.lua:10236
 #, fuzzy
 msgid "You're at %1."
 msgstr "現在位置は%1です。"
 
-#: main.lua:10232
+#: main.lua:10249
 #, fuzzy
 msgid "Last auto-update failed (%1)"
 msgstr "前回の自動更新は失敗しました (%1)"
 
-#: main.lua:10233
+#: main.lua:10250
 #, fuzzy
 msgid "Last auto-update failed"
 msgstr "前回の自動更新に失敗しました"
 
-#: main.lua:10256
+#: main.lua:10273
 #, fuzzy
 msgid "This book has no table of contents."
 msgstr "この本には目次がありません。"
 
-#: main.lua:10291
+#: main.lua:10308
 #, fuzzy
 msgid "No chapters available."
 msgstr "利用可能なチャプターがありません。"
 
-#: main.lua:10405
+#: main.lua:10422
 #, fuzzy
 msgid "Select Section"
 msgstr "セクションを選択"
 
-#: main.lua:10642
+#: main.lua:10659
 #, fuzzy
 msgid "Section range: pick the first section"
 msgstr "セクション範囲：最初のセクションを選択"
 
-#: main.lua:10645
+#: main.lua:10662
 #, fuzzy
 msgid "Section range: pick the last section"
 msgstr "セクション範囲：最後のセクションを選択"
 
-#: main.lua:10658
+#: main.lua:10675
 #, fuzzy
 msgid "%1 – %2"
 msgstr "%1 – %2"
 
-#: main.lua:10768
+#: main.lua:10785
 #, fuzzy
 msgid "Create X-Ray: how far should it cover?"
 msgstr "X-Rayを作成：どこまでカバーしますか？"
 
-#: main.lua:10770 main.lua:11132
+#: main.lua:10787 main.lua:11149
 #, fuzzy
 msgid "The whole book"
 msgstr "本全体"
 
-#: main.lua:10774
+#: main.lua:10791
 #, fuzzy
 msgid "Up to my reading position"
 msgstr "現在の読書位置まで"
 
-#: main.lua:11019
+#: main.lua:11036
 #, fuzzy
 msgid ""
 "Rebuild from scratch, replacing the current X-Ray? The current one is kept until the new one arrives, then archived under \"All versions\"."
 msgstr "最初から再構築して現在のX-Rayを置き換えますか？現在のものは新しいものが完成するまで保持され、その後「すべてのバージョン」に保存されます。"
 
-#: main.lua:11020
+#: main.lua:11037
 #, fuzzy
 msgid ""
 "Rebuild from scratch, replacing the current X-Ray? The current one is kept until the new one arrives, then replaced. Version archiving is off, so it will be gone."
 msgstr "最初から再構築して現在のX-Rayを置き換えますか？現在のものは新しいものが完成するまで保持され、その後置き換えられます。バージョン保存はオフになっているため、削除されます。"
 
-#: main.lua:11024
+#: main.lua:11041
 #, fuzzy
 msgid ""
 "Its %1 checkpoints belong to the old version and are deleted when the new one is saved."
 msgstr "その%1件のチェックポイントは旧バージョンに属しており、新しいものが保存されると削除されます。"
 
-#: main.lua:11028 main.lua:11478
+#: main.lua:11045 main.lua:11495
 #, fuzzy
 msgid "Rebuild"
 msgstr "再構築"
 
-#: main.lua:11067
+#: main.lua:11084
 #, fuzzy
 msgid "Rebuild X-Ray"
 msgstr "X-Rayを再構築"
 
-#: main.lua:11068
+#: main.lua:11085
 #, fuzzy
 msgid "Extend X-Ray"
 msgstr "X-Rayを拡張"
 
-#: main.lua:11069
+#: main.lua:11086
 #, fuzzy
 msgid "Create X-Ray"
 msgstr "X-Rayを作成"
 
-#: main.lua:11085
+#: main.lua:11102
 #, fuzzy
 msgid ""
 "Your X-Ray covers to %1%. Building here replaces it from scratch (the outgoing version is archived under \"All versions\")."
 msgstr "あなたのX-Rayは%1%まで対応しています。ここで構築すると最初から作り直されます(現行バージョンは「すべてのバージョン」に保存されます)。"
 
-#: main.lua:11095
+#: main.lua:11112
 #, fuzzy
 msgid ""
 "Your installed X-Ray covers to %1%. A checkpoint up to %2% is already built."
 msgstr "インストール済みのX-Rayは%1%まで対応しています。%2%までのチェックポイントはすでに構築済みです。"
 
-#: main.lua:11099
+#: main.lua:11116
 #, fuzzy
 msgid "Your X-Ray covers to %1%."
 msgstr "あなたのX-Rayは%1%まで対応しています。"
 
-#: main.lua:11103
+#: main.lua:11120
 #, fuzzy
 msgid "analyzed as a whole"
 msgstr "全体として分析済み"
 
-#: main.lua:11104
+#: main.lua:11121
 #, fuzzy
 msgid "made from AI knowledge"
 msgstr "AIの知識から作成"
 
-#: main.lua:11105
+#: main.lua:11122
 #, fuzzy
 msgid "in an older format"
 msgstr "古い形式"
 
-#: main.lua:11106
+#: main.lua:11123
 #, fuzzy
 msgid ""
 "Your current X-Ray was %1, so it can't be extended. Building here replaces it (the outgoing version is archived under \"All versions\")."
 msgstr "現在のX-Rayは%1のため、拡張できません。ここで構築すると置き換えられます(現行バージョンは「すべてのバージョン」に保存されます)。"
 
-#: main.lua:11115
+#: main.lua:11132
 #, fuzzy
 msgid "Automatic building is on; the next checkpoint arrives at %1%."
 msgstr "自動構築がオンになっています。次のチェックポイントは%1%で到達します。"
 
-#: main.lua:11118
+#: main.lua:11135
 #, fuzzy
 msgid "Automatic building is on; the next checkpoint completes the book."
 msgstr "自動構築がオンになっています。次のチェックポイントで本が完了します。"
 
-#: main.lua:11130
+#: main.lua:11147
 #, fuzzy
 msgid "Coverage"
 msgstr "カバー範囲"
 
-#: main.lua:11146
+#: main.lua:11163
 #, fuzzy
 msgid "Up to my current position (%1), from scratch"
 msgstr "現在の位置(%1)まで、最初から"
 
-#: main.lua:11147
+#: main.lua:11164
 #, fuzzy
 msgid "Up to my current position (%1)"
 msgstr "現在の位置(%1)まで"
 
-#: main.lua:11157
+#: main.lua:11174
 #, fuzzy
 msgid "To the end of \"%1\" (%2%), from scratch"
 msgstr "「%1」の終わり(%2%)まで、最初から"
 
-#: main.lua:11159
+#: main.lua:11176
 #, fuzzy
 msgid "To the end of \"%1\" (%2%)"
 msgstr "「%1」の終わり(%2%)まで"
 
-#: main.lua:11178
+#: main.lua:11195
 #, fuzzy
 msgid "Cover the book up to the end of…"
 msgstr "本をどこまでカバーするか…"
 
-#: main.lua:11206 main.lua:15019
+#: main.lua:11223 main.lua:15036
 #, fuzzy
 msgid "Build"
 msgstr "構築"
 
-#: main.lua:11213 main.lua:11236
+#: main.lua:11230 main.lua:11253
 #, fuzzy
 msgid "In one request, in background (update)"
 msgstr "1回のリクエストで、バックグラウンドで(更新)"
 
-#: main.lua:11214 main.lua:11237
+#: main.lua:11231 main.lua:11254
 #, fuzzy
 msgid "In one request, in background"
 msgstr "1回のリクエストで、バックグラウンドで"
 
-#: main.lua:11217
+#: main.lua:11234
 #, fuzzy
 msgid "In one request, in background (from scratch)"
 msgstr "1回のリクエストで、バックグラウンドで(最初から)"
 
-#: main.lua:11219
+#: main.lua:11236
 #, fuzzy
 msgid "In one request now (update to 100%)"
 msgstr "今すぐ1回のリクエストで(100%まで更新)"
 
-#: main.lua:11220
+#: main.lua:11237
 #, fuzzy
 msgid "In one request now (update to your position)"
 msgstr "今すぐ1回のリクエストで(現在の位置まで更新)"
 
-#: main.lua:11222
+#: main.lua:11239
 #, fuzzy
 msgid "In one request now"
 msgstr "今すぐ1回のリクエストで"
 
-#: main.lua:11250
+#: main.lua:11267
 #, fuzzy
 msgid "In checkpoints, now (1 background step)"
 msgstr "チェックポイント作成中(バックグラウンド処理1件)"
 
-#: main.lua:11251
+#: main.lua:11268
 #, fuzzy
 msgid "In checkpoints, now (%1 background steps)"
 msgstr "今すぐチェックポイントで(バックグラウンドで%1ステップ)"
 
-#: main.lua:11260
+#: main.lua:11277
 #, fuzzy
 msgid "In checkpoints, as I read (already on)"
 msgstr "読み進めながらチェックポイントで(すでにオン)"
 
-#: main.lua:11262
+#: main.lua:11279
 #, fuzzy
 msgid "In checkpoints, as I read (already on; start now)"
 msgstr "読み進めながらチェックポイントで(すでにオン;今すぐ開始)"
 
-#: main.lua:11263
+#: main.lua:11280
 #, fuzzy
 msgid "In checkpoints, as I read (automatic)"
 msgstr "読み進めながらチェックポイントで(自動)"
 
-#: main.lua:11286
+#: main.lua:11303
 #, fuzzy
 msgid ""
 "You can update it manually anytime, or turn on automatic updates later; both build on top of what you have."
 msgstr "いつでも手動で更新するか、後で自動更新をオンにできます。どちらも現在の内容を土台にして構築されます。"
 
-#: main.lua:11288
+#: main.lua:11305
 #, fuzzy
 msgid ""
 "Automatic building is on and caught up. The next checkpoint builds by itself as you read on."
 msgstr "自動生成はオンで、進捗に追いついています。次のチェックポイントは読み進めると自動的に生成されます。"
 
-#: main.lua:11290
+#: main.lua:11307
 #, fuzzy
 msgid ""
 "Builds checkpoints in the background as you read, keeping the next one ready ahead of you. Missing checkpoints up to your position build right away."
 msgstr "読書中にバックグラウンドでチェックポイントを生成し、次のものを先読みして準備します。現在位置までの未生成のチェックポイントはすぐに生成されます。"
 
-#: main.lua:11292
+#: main.lua:11309
 #, fuzzy
 msgid "Coverage reaches 100% when you finish the book."
 msgstr "本を読み終えるとカバー範囲は100%に達します。"
 
-#: main.lua:11294
+#: main.lua:11311
 #, fuzzy
 msgid "It stops at the end of \"%1\"."
 msgstr "「%1」の終わりで停止します。"
 
-#: main.lua:11302
+#: main.lua:11319
 #, fuzzy
 msgid ""
 "Continues from your current coverage in bounded background steps, each a spoiler-safe version. Keep reading, cancel anytime, resume later."
 msgstr "現在のカバー範囲から続けてバックグラウンド処理を段階的に行い、各段階はネタバレなしのバージョンです。読書を続けながら、いつでもキャンセルでき、後で再開できます。"
 
-#: main.lua:11303
+#: main.lua:11320
 #, fuzzy
 msgid ""
 "Covers the range in bounded background steps, each a spoiler-safe version up to its position. A usable X-Ray installs after the first step; keep reading, cancel anytime, resume later."
 msgstr "指定範囲をバックグラウンド処理で段階的にカバーし、各段階はその時点までのネタバレなしバージョンです。最初の段階の後、利用可能なX-Rayがインストールされます。読書を続けながら、いつでもキャンセルでき、後で再開できます。"
 
-#: main.lua:11305
+#: main.lua:11322
 #, fuzzy
 msgid ""
 "The same single request in the background; a notification arrives when it is ready. The book must stay open."
 msgstr "同一のリクエストをバックグラウンドで1回実行し、準備ができると通知が届きます。本を開いたままにしておく必要があります。"
 
-#: main.lua:11311
+#: main.lua:11328
 #, fuzzy
 msgid "Updates your existing X-Ray to 100% in a single request."
 msgstr "既存のX-Rayを1回のリクエストで100%まで更新します。"
 
-#: main.lua:11313
+#: main.lua:11330
 #, fuzzy
 msgid "Updates your existing X-Ray up to your position in a single request."
 msgstr "既存のX-Rayを1回のリクエストで現在の位置まで更新します。"
 
-#: main.lua:11316
+#: main.lua:11333
 #, fuzzy
 msgid ""
 "Updates your existing X-Ray to the end of the chosen section in one background request; a notification arrives when it is ready."
 msgstr "既存のX-Rayを選択したセクションの終わりまでバックグラウンドリクエスト1回で更新し、準備ができると通知が届きます。"
 
-#: main.lua:11319
+#: main.lua:11336
 #, fuzzy
 msgid ""
 "Analyzes the whole book in a single request, shown as it streams in. Large for long books, no spoiler-safe intermediate versions."
 msgstr "本全体を1回のリクエストで解析し、ストリーミングで表示します。長編には大きな処理になり、ネタバレなしの中間バージョンはありません。"
 
-#: main.lua:11321
+#: main.lua:11338
 #, fuzzy
 msgid ""
 "Reads the book up to your position in a single request, shown as it streams in."
 msgstr "現在の位置まで本を1回のリクエストで読み込み、ストリーミングされながら表示されます。"
 
-#: main.lua:11324
+#: main.lua:11341
 #, fuzzy
 msgid ""
 "Reads the book up to the end of the chosen section in one background request; a notification arrives when it is ready."
 msgstr "選択したセクションの終わりまでの本の内容をバックグラウンドリクエスト1回で読み込み、準備ができると通知が届きます。"
 
-#: main.lua:11331
+#: main.lua:11348
 #, fuzzy
 msgid ""
 "Rebuilds from scratch and replaces the current X-Ray (the outgoing version is archived)."
 msgstr "最初から再構築して現在のX-Rayを置き換えます(以前のバージョンはアーカイブされます)。"
 
-#: main.lua:11339
+#: main.lua:11356
 #, fuzzy
 msgid ""
 "Note: this is a fresh AI request; the checkpoint already built to %1% still installs for free as you read past it."
 msgstr "注: これは新規のAIリクエストです。%1%まで生成済みのチェックポイントは、読み進めた際に無料でインストールされます。"
 
-#: main.lua:11382
+#: main.lua:11399
 #, fuzzy
 msgid "Every %1%…"
 msgstr "%1%ごとに…"
 
-#: main.lua:11408
+#: main.lua:11425
 #, fuzzy
 msgid "Checkpoint spacing for this book: every %1%"
 msgstr "この本のチェックポイント間隔:%1%ごと"
 
-#: main.lua:11421
+#: main.lua:11438
 #, fuzzy
 msgid "Checkpoint spacing for this book: recommended (every %1%)"
 msgstr "この本のチェックポイント間隔:推奨(%1%ごと)"
 
-#: main.lua:11459
+#: main.lua:11476
 #, fuzzy
 msgid "Checkpoint spacing, categories, depth:"
 msgstr "チェックポイントの間隔、カテゴリ、深さ:"
 
-#: main.lua:11479
+#: main.lua:11496
 #, fuzzy
 msgid "Extend"
 msgstr "拡張"
 
-#: main.lua:11480 koassistant_ui/prompts_manager.lua:2080
+#: main.lua:11497 koassistant_ui/prompts_manager.lua:2080
 #, fuzzy
 msgid "Create"
 msgstr "作成"
 
-#: main.lua:11667
+#: main.lua:11684
 #, fuzzy
 msgid "Automatic X-Ray on: rebuilding as you read."
 msgstr "自動X-Ray: 読み進めながら再構築中。"
 
-#: main.lua:11668
+#: main.lua:11685
 #, fuzzy
 msgid "Automatic X-Ray on: building as you read."
 msgstr "自動X-Ray: 読み進めながら構築中。"
 
-#: main.lua:11685
+#: main.lua:11702
 #, fuzzy
 msgid ""
 "Automatic X-Ray on: the X-Ray is rebuilt from the start in background requests, the introduction and checkpoints up to your position, plus one ahead."
 msgstr "自動X-Rayオン: X-Rayは最初からバックグラウンドリクエストで再構築され、現在位置までの導入部とチェックポイントに加え、1つ先まで生成されます。"
 
-#: main.lua:11687
+#: main.lua:11704
 #, fuzzy
 msgid ""
 "Automatic X-Ray on: background requests build the introduction and checkpoints up to your position, plus one ahead."
 msgstr "自動X-Rayオン: バックグラウンドリクエストで現在位置までの導入部とチェックポイントに加え、1つ先まで生成されます。"
 
-#: main.lua:11689
+#: main.lua:11706
 #, fuzzy
 msgid "Requests needed now: %1. Each covers a bounded slice of the text."
 msgstr "現在必要なリクエスト数: %1件。それぞれがテキストの一定範囲をカバーします。"
 
-#: main.lua:11690
+#: main.lua:11707
 #, fuzzy
 msgid "Start now?"
 msgstr "今すぐ開始しますか?"
 
-#: main.lua:11693
+#: main.lua:11710
 #, fuzzy
 msgid "Cancel (leave Automatic X-Ray off)"
 msgstr "キャンセル(自動X-Rayをオフのままにする)"
 
-#: main.lua:11702
+#: main.lua:11719
 #, fuzzy
 msgid "Start"
 msgstr "開始"
 
-#: main.lua:11730
+#: main.lua:11747
 #, fuzzy
 msgid ""
 "Automatic X-Ray is on for this book, but the X-Ray has not been built yet."
 msgstr "この本では自動X-Rayがオンになっていますが、X-Rayはまだ生成されていません。"
 
-#: main.lua:11731
+#: main.lua:11748
 #, fuzzy
 msgid "Cancel (turn Automatic X-Ray off)"
 msgstr "キャンセル(自動X-Rayをオフにする)"
 
-#: main.lua:11788
+#: main.lua:11805
 #, fuzzy
 msgid "Section X-Ray Name"
 msgstr "セクションX-Ray名"
 
-#: main.lua:11793
+#: main.lua:11810
 #, fuzzy
 msgid "Enter a name for this Section X-Ray"
 msgstr "このセクションX-Rayの名前を入力してください"
 
-#: main.lua:11804 main.lua:12080 main.lua:15019
+#: main.lua:11821 main.lua:12097 main.lua:15036
 #, fuzzy
 msgid "Generate"
 msgstr "生成"
 
-#: main.lua:12064
+#: main.lua:12081
 #, fuzzy
 msgid "Name this section"
 msgstr "このセクションに名前を付ける"
 
-#: main.lua:12065
+#: main.lua:12082
 #, fuzzy
 msgid "%1 · Pages %2–%3"
 msgstr "%1 · ページ %2–%3"
 
-#: main.lua:12069
+#: main.lua:12086
 #, fuzzy
 msgid "Enter a name for this section"
 msgstr "このセクションの名前を入力してください"
 
-#: main.lua:12080
+#: main.lua:12097
 #, fuzzy
 msgid "Confirm"
 msgstr "確認"
 
-#: main.lua:12101
+#: main.lua:12118
 #, fuzzy
 msgid "A section '%1' already exists for %2. Replace it?"
 msgstr "%2 に対してセクション「%1」が既に存在します。置き換えますか？"
 
-#: main.lua:12127
+#: main.lua:12144
 #, fuzzy
 msgid "A %1 for this page range already exists: \"%2\". Replace it?"
 msgstr "このページ範囲の%1が既に存在します：「%2」。置き換えますか？"
 
-#: main.lua:12175
+#: main.lua:12192
 #, fuzzy
 msgid "No sections found."
 msgstr "セクションが見つかりません。"
 
-#: main.lua:12210
+#: main.lua:12227
 #, fuzzy
 msgid "Delete section '%1'?"
 msgstr "セクション「%1」を削除しますか？"
 
-#: main.lua:12259
+#: main.lua:12276
 #, fuzzy
 msgid "No Section X-Rays found."
 msgstr "セクションX-Rayが見つかりません。"
 
-#: main.lua:12405
+#: main.lua:12422
 #, fuzzy
 msgid ""
 "The updated X-Ray may list the same entity twice: \"%1\" and \"%2\".\n"
@@ -15539,7 +15539,7 @@ msgstr ""
 "\n"
 "提案を確認しますか?"
 
-#: main.lua:12408
+#: main.lua:12425
 #, fuzzy
 msgid ""
 "The updated X-Ray has %1 possible duplicate entity pairs.\n"
@@ -15550,295 +15550,295 @@ msgstr ""
 "\n"
 "提案を確認しますか?"
 
-#: main.lua:12413
+#: main.lua:12430
 #, fuzzy
 msgid "Review"
 msgstr "確認"
 
-#: main.lua:12441
+#: main.lua:12458
 #, fuzzy
 msgid "Delete Section X-Ray: %1?"
 msgstr "セクションX-Rayを削除しますか：%1？"
 
-#: main.lua:12485
+#: main.lua:12502
 #, fuzzy
 msgid "Introduction (spoiler-free)"
 msgstr "概要（スポイラーなし）"
 
-#: main.lua:12493
+#: main.lua:12510
 #, fuzzy
 msgid "end of %1"
 msgstr "%1の終わり"
 
-#: main.lua:12507 main.lua:12509
+#: main.lua:12524 main.lua:12526
 #, fuzzy
 msgid "built %1"
 msgstr "生成日時 %1"
 
-#: main.lua:12512
+#: main.lua:12529
 #, fuzzy
 msgid "edited"
 msgstr "編集済み"
 
-#: main.lua:12517 main.lua:12519
+#: main.lua:12534 main.lua:12536
 #, fuzzy
 msgid "archived %1"
 msgstr "アーカイブ日時 %1"
 
-#: main.lua:12584
+#: main.lua:12601
 #, fuzzy
 msgid "No X-Ray versions."
 msgstr "X-Rayのバージョンがありません。"
 
-#: main.lua:12624 main.lua:12661
+#: main.lua:12641 main.lua:12678
 #, fuzzy
 msgid "(current)"
 msgstr "（現在）"
 
-#: main.lua:12646
+#: main.lua:12663
 #, fuzzy
 msgid "— Archived versions —"
 msgstr "— アーカイブされたバージョン —"
 
-#: main.lua:12648
+#: main.lua:12665
 #, fuzzy
 msgid "— Prepared checkpoints —"
 msgstr "— 準備済みチェックポイント —"
 
-#: main.lua:12652
+#: main.lua:12669
 #, fuzzy
 msgid "checkpoint"
 msgstr "チェックポイント"
 
-#: main.lua:12666
+#: main.lua:12683
 #, fuzzy
 msgid "(ahead)"
 msgstr "（先読み）"
 
-#: main.lua:12671
+#: main.lua:12688
 #, fuzzy
 msgid "(latest before your position)"
 msgstr "（現在位置より前の最新）"
 
-#: main.lua:12703
+#: main.lua:12720
 #, fuzzy
 msgid "Delete checkpoints (%1)…"
 msgstr "チェックポイントを削除（%1）…"
 
-#: main.lua:12722
+#: main.lua:12739
 #, fuzzy
 msgid ""
 "Delete the %1 checkpoints? They include your complete version (100%), which is not installed as your current X-Ray; deleting now discards it."
 msgstr "%1個のチェックポイントを削除しますか？完全版（100%）が含まれますが、これは現在のX-Rayとしてインストールされていません。今削除するとこれも失われます。"
 
-#: main.lua:12725
+#: main.lua:12742
 #, fuzzy
 msgid "Switch to complete version first…"
 msgstr "まず完全版に切り替える…"
 
-#: main.lua:12732
+#: main.lua:12749
 #, fuzzy
 msgid "Delete all, including the complete version"
 msgstr "完全版を含めてすべて削除"
 
-#: main.lua:12747
+#: main.lua:12764
 #, fuzzy
 msgid "Your complete X-Ray stays; this deletes only the checkpoints."
 msgstr "現在のX-Rayは保持され、チェックポイントのみが削除されます。"
 
-#: main.lua:12749
+#: main.lua:12766
 #, fuzzy
 msgid "It also removes the free \"Switch back to your position\" option."
 msgstr "これにより「元の位置に戻る」無料オプションも削除されます。"
 
-#: main.lua:12752
+#: main.lua:12769
 #, fuzzy
 msgid "The current X-Ray and archived previous versions are not affected."
 msgstr "現在のX-Rayとアーカイブ済みの以前のバージョンには影響しません。"
 
-#: main.lua:12755
+#: main.lua:12772
 #, fuzzy
 msgid "Delete all %1 checkpoints?"
 msgstr "%1個のチェックポイントをすべて削除しますか？"
 
-#: main.lua:12783
+#: main.lua:12800
 #, fuzzy
 msgid "X-Ray Versions"
 msgstr "X-Rayバージョン"
 
-#: main.lua:12791
+#: main.lua:12808
 #, fuzzy
 msgid ""
 "X-Ray follows your reading position (your choice). Installing the newest checkpoint switches back to newest-first."
 msgstr "X-Rayは読書位置に追従します（あなたの選択）。最新のチェックポイントをインストールすると、最新優先に戻ります。"
 
-#: main.lua:12794
+#: main.lua:12811
 #, fuzzy
 msgid "Research mode: the newest checkpoint installs as soon as it is built."
 msgstr "リサーチモード: 最新のチェックポイントは構築完了後すぐにインストールされます。"
 
-#: main.lua:12796
+#: main.lua:12813
 #, fuzzy
 msgid "Book finished: the newest checkpoint installs as soon as it is built."
 msgstr "読了済み: 最新のチェックポイントは構築完了後すぐにインストールされます。"
 
-#: main.lua:12797
+#: main.lua:12814
 #, fuzzy
 msgid ""
 "Spoiler protection is off: the newest checkpoint installs as soon as it is built."
 msgstr "スポイラー保護がオフです: 最新のチェックポイントは構築完了後すぐにインストールされます。"
 
-#: main.lua:12802
+#: main.lua:12819
 #, fuzzy
 msgid "Reading position: %1"
 msgstr "読書位置: %1"
 
-#: main.lua:12854
+#: main.lua:12871
 #, fuzzy
 msgid "Installed as your current X-Ray"
 msgstr "現在のX-Rayとしてインストール済み"
 
-#: main.lua:12858 main.lua:13106
+#: main.lua:12875 main.lua:13123
 #, fuzzy
 msgid "Install (auto-update in progress)"
 msgstr "インストール（自動更新中）"
 
-#: main.lua:12899
+#: main.lua:12916
 #, fuzzy
 msgid "Checkpoint installed (%1)"
 msgstr "チェックポイントをインストールしました（%1）"
 
-#: main.lua:12906 main.lua:14651
+#: main.lua:12923 main.lua:14668
 #, fuzzy
 msgid "Install failed. This checkpoint is no longer on disk."
 msgstr "インストールに失敗しました。このチェックポイントはディスク上にありません。"
 
-#: main.lua:12910 main.lua:13112
+#: main.lua:12927 main.lua:13129
 #, fuzzy
 msgid "Install as current X-Ray (free)"
 msgstr "現在のX-Rayとしてインストール（無料）"
 
-#: main.lua:12914
+#: main.lua:12931
 #, fuzzy
 msgid ""
 "Install the checkpoint from %1 as your current X-Ray? Your current version stays in the version list."
 msgstr "%1のチェックポイントを現在のX-Rayとしてインストールしますか？現在のバージョンはバージョン一覧に残ります。"
 
-#: main.lua:12917
+#: main.lua:12934
 #, fuzzy
 msgid ""
 "Spoiler protection is off, but this pins the X-Ray to follow your reading position for this book. Installing the newest checkpoint switches back."
 msgstr "スポイラー保護はオフですが、これによりこの本のX-Rayが読書位置に追従するよう固定されます。最新のチェックポイントをインストールすると元に戻ります。"
 
-#: main.lua:12926
+#: main.lua:12943
 #, fuzzy
 msgid ""
 "Install the checkpoint from %1? It reaches past your reading position (%2%), so its entries may mention people and events you have not reached yet. Your current version stays in the version list. Free checkpoint swaps pause until you read past it; the X-Ray popup offers a switch back to your position."
 msgstr "%1のチェックポイントをインストールしますか？これは読書位置（%2%）を超えているため、まだ到達していない人物やイベントが記載されている可能性があります。現在のバージョンはバージョン一覧に残ります。無料のチェックポイント切り替えは、そこまで読み進めるまで一時停止します。X-Rayポップアップから元の位置に戻すこともできます。"
 
-#: main.lua:12955
+#: main.lua:12972
 #, fuzzy
 msgid "Delete this checkpoint"
 msgstr "このチェックポイントを削除"
 
-#: main.lua:12993
+#: main.lua:13010
 #, fuzzy
 msgid "Delete the checkpoint from %1?"
 msgstr "%1のチェックポイントを削除しますか？"
 
-#: main.lua:12994
+#: main.lua:13011
 #, fuzzy
 msgid "If automatic building needs this grid point again, it is rebuilt."
 msgstr "自動構築でこのグリッドポイントが再度必要になった場合、再構築されます。"
 
-#: main.lua:12997
+#: main.lua:13014
 #, fuzzy
 msgid ""
 "This checkpoint is currently installed as your X-Ray — deleting it from the list alone keeps it installed."
 msgstr "このチェックポイントは現在X-Rayとしてインストールされています — 一覧からのみ削除してもインストール状態は維持されます。"
 
-#: main.lua:13004
+#: main.lua:13021
 #, fuzzy
 msgid "Delete and go back to %1"
 msgstr "削除して%1に戻る"
 
-#: main.lua:13025
+#: main.lua:13042
 #, fuzzy
 msgid "Checkpoint deleted — X-Ray back to %1"
 msgstr "チェックポイントを削除しました — X-Rayは%1に戻りました"
 
-#: main.lua:13032
+#: main.lua:13049
 #, fuzzy
 msgid "Delete from the list only"
 msgstr "一覧からのみ削除"
 
-#: main.lua:13039
+#: main.lua:13056
 #, fuzzy
 msgid "Checkpoint deleted (%1)"
 msgstr "チェックポイントを削除しました（%1）"
 
-#: main.lua:13066
+#: main.lua:13083
 #, fuzzy
 msgid "Checkpoint: %1"
 msgstr "チェックポイント: %1"
 
-#: main.lua:13117
+#: main.lua:13134
 #, fuzzy
 msgid ""
 "Install the version from %1 as your current X-Ray? Your current version stays in the version list."
 msgstr "%1のバージョンを現在のX-Rayとしてインストールしますか?現在のバージョンはバージョン一覧に残ります。"
 
-#: main.lua:13134
+#: main.lua:13151
 #, fuzzy
 msgid "Version installed (%1)"
 msgstr "バージョンをインストールしました (%1)"
 
-#: main.lua:13139
+#: main.lua:13156
 #, fuzzy
 msgid "Install failed. This version is no longer archived."
 msgstr "インストールに失敗しました。このバージョンはもうアーカイブされていません。"
 
-#: main.lua:13162
+#: main.lua:13179
 #, fuzzy
 msgid "Delete the X-Ray version from %1?"
 msgstr "%1のX-Rayバージョンを削除しますか?"
 
-#: main.lua:13196
+#: main.lua:13213
 #, fuzzy
 msgid "X-Ray version: %1"
 msgstr "X-Rayバージョン: %1"
 
-#: main.lua:13227
+#: main.lua:13244
 #, fuzzy
 msgid "Section Analysis: %1"
 msgstr "セクション分析：%1"
 
-#: main.lua:13239
+#: main.lua:13256
 #, fuzzy
 msgid "Section Summary: %1"
 msgstr "セクション要約：%1"
 
-#: main.lua:13310
+#: main.lua:13327
 #, fuzzy
 msgid "Continue / Review"
 msgstr "続ける／復習する"
 
-#: main.lua:13314
+#: main.lua:13331
 #, fuzzy
 msgid "Take Again"
 msgstr "もう一度挑戦する"
 
-#: main.lua:13437
+#: main.lua:13454
 #, fuzzy
 msgid "Update to %1"
 msgstr "%1に更新"
 
-#: main.lua:13439
+#: main.lua:13456
 #, fuzzy
 msgid "Redo"
 msgstr "やり直す"
 
-#: main.lua:13549
+#: main.lua:13566
 #, fuzzy
 msgid ""
 "You haven't read this book in %1 days.\n"
@@ -15849,404 +15849,404 @@ msgstr ""
 "\n"
 "AIリキャップで読書の続きに戻りますか？"
 
-#: main.lua:13604
+#: main.lua:13621
 #, fuzzy
 msgid ""
 "KOAssistant: Would you like an AI suggestion for what to read next from your library?"
 msgstr "KOAssistant: ライブラリから次に読む本についてAIの提案を受けますか？"
 
-#: main.lua:13605
+#: main.lua:13622
 #, fuzzy
 msgid "Suggest"
 msgstr "提案する"
 
-#: main.lua:13693 main.lua:15597 main.lua:15614 main.lua:15707
+#: main.lua:13710 main.lua:15614 main.lua:15631 main.lua:15724
 #, fuzzy
 msgid "Chapter %1"
 msgstr "第%1章"
 
-#: main.lua:14059 main.lua:14181 main.lua:14839
+#: main.lua:14076 main.lua:14198 main.lua:14856
 #, fuzzy
 msgid "WiFi is off."
 msgstr "WiFiがオフです。"
 
-#: main.lua:14152 main.lua:14470 main.lua:14552 main.lua:14618 main.lua:14821
+#: main.lua:14169 main.lua:14487 main.lua:14569 main.lua:14635 main.lua:14838
 #, fuzzy
 msgid "An X-Ray task is already running."
 msgstr "X-Rayタスクはすでに実行中です。"
 
-#: main.lua:14226
+#: main.lua:14243
 #, fuzzy
 msgid "Updating X-Ray in background (%1% → %2%)…"
 msgstr "バックグラウンドでX-Rayを更新中 (%1% → %2%)…"
 
-#: main.lua:14244
+#: main.lua:14261
 #, fuzzy
 msgid "X-Ray updated to %1%"
 msgstr "X-Rayを%1%に更新しました"
 
-#: main.lua:14256
+#: main.lua:14273
 #, fuzzy
 msgid "Background X-Ray update failed: %1"
 msgstr "バックグラウンドでのX-Ray更新に失敗しました: %1"
 
-#: main.lua:14371
+#: main.lua:14388
 #, fuzzy
 msgid ""
 "Spoiler protection is on: X-Ray back to your position (%1%). Newer versions are kept."
 msgstr "ネタバレ防止がオンです: X-Rayは現在の位置(%1%)に戻ります。新しいバージョンは保持されます。"
 
-#: main.lua:14413
+#: main.lua:14430
 #, fuzzy
 msgid "Introductory X-Ray is ready (spoiler-free)."
 msgstr "導入用X-Rayの準備ができました(ネタバレなし)。"
 
-#: main.lua:14415
+#: main.lua:14432
 #, fuzzy
 msgid "X-Ray updated to %1% (newest checkpoint; spoiler protection is off)"
 msgstr "X-Rayを%1%に更新しました(最新のチェックポイント。ネタバレ防止はオフです)"
 
-#: main.lua:14417
+#: main.lua:14434
 #, fuzzy
 msgid "X-Ray updated to %1% (checkpoint)"
 msgstr "X-Rayを%1%に更新しました(チェックポイント)"
 
-#: main.lua:14490
+#: main.lua:14507
 #, fuzzy
 msgid "The complete checkpoint is no longer available."
 msgstr "完全版のチェックポイントはもう利用できません。"
 
-#: main.lua:14496
+#: main.lua:14513
 #, fuzzy
 msgid "Switch to the complete X-Ray (100%)?"
 msgstr "完全なX-Ray(100%)に切り替えますか?"
 
-#: main.lua:14497
+#: main.lua:14514
 #, fuzzy
 msgid ""
 "It covers the whole book, including everything ahead of your reading position. The current version is kept in the version list."
 msgstr "これは本全体をカバーし、現在の読書位置より先のすべての内容も含みます。現在のバージョンはバージョン一覧に保持されます。"
 
-#: main.lua:14500
+#: main.lua:14517
 #, fuzzy
 msgid "Switch"
 msgstr "切り替える"
 
-#: main.lua:14507 main.lua:14603
+#: main.lua:14524 main.lua:14620
 #, fuzzy
 msgid "Switch failed. The checkpoint could not be installed."
 msgstr "切り替えに失敗しました。チェックポイントをインストールできませんでした。"
 
-#: main.lua:14521
+#: main.lua:14538
 #, fuzzy
 msgid ""
 "Switched to the complete X-Ray. The checkpoints are kept; they can be safely deleted under \"All versions\", or kept for the free \"Switch back to your position\" option."
 msgstr "完全なX-Rayに切り替えました。チェックポイントは保持され、「すべてのバージョン」から安全に削除するか、無料の「現在の位置に戻す」オプションのために残しておくことができます。"
 
-#: main.lua:14574
+#: main.lua:14591
 #, fuzzy
 msgid "No checkpoint at or below your position."
 msgstr "現在の位置以下にチェックポイントがありません。"
 
-#: main.lua:14592
+#: main.lua:14609
 #, fuzzy
 msgid ""
 "Switched back: X-Ray now at %1% and follows your position for this book"
 msgstr "切り替えました: X-Rayは現在%1%で、この本の読書位置に追従します"
 
-#: main.lua:14594
+#: main.lua:14611
 #, fuzzy
 msgid "Switched back: X-Ray now at %1%"
 msgstr "切り替えました: X-Rayは現在%1%です"
 
-#: main.lua:14641
+#: main.lua:14658
 #, fuzzy
 msgid "No checkpoint is built ahead of your position."
 msgstr "現在の位置より先にチェックポイントが構築されていません。"
 
-#: main.lua:14662
+#: main.lua:14679
 #, fuzzy
 msgid "Checkpoint installed (%1%)"
 msgstr "チェックポイントをインストールしました (%1%)"
 
-#: main.lua:14674
+#: main.lua:14691
 #, fuzzy
 msgid ""
 "Install the checkpoint to %1%? It reaches past your reading position (%2%), so its entries may mention people and events you have not reached yet. Your current version stays in the version list. Free checkpoint swaps pause until you read past it; the X-Ray popup offers a switch back to your position."
 msgstr "チェックポイントを%1%にインストールしますか?これは現在の読書位置(%2%)より先まで到達するため、項目にはまだ到達していない人物やイベントについての記述が含まれる可能性があります。現在のバージョンはバージョン一覧に保持されます。無料のチェックポイント切り替えは、そこを読み進めるまで一時停止します。X-Rayポップアップから現在の位置への切り替えが可能です。"
 
-#: main.lua:14773
+#: main.lua:14790
 #, fuzzy
 msgid "Use recommended (every %1%)"
 msgstr "推奨設定を使用する (%1ごと)"
 
-#: main.lua:14784
+#: main.lua:14801
 #, fuzzy
 msgid "Every %1%: %2 checkpoints"
 msgstr "%1ごと: %2個のチェックポイント"
 
-#: main.lua:14786
+#: main.lua:14803
 #, fuzzy
 msgid "Every %1%"
 msgstr "%1ごと"
 
-#: main.lua:14789
+#: main.lua:14806
 #, fuzzy
 msgid "(recommended)"
 msgstr "(推奨)"
 
-#: main.lua:14808
+#: main.lua:14825
 #, fuzzy
 msgid "Checkpoint spacing:"
 msgstr "チェックポイントの間隔:"
 
-#: main.lua:14828
+#: main.lua:14845
 #, fuzzy
 msgid "Checkpoint building supports EPUB-style (flowing) documents only."
 msgstr "チェックポイントの構築はEPUB形式(フロー型)のドキュメントのみサポートしています。"
 
-#: main.lua:14868
+#: main.lua:14885
 #, fuzzy
 msgid ""
 "This X-Ray can't build checkpoints (complete-track, AI-knowledge, or legacy format). Delete it first to build from scratch."
 msgstr "このX-Rayはチェックポイントを構築できません(完全版、AI知識版、またはレガシー形式)。最初から構築するには、まずこれを削除してください。"
 
-#: main.lua:14948
+#: main.lua:14965
 #, fuzzy
 msgid "Nothing to build: the X-Ray already covers the whole book."
 msgstr "構築するものがありません: X-Rayはすでに本全体をカバーしています。"
 
-#: main.lua:14956
+#: main.lua:14973
 #, fuzzy
 msgid "%1% (end of \"%2\")"
 msgstr "%1% (\"%2\"の末尾)"
 
-#: main.lua:14961
+#: main.lua:14978
 #, fuzzy
 msgid ""
 "Replaces your current X-Ray from scratch. Nothing is touched until the first new checkpoint arrives; the outgoing version is archived then."
 msgstr "現在のX-Rayを最初から置き換えます。最初の新しいチェックポイントが届くまでは何も変更されず、その時点で古いバージョンがアーカイブされます。"
 
-#: main.lua:14970
+#: main.lua:14987
 #, fuzzy
 msgid "Its %1 checkpoints belong to the old version and are deleted then too."
 msgstr "その%1個のチェックポイントも旧バージョンに属するため、同時に削除されます。"
 
-#: main.lua:14974
+#: main.lua:14991
 #, fuzzy
 msgid "Extends your X-Ray from %1% to %2."
 msgstr "X-Rayを%1%から%2まで拡張します。"
 
-#: main.lua:14975 main.lua:14980
+#: main.lua:14992 main.lua:14997
 #, fuzzy
 msgid "Covers the book from the beginning to %1."
 msgstr "本の最初から%1までをカバーします。"
 
-#: main.lua:14977
+#: main.lua:14994
 #, fuzzy
 msgid "Continues from %1% to %2."
 msgstr "%1%から%2まで続きます。"
 
-#: main.lua:14981
+#: main.lua:14998
 #, fuzzy
 msgid "Covers the whole book from the beginning."
 msgstr "本全体を最初からカバーします。"
 
-#: main.lua:14985
+#: main.lua:15002
 #, fuzzy
 msgid "One background request."
 msgstr "バックグラウンドリクエスト1件。"
 
-#: main.lua:14986
+#: main.lua:15003
 #, fuzzy
 msgid ""
 "Keep reading; the book must stay open. A notification arrives when it is ready."
 msgstr "読み続けてください。本を開いたままにする必要があります。準備ができると通知が届きます。"
 
-#: main.lua:14989
+#: main.lua:15006
 #, fuzzy
 msgid "2 checkpoints: one at your position (%1%), one at the end."
 msgstr "2つのチェックポイント: 1つは現在位置(%1%)、もう1つは末尾。"
 
-#: main.lua:14993
+#: main.lua:15010
 #, fuzzy
 msgid ""
 "%1 checkpoints: the first at your position (%2%), then chapter ends roughly every %3%."
 msgstr "%1個のチェックポイント: 最初は現在位置(%2%)、その後は章末ごとにおよそ%3%。"
 
-#: main.lua:14995
+#: main.lua:15012
 #, fuzzy
 msgid "%1 checkpoints: the first at your position (%2%), then every %3%."
 msgstr "%1個のチェックポイント: 最初は現在位置(%2%)、その後は%3%ごと。"
 
-#: main.lua:14999
+#: main.lua:15016
 #, fuzzy
 msgid "%1 checkpoints, at chapter ends roughly every %2%."
 msgstr "%1個のチェックポイント、章末ごとにおよそ%2%。"
 
-#: main.lua:15001
+#: main.lua:15018
 #, fuzzy
 msgid "%1 checkpoints, every %2%."
 msgstr "%1個のチェックポイント、%2%ごと。"
 
-#: main.lua:15005
+#: main.lua:15022
 #, fuzzy
 msgid "An introduction is generated first (%1 requests in total)."
 msgstr "まず概要が生成されます(合計%1リクエスト)。"
 
-#: main.lua:15007
+#: main.lua:15024
 #, fuzzy
 msgid "Small background requests; keep reading, cancel anytime, resume later."
 msgstr "小さなバックグラウンドリクエストです。読書を続け、いつでも中止・後で再開できます。"
 
-#: main.lua:15011
+#: main.lua:15028
 #, fuzzy
 msgid "Generate the X-Ray?"
 msgstr "X-Rayを生成しますか?"
 
-#: main.lua:15012
+#: main.lua:15029
 #, fuzzy
 msgid "Resume building X-Ray checkpoints?"
 msgstr "X-Rayチェックポイントの構築を再開しますか?"
 
-#: main.lua:15013
+#: main.lua:15030
 #, fuzzy
 msgid "Build X-Ray checkpoints?"
 msgstr "X-Rayチェックポイントを構築しますか?"
 
-#: main.lua:15019
+#: main.lua:15036
 #, fuzzy
 msgid "Resume"
 msgstr "再開"
 
-#: main.lua:15122
+#: main.lua:15139
 #, fuzzy
 msgid "Checkpoint build stopped: text extraction is disabled."
 msgstr "チェックポイント構築を停止しました: テキスト抽出が無効です。"
 
-#: main.lua:15127
+#: main.lua:15144
 #, fuzzy
 msgid "Checkpoint build stopped: WiFi is off."
 msgstr "チェックポイント構築を停止しました: WiFiがオフです。"
 
-#: main.lua:15251
+#: main.lua:15268
 #, fuzzy
 msgid "Generating X-Ray in the background (to %1%)…"
 msgstr "バックグラウンドでX-Rayを生成中(%1%まで)…"
 
-#: main.lua:15254
+#: main.lua:15271
 #, fuzzy
 msgid "X-Ray checkpoints: %1 of %2 (introduction)…"
 msgstr "X-Rayチェックポイント: %2個中%1個(概要)…"
 
-#: main.lua:15255
+#: main.lua:15272
 #, fuzzy
 msgid "X-Ray checkpoints: %1 of %2 (to %3%)…"
 msgstr "X-Rayチェックポイント: %2個中%1個(%3%まで)…"
 
-#: main.lua:15275 main.lua:15305
+#: main.lua:15292 main.lua:15322
 #, fuzzy
 msgid "X-Ray generation cancelled."
 msgstr "X-Rayの生成をキャンセルしました。"
 
-#: main.lua:15275 main.lua:15305
+#: main.lua:15292 main.lua:15322
 #, fuzzy
 msgid "Checkpoint build cancelled."
 msgstr "チェックポイント構築をキャンセルしました。"
 
-#: main.lua:15329
+#: main.lua:15346
 #, fuzzy
 msgid ""
 "Checkpoint build paused at %1 of %2: the next step is a large request. Resume from the X-Ray popup to review it."
 msgstr "チェックポイント構築は%2個中%1個で一時停止しました: 次のステップは大きなリクエストです。X-Rayポップアップから再開して確認してください。"
 
-#: main.lua:15350
+#: main.lua:15367
 #, fuzzy
 msgid "Model busy — retrying checkpoint %1 of %2 in %3 s…"
 msgstr "モデルが混雑中 — チェックポイント%2個中%1個を%3秒後に再試行します…"
 
-#: main.lua:15379
+#: main.lua:15396
 #, fuzzy
 msgid ""
 "Checkpoint build stopped at %1 of %2 (%3): resume it from the X-Ray popup."
 msgstr "チェックポイント構築は%2個中%1個(%3)で停止しました: X-Rayポップアップから再開してください。"
 
-#: main.lua:15381
+#: main.lua:15398
 #, fuzzy
 msgid "Checkpoint build stopped at %1 of %2: resume it from the X-Ray popup."
 msgstr "チェックポイント構築は%2個中%1個で停止しました: X-Rayポップアップから再開してください。"
 
-#: main.lua:15444
+#: main.lua:15461
 #, fuzzy
 msgid "X-Ray ready (covers to %1%)."
 msgstr "X-Rayの準備ができました(%1%までカバー)。"
 
-#: main.lua:15445
+#: main.lua:15462
 #, fuzzy
 msgid "X-Ray ready."
 msgstr "X-Rayの準備ができました。"
 
-#: main.lua:15446
+#: main.lua:15463
 #, fuzzy
 msgid "X-Ray checkpoints built (%1)."
 msgstr "X-Rayチェックポイントを構築しました(%1)。"
 
-#: main.lua:15464
+#: main.lua:15481
 #, fuzzy
 msgid "model overloaded"
 msgstr "モデルが過負荷です"
 
-#: main.lua:15465
+#: main.lua:15482
 #, fuzzy
 msgid "rate limited"
 msgstr "レート制限中です"
 
-#: main.lua:15466
+#: main.lua:15483
 #, fuzzy
 msgid "provider error"
 msgstr "プロバイダーエラー"
 
-#: main.lua:15467
+#: main.lua:15484
 #, fuzzy
 msgid "request timed out"
 msgstr "リクエストがタイムアウトしました"
 
-#: main.lua:15468
+#: main.lua:15485
 #, fuzzy
 msgid "connection problem"
 msgstr "接続に問題があります"
 
-#: main.lua:15469
+#: main.lua:15486
 #, fuzzy
 msgid "unusable response"
 msgstr "使用できない応答です"
 
-#: main.lua:15470
+#: main.lua:15487
 #, fuzzy
 msgid "large step needs review"
 msgstr "大きなステップは確認が必要です"
 
-#: main.lua:15476
+#: main.lua:15493
 #, fuzzy
 msgid "request too large"
 msgstr "リクエストが大きすぎます"
 
-#: main.lua:15477
+#: main.lua:15494
 #, fuzzy
 msgid "nothing was sent"
 msgstr "何も送信されませんでした"
 
-#: main.lua:15480
+#: main.lua:15497
 #, fuzzy
 msgid "account credits or billing"
 msgstr "アカウントのクレジットまたは請求"
 
-#: main.lua:15519
+#: main.lua:15536
 #, fuzzy
 msgid "Build cancelled: resume from the X-Ray popup."
 msgstr "構築をキャンセルしました: X-Rayポップアップから再開してください。"
 
-#: main.lua:15625
+#: main.lua:15642
 #, fuzzy
 msgid ""
 "End of: %1\n"
@@ -16257,12 +16257,12 @@ msgstr ""
 "\n"
 "理解度クイズを行いますか？"
 
-#: main.lua:15635
+#: main.lua:15652
 #, fuzzy
 msgid "Not for this book"
 msgstr "この本には適用しない"
 
-#: main.lua:15640
+#: main.lua:15657
 #, fuzzy
 msgid ""
 "Chapter quizzes turned off for this book.\n"
@@ -16271,12 +16271,12 @@ msgstr ""
 "この本のチャプタークイズはオフになっています。\n"
 "本の設定 → クイズで再度有効にしてください。"
 
-#: main.lua:15646
+#: main.lua:15663
 #, fuzzy
 msgid "Quiz settings…"
 msgstr "クイズ設定…"
 
-#: main.lua:15662
+#: main.lua:15679
 #, fuzzy
 msgid ""
 "End of: %1\n"
@@ -16287,206 +16287,206 @@ msgstr ""
 "\n"
 "今すぐクイズを開始しますか?"
 
-#: main.lua:15733 main.lua:16104 main.lua:16180
+#: main.lua:15750 main.lua:16121 main.lua:16197
 #, fuzzy
 msgid "Action '%1' not found"
 msgstr "アクション'%1'が見つかりません"
 
-#: main.lua:16163
+#: main.lua:16180
 #, fuzzy
 msgid "Unknown action context: %1"
 msgstr "不明なアクションコンテキスト：%1"
 
-#: main.lua:16415
+#: main.lua:16432
 #, fuzzy
 msgid "This model"
 msgstr "このモデル"
 
-#: main.lua:16415
+#: main.lua:16432
 #, fuzzy
 msgid "Current model"
 msgstr "現在のモデル"
 
-#: main.lua:16438
+#: main.lua:16455
 #, fuzzy
 msgid "This model: %1"
 msgstr "このモデル：%1"
 
-#: main.lua:16444 main.lua:16699
+#: main.lua:16461 main.lua:16716
 #, fuzzy
 msgid "model default"
 msgstr "モデルのデフォルト"
 
-#: main.lua:16471
+#: main.lua:16488
 #, fuzzy
 msgid "Other models…"
 msgstr "その他のモデル…"
 
-#: main.lua:16489 main.lua:16635
+#: main.lua:16506 main.lua:16652
 #, fuzzy
 msgid "Reasoning · %1"
 msgstr "推論 · %1"
 
-#: main.lua:16511
+#: main.lua:16528
 #, fuzzy
 msgid "Always reasons (cannot be changed)"
 msgstr "常に推論します（変更不可）"
 
-#: main.lua:16512
+#: main.lua:16529
 #, fuzzy
 msgid "This model does not support reasoning"
 msgstr "このモデルは推論をサポートしていません"
 
-#: main.lua:16523
+#: main.lua:16540
 #, fuzzy
 msgid "Model API default (no override)"
 msgstr "モデルAPIのデフォルト（上書きなし）"
 
-#: main.lua:16539
+#: main.lua:16556
 #, fuzzy
 msgid "Always reasons — this model's API has no off switch"
 msgstr "常に推論を行います — このモデルのAPIにオフ切替はありません"
 
-#: main.lua:16570
+#: main.lua:16587
 #, fuzzy
 msgid "Model default"
 msgstr "モデルのデフォルト"
 
-#: main.lua:16622
+#: main.lua:16639
 #, fuzzy
 msgid "%1 · %2"
 msgstr "%1 · %2"
 
-#: main.lua:16631 main.lua:16780
+#: main.lua:16648 main.lua:16797
 #, fuzzy
 msgid "No configurable models"
 msgstr "設定可能なモデルがありません"
 
-#: main.lua:16673
+#: main.lua:16690
 #, fuzzy
 msgid "Reasoning · pick a provider"
 msgstr "推論 · プロバイダーを選択"
 
-#: main.lua:16769
+#: main.lua:16786
 #, fuzzy
 msgid "%1: Follow global → %2"
 msgstr "%1: グローバルに従う → %2"
 
-#: main.lua:17111 koassistant_ui/prompts_manager.lua:921
+#: main.lua:17128 koassistant_ui/prompts_manager.lua:921
 #: koassistant_ui/prompts_manager.lua:1654
 #: koassistant_ui/prompts_manager.lua:3918
 #, fuzzy
 msgid "AI Behavior"
 msgstr "AI動作"
 
-#: main.lua:17137
+#: main.lua:17154
 #, fuzzy
 msgid "Reasoning: %1"
 msgstr "推論：%1"
 
-#: main.lua:17157
+#: main.lua:17174
 #, fuzzy
 msgid "Book Tools: %1"
 msgstr "ブックツール: %1"
 
-#: main.lua:17168 main.lua:17343
+#: main.lua:17185 main.lua:17360
 #, fuzzy
 msgid "N/A for %1"
 msgstr "%1には非対応"
 
-#: main.lua:17203
+#: main.lua:17220
 #, fuzzy
 msgid "Quick Answer: %1"
 msgstr "クイックアンサー: %1"
 
-#: main.lua:17245
+#: main.lua:17262
 #, fuzzy
 msgid " (research mode)"
 msgstr "(研究モード)"
 
-#: main.lua:17247
+#: main.lua:17264
 #, fuzzy
 msgid " (book finished)"
 msgstr "(読了済み)"
 
-#: main.lua:17249
+#: main.lua:17266
 #, fuzzy
 msgid "Spoiler Protection: %1"
 msgstr "スポイラー保護: %1"
 
-#: main.lua:17266 main.lua:17507
+#: main.lua:17283 main.lua:17524
 #, fuzzy
 msgid ""
 "Saved as default. This book has its own override — hold the button to change it."
 msgstr "デフォルトとして保存しました。この本には独自の上書き設定があります — ボタンを長押しすると変更できます。"
 
-#: main.lua:17271
+#: main.lua:17288
 #, fuzzy
 msgid "Saved as default. Research mode keeps protection off for this book."
 msgstr "デフォルトとして保存しました。研究モードではこの本の保護は無効のままです。"
 
-#: main.lua:17276
+#: main.lua:17293
 #, fuzzy
 msgid ""
 "Saved as default. This book is marked finished, so protection stays off."
 msgstr "デフォルトとして保存しました。この本は読了済みとしてマークされているため、保護は無効のままです。"
 
-#: main.lua:17302
+#: main.lua:17319
 #, fuzzy
 msgid "Minimal Popup: %1"
 msgstr "最小ポップアップ: %1"
 
-#: main.lua:17340
+#: main.lua:17357
 #, fuzzy
 msgid "Web Search: %1"
 msgstr "ウェブ検索: %1"
 
-#: main.lua:17355
+#: main.lua:17372
 #, fuzzy
 msgid "Saved as default. %1 can't use web search. Switch to: %2."
 msgstr "デフォルトとして保存しました。%1はウェブ検索を使用できません。切り替え先: %2。"
 
-#: main.lua:17397
+#: main.lua:17414
 #, fuzzy
 msgid "Language: %1"
 msgstr "言語: %1"
 
-#: main.lua:17403
+#: main.lua:17420
 #, fuzzy
 msgid "Primary Language"
 msgstr "主要言語"
 
-#: main.lua:17423 main.lua:18477 main.lua:18537
+#: main.lua:17440 main.lua:18494 main.lua:18554
 #, fuzzy
 msgid "Dictionary: %1"
 msgstr "辞書：%1"
 
-#: main.lua:17436
+#: main.lua:17453
 #, fuzzy
 msgid "H.Bypass: ON"
 msgstr "H.バイパス: ON"
 
-#: main.lua:17436
+#: main.lua:17453
 #, fuzzy
 msgid "H.Bypass: OFF"
 msgstr "H.バイパス: OFF"
 
-#: main.lua:17455
+#: main.lua:17472
 #, fuzzy
 msgid "D.Bypass: ON"
 msgstr "D.バイパス: ON"
 
-#: main.lua:17455
+#: main.lua:17472
 #, fuzzy
 msgid "D.Bypass: OFF"
 msgstr "D.バイパス: OFF"
 
-#: main.lua:17485
+#: main.lua:17502
 #, fuzzy
 msgid "Text Extraction: %1"
 msgstr "テキスト抽出: %1"
 
-#: main.lua:17493
+#: main.lua:17510
 #, fuzzy
 msgid ""
 "To enable text extraction for the first time, go to:\n"
@@ -16499,49 +16499,49 @@ msgstr ""
 "\n"
 "その後、このトグルが直接機能するようになります。"
 
-#: main.lua:17606
+#: main.lua:17623
 #, fuzzy
 msgid "More Settings..."
 msgstr "その他の設定..."
 
-#: main.lua:17620
+#: main.lua:17637
 #, fuzzy
 msgid "Quick Actions..."
 msgstr "クイックアクション..."
 
-#: main.lua:17665
+#: main.lua:17682
 #, fuzzy
 msgid "Sort Items"
 msgstr "項目を並べ替え"
 
-#: main.lua:17673 main.lua:17873
+#: main.lua:17690 main.lua:17890
 #, fuzzy
 msgid "Align Buttons ✓"
 msgstr "ボタンを整列 ✓"
 
-#: main.lua:17673 main.lua:17873
+#: main.lua:17690 main.lua:17890
 #, fuzzy
 msgid "Align Buttons"
 msgstr "ボタンを整列"
 
-#: main.lua:17713
+#: main.lua:17730
 #, fuzzy
 msgid "Quick Actions is only available while reading a book."
 msgstr "クイックアクションは書籍を読んでいる時のみ使用できます。"
 
-#: main.lua:17905
+#: main.lua:17922
 #, fuzzy
 msgid "Testing connection..."
 msgstr "接続テスト中..."
 
-#: main.lua:17933
+#: main.lua:17950
 #, fuzzy
 msgid ""
 "Connection test failed:\n"
 msgstr ""
 "接続テストに失敗しました:\n"
 
-#: main.lua:17939
+#: main.lua:17956
 #, fuzzy
 msgid ""
 "Connection test successful!\n"
@@ -16558,12 +16558,12 @@ msgstr ""
 "\n"
 "応答: %3"
 
-#: main.lua:17947
+#: main.lua:17964
 #, fuzzy
 msgid "Connection test failed: "
 msgstr "接続テストに失敗しました:"
 
-#: main.lua:17967
+#: main.lua:17984
 #, fuzzy
 msgid ""
 "No book is currently open.\n"
@@ -16574,7 +16574,7 @@ msgstr ""
 "\n"
 "先に本を開いてから、このオプションを使用してそのアーティファクトを削除してください。"
 
-#: main.lua:17980
+#: main.lua:17997
 #, fuzzy
 msgid ""
 "No artifacts found for this book.\n"
@@ -16585,7 +16585,7 @@ msgstr ""
 "\n"
 "まずアーティファクトアクション（X-Ray、Recap、要約など）を実行してください。"
 
-#: main.lua:17990
+#: main.lua:18007
 #, fuzzy
 msgid ""
 "Delete ALL artifacts for this book?\n"
@@ -16600,77 +16600,77 @@ msgstr ""
 "\n"
 "この操作は元に戻せません。"
 
-#: main.lua:18013
+#: main.lua:18030
 #, fuzzy
 msgid "Failed to delete artifacts."
 msgstr "アーティファクトの削除に失敗しました。"
 
-#: main.lua:18109
+#: main.lua:18126
 #, fuzzy
 msgid "Dictionary bypass: ON"
 msgstr "辞書バイパス: ON"
 
-#: main.lua:18109
+#: main.lua:18126
 #, fuzzy
 msgid "Dictionary bypass: OFF"
 msgstr "辞書バイパス: OFF"
 
-#: main.lua:18123
+#: main.lua:18140
 #, fuzzy
 msgid "Highlight bypass: ON"
 msgstr "ハイライトバイパス: ON"
 
-#: main.lua:18123
+#: main.lua:18140
 #, fuzzy
 msgid "Highlight bypass: OFF"
 msgstr "ハイライトバイパス: OFF"
 
-#: main.lua:18344
+#: main.lua:18361
 #, fuzzy
 msgid "Could not extract text from current page"
 msgstr "現在のページからテキストを抽出できませんでした"
 
-#: main.lua:18355
+#: main.lua:18372
 #, fuzzy
 msgid "Translate action not found"
 msgstr "翻訳アクションが見つかりません"
 
-#: main.lua:18416
+#: main.lua:18433
 #, fuzzy
 msgid "Follow Translation Language"
 msgstr "翻訳言語に従う"
 
-#: main.lua:18430
+#: main.lua:18447
 #, fuzzy
 msgid "Dictionary: Follow Translation"
 msgstr "辞書：翻訳に従う"
 
-#: main.lua:18438
+#: main.lua:18455
 #, fuzzy
 msgid "Follow Primary Language"
 msgstr "主要言語に従う"
 
-#: main.lua:18451
+#: main.lua:18468
 #, fuzzy
 msgid "Dictionary: Follow Primary"
 msgstr "辞書：主要言語に従う"
 
-#: main.lua:18513
+#: main.lua:18530
 #, fuzzy
 msgid "Custom Dictionary Language"
 msgstr "カスタム辞書言語"
 
-#: main.lua:18516
+#: main.lua:18533
 #, fuzzy
 msgid "Enter the response language for dictionary lookups."
 msgstr "辞書検索の応答言語を入力してください。"
 
-#: main.lua:18608
+#: main.lua:18625
 #, fuzzy
 msgid "Select Export Folder"
 msgstr "エクスポートフォルダを選択"
 
-#: main.lua:18617
+#: main.lua:18634
 #, fuzzy
 msgid ""
 "Export path set to:\n"
@@ -16679,12 +16679,12 @@ msgstr ""
 "エクスポートパスが設定されました:\n"
 "%1"
 
-#: main.lua:18650
+#: main.lua:18667
 #, fuzzy
 msgid "Select Notebook Folder"
 msgstr "ノートブックフォルダーを選択"
 
-#: main.lua:18660
+#: main.lua:18677
 #, fuzzy
 msgid ""
 "Notebook folder set to:\n"
@@ -16693,7 +16693,7 @@ msgstr ""
 "ノートブックフォルダーが次の場所に設定されました：\n"
 "%1"
 
-#: main.lua:19438
+#: main.lua:19455
 #, fuzzy
 msgid ""
 "This entry comes from the next checkpoint (to %1%), ahead of your reading position, and may contain spoilers.\n"
@@ -16704,92 +16704,92 @@ msgstr ""
 "\n"
 "完全なエントリを表示しますか?"
 
-#: main.lua:19553
+#: main.lua:19570
 #, fuzzy
 msgid "book"
 msgstr "本"
 
-#: main.lua:19554
+#: main.lua:19571
 #, fuzzy
 msgid "global"
 msgstr "全体"
 
-#: main.lua:19583
+#: main.lua:19600
 #, fuzzy
 msgid "Passive marking: %1 (%2)"
 msgstr "パッシブマーキング: %1 (%2)"
 
-#: main.lua:19588
+#: main.lua:19605
 #, fuzzy
 msgid "Density: %1 (%2)"
 msgstr "密度: %1 (%2)"
 
-#: main.lua:19592
+#: main.lua:19609
 #, fuzzy
 msgid "Mark: %1 (%2)"
 msgstr "マーク: %1 (%2)"
 
-#: main.lua:19596
+#: main.lua:19613
 #, fuzzy
 msgid "Tap marked words to open: %1 (%2)"
 msgstr "マークされた単語をタップして開く: %1 (%2)"
 
-#: main.lua:19606
+#: main.lua:19623
 #, fuzzy
 msgid "Upcoming entities: %1 (%2)"
 msgstr "今後登場するエンティティ: %1 (%2)"
 
-#: main.lua:19612
+#: main.lua:19629
 #, fuzzy
 msgid "Upcoming entity cards: %1 (%2)"
 msgstr "今後登場するエンティティカード: %1 (%2)"
 
-#: main.lua:19621
+#: main.lua:19638
 #, fuzzy
 msgid "Matching selections open entries: %1 (%2)"
 msgstr "一致する選択でエントリを開く: %1 (%2)"
 
-#: main.lua:19629
+#: main.lua:19646
 #, fuzzy
 msgid "Exact hits open: %1 (%2)"
 msgstr "完全一致で開く: %1 (%2)"
 
-#: main.lua:19635
+#: main.lua:19652
 #, fuzzy
 msgid "Card shows: %1 (%2)"
 msgstr "カード表示: %1 (%2)"
 
-#: main.lua:19641
+#: main.lua:19658
 #, fuzzy
 msgid "Use global marking settings for this book"
 msgstr "この本に全体のマーキング設定を使用する"
 
-#: main.lua:19668
+#: main.lua:19685
 #, fuzzy
 msgid "Marking & lookup"
 msgstr "マーキングと検索"
 
-#: main.lua:19812
+#: main.lua:19829
 #, fuzzy
 msgid "Dictionary bypass action"
 msgstr "辞書バイパスアクション"
 
-#: main.lua:19812
+#: main.lua:19829
 #, fuzzy
 msgid "Highlight bypass action"
 msgstr "ハイライトバイパスアクション"
 
-#: main.lua:19862 main.lua:19916
+#: main.lua:19879 main.lua:19933
 #, fuzzy
 msgid "Bypass action: %1"
 msgstr "バイパスアクション: %1"
 
-#: main.lua:19966
+#: main.lua:19983
 #, fuzzy
 msgid "All action settings restored to defaults"
 msgstr "すべてのアクション設定をデフォルトに戻しました"
 
-#: main.lua:20039
+#: main.lua:20056
 #, fuzzy
 msgid ""
 "KOAssistant %1\n"
@@ -16810,93 +16810,93 @@ msgstr ""
 "\n"
 "ジェスチャー: 設定 → タップとジェスチャー → ジェスチャーマネージャーでKOAssistantのアクションを割り当ててください。"
 
-#: main.lua:20128
+#: main.lua:20145
 #, fuzzy
 msgid "Feature settings reset to defaults"
 msgstr "機能設定をデフォルトにリセットしました"
 
-#: main.lua:20160
+#: main.lua:20177
 #, fuzzy
 msgid "All customizations reset"
 msgstr "すべてのカスタマイズをリセットしました"
 
-#: main.lua:20184
+#: main.lua:20201
 #, fuzzy
 msgid "Custom actions deleted"
 msgstr "カスタムアクションを削除しました"
 
-#: main.lua:20198
+#: main.lua:20215
 #, fuzzy
 msgid "Action edits reset to defaults"
 msgstr "アクションの編集をデフォルトにリセットしました"
 
-#: main.lua:20233
+#: main.lua:20250
 #, fuzzy
 msgid "Action menus reset to defaults."
 msgstr "アクションメニューがデフォルトにリセットされました。"
 
-#: main.lua:20246
+#: main.lua:20263
 #, fuzzy
 msgid "Dictionary popup actions reset"
 msgstr "辞書ポップアップアクションをリセットしました"
 
-#: main.lua:20259
+#: main.lua:20276
 #, fuzzy
 msgid "Highlight menu actions reset"
 msgstr "ハイライトメニューアクションがリセットされました"
 
-#: main.lua:20271
+#: main.lua:20288
 #, fuzzy
 msgid "File browser actions reset"
 msgstr "ファイルブラウザアクションをリセットしました"
 
-#: main.lua:20283
+#: main.lua:20300
 #, fuzzy
 msgid "Quick actions reset"
 msgstr "クイックアクションをリセットしました"
 
-#: main.lua:20296
+#: main.lua:20313
 #, fuzzy
 msgid "Input dialog actions reset"
 msgstr "入力ダイアログアクションをリセット"
 
-#: main.lua:20339
+#: main.lua:20356
 #, fuzzy
 msgid "Custom providers and models reset"
 msgstr "カスタムプロバイダーとモデルをリセットしました"
 
-#: main.lua:20427
+#: main.lua:20444
 #, fuzzy
 msgid "All action settings reset"
 msgstr "すべてのアクション設定をリセットしました"
 
-#: main.lua:20475
+#: main.lua:20492
 #, fuzzy
 msgid "Fresh start complete - API keys preserved"
 msgstr "初期化が完了しました - APIキーは保持されています"
 
-#: main.lua:20498
+#: main.lua:20515
 #, fuzzy
 msgid "Default: Personal content private, basic context shared"
 msgstr "デフォルト：個人コンテンツは非公開、基本的なコンテキストは共有"
 
-#: main.lua:20521
+#: main.lua:20538
 #, fuzzy
 msgid "Minimal: All extended sharing disabled"
 msgstr "最小：すべての拡張共有を無効化"
 
-#: main.lua:20544
+#: main.lua:20561
 #, fuzzy
 msgid ""
 "Full: All data sharing enabled (Text extraction must be enabled separately)"
 msgstr "完全：すべてのデータ共有を有効化（テキスト抽出は別途有効化が必要）"
 
-#: main.lua:20612
+#: main.lua:20629
 #, fuzzy
 msgid "(custom)"
 msgstr "（カスタム）"
 
-#: main.lua:20673
+#: main.lua:20690
 #, fuzzy
 msgid ""
 "Select providers to trust\n"
@@ -16907,7 +16907,7 @@ msgstr ""
 "\n"
 "信頼されたプロバイダーはデータ共有制御をバイパスします。"
 
-#: main.lua:20704
+#: main.lua:20721
 #, fuzzy
 msgid ""
 "Remove this folder from library scanning?\n"
@@ -16918,162 +16918,162 @@ msgstr ""
 "\n"
 "%1"
 
-#: main.lua:20734 main.lua:21085
+#: main.lua:20751 main.lua:21102
 #, fuzzy
 msgid "Add folder"
 msgstr "フォルダーを追加"
 
-#: main.lua:20740
+#: main.lua:20757
 #, fuzzy
 msgid "Select Library Folder"
 msgstr "ライブラリフォルダーを選択"
 
-#: main.lua:20773 main.lua:21124
+#: main.lua:20790 main.lua:21141
 #, fuzzy
 msgid "No folders configured"
 msgstr "フォルダーが設定されていません"
 
-#: main.lua:20801
+#: main.lua:20818
 #, fuzzy
 msgid "✓ Reset"
 msgstr "✓ リセット"
 
-#: main.lua:20803
+#: main.lua:20820
 #, fuzzy
 msgid "✗ Keep"
 msgstr "✗ 保持"
 
-#: main.lua:20809 main.lua:21285 main.lua:21417 main.lua:22283
+#: main.lua:20826 main.lua:21302 main.lua:21434 main.lua:22300
 #, fuzzy
 msgid "Settings"
 msgstr "設定"
 
-#: main.lua:20817
+#: main.lua:20834
 #, fuzzy
 msgid "Custom actions"
 msgstr "カスタムアクション"
 
-#: main.lua:20825
+#: main.lua:20842
 #, fuzzy
 msgid "Action edits"
 msgstr "アクション編集"
 
-#: main.lua:20833
+#: main.lua:20850
 #, fuzzy
 msgid "Action menus"
 msgstr "アクションメニュー"
 
-#: main.lua:20841
+#: main.lua:20858
 #, fuzzy
 msgid "Custom providers & models"
 msgstr "カスタムプロバイダーとモデル"
 
-#: main.lua:20849
+#: main.lua:20866
 #, fuzzy
 msgid "Behaviors & domains"
 msgstr "動作とドメイン"
 
-#: main.lua:20857 main.lua:20914
+#: main.lua:20874 main.lua:20931
 #, fuzzy
 msgid "API keys"
 msgstr "APIキー"
 
-#: main.lua:20869
+#: main.lua:20886
 #, fuzzy
 msgid "Reset Selected"
 msgstr "選択項目をリセット"
 
-#: main.lua:20878
+#: main.lua:20895
 #, fuzzy
 msgid "What would you like to reset?"
 msgstr "何をリセットしますか？"
 
-#: main.lua:20890
+#: main.lua:20907
 #, fuzzy
 msgid "settings"
 msgstr "設定"
 
-#: main.lua:20894
+#: main.lua:20911
 #, fuzzy
 msgid "custom actions"
 msgstr "カスタムアクション"
 
-#: main.lua:20898
+#: main.lua:20915
 #, fuzzy
 msgid "action edits"
 msgstr "アクション編集"
 
-#: main.lua:20902
+#: main.lua:20919
 #, fuzzy
 msgid "action menus"
 msgstr "アクションメニュー"
 
-#: main.lua:20906
+#: main.lua:20923
 #, fuzzy
 msgid "providers/models"
 msgstr "プロバイダー/モデル"
 
-#: main.lua:20910
+#: main.lua:20927
 #, fuzzy
 msgid "behaviors/domains"
 msgstr "動作/ドメイン"
 
-#: main.lua:20919
+#: main.lua:20936
 #, fuzzy
 msgid "Reset: %1"
 msgstr "リセット：%1"
 
-#: main.lua:20924
+#: main.lua:20941
 #, fuzzy
 msgid "Nothing selected to reset"
 msgstr "リセットする項目が選択されていません"
 
-#: main.lua:20971
+#: main.lua:20988
 #, fuzzy
 msgid "Validation complete. Removed %1 stale entries."
 msgstr "検証完了。%1件の古いエントリーを削除しました。"
 
-#: main.lua:20975
+#: main.lua:20992
 #, fuzzy
 msgid "All indexes are valid. No issues found."
 msgstr "すべてのインデックスは有効です。問題は見つかりませんでした。"
 
-#: main.lua:20997
+#: main.lua:21014
 #, fuzzy
 msgid "Rebuilding data indexes…"
 msgstr "データインデックスを再構築中…"
 
-#: main.lua:21006
+#: main.lua:21023
 #, fuzzy
 msgid "Index rebuild failed. Check the log for details."
 msgstr "インデックスの再構築に失敗しました。詳細はログを確認してください。"
 
-#: main.lua:21012
+#: main.lua:21029
 #, fuzzy
 msgid "Index rebuild complete."
 msgstr "インデックスの再構築が完了しました。"
 
-#: main.lua:21013
+#: main.lua:21030
 #, fuzzy
 msgid "Checked %1 books: %2 with KOAssistant data."
 msgstr "%1冊の本をチェックしました: KOAssistantデータのあるもの%2冊。"
 
-#: main.lua:21014
+#: main.lua:21031
 #, fuzzy
 msgid "Indexed books: artifacts %1, chats %2, notebooks %3, pinned %4."
 msgstr "インデックス化された本: アーティファクト%1、チャット%2、ノートブック%3、ピン留め%4。"
 
-#: main.lua:21019
+#: main.lua:21036
 #, fuzzy
 msgid "Removed %1 stale entries."
 msgstr "%1件の古いエントリを削除しました。"
 
-#: main.lua:21023
+#: main.lua:21040
 #, fuzzy
 msgid "%1 synced sidecars couldn't be matched to local books."
 msgstr "%1件の同期されたサイドカーがローカルの本と照合できませんでした。"
 
-#: main.lua:21055
+#: main.lua:21072
 #, fuzzy
 msgid ""
 "Remove this folder from index scanning?\n"
@@ -17084,67 +17084,67 @@ msgstr ""
 "\n"
 "%1"
 
-#: main.lua:21091
+#: main.lua:21108
 #, fuzzy
 msgid "Select Folder to Scan"
 msgstr "スキャンするフォルダを選択"
 
-#: main.lua:21162
+#: main.lua:21179
 #, fuzzy
 msgid "Core Settings: ✓ Included"
 msgstr "コア設定：✓ 含める"
 
-#: main.lua:21168
+#: main.lua:21185
 #, fuzzy
 msgid "API Keys: ✓ Include (⚠ Sensitive)"
 msgstr "APIキー：✓ 含める（⚠ 機密情報）"
 
-#: main.lua:21168
+#: main.lua:21185
 #, fuzzy
 msgid "API Keys: ✗ Exclude"
 msgstr "APIキー：✗ 除外"
 
-#: main.lua:21183
+#: main.lua:21200
 #, fuzzy
 msgid "Config Files: ✓ Include"
 msgstr "設定ファイル：✓ 含める"
 
-#: main.lua:21183
+#: main.lua:21200
 #, fuzzy
 msgid "Config Files: ✗ Exclude"
 msgstr "設定ファイル：✗ 除外"
 
-#: main.lua:21198
+#: main.lua:21215
 #, fuzzy
 msgid "Domains & Behaviors: ✓ Include"
 msgstr "ドメインと動作：✓ 含める"
 
-#: main.lua:21198
+#: main.lua:21215
 #, fuzzy
 msgid "Domains & Behaviors: ✗ Exclude"
 msgstr "ドメインと動作：✗ 除外"
 
-#: main.lua:21213
+#: main.lua:21230
 #, fuzzy
 msgid "Chat History: ✓ Include"
 msgstr "チャット履歴：✓ 含める"
 
-#: main.lua:21213
+#: main.lua:21230
 #, fuzzy
 msgid "Chat History: ✗ Exclude"
 msgstr "チャット履歴：✗ 除外"
 
-#: main.lua:21228 main.lua:21381 main.lua:21592 main.lua:21614
+#: main.lua:21245 main.lua:21398 main.lua:21609 main.lua:21631
 #, fuzzy
 msgid "━━━━━━━━━━━━━━━━"
 msgstr "━━━━━━━━━━━━━━━━"
 
-#: main.lua:21254
+#: main.lua:21271
 #, fuzzy
 msgid "What to include in backup:"
 msgstr "バックアップに含める項目："
 
-#: main.lua:21266
+#: main.lua:21283
 #, fuzzy
 msgid ""
 "Creating backup...\n"
@@ -17155,7 +17155,7 @@ msgstr ""
 "\n"
 "しばらくお待ちください。"
 
-#: main.lua:21278
+#: main.lua:21295
 #, fuzzy
 msgid ""
 "Backup created successfully!\n"
@@ -17170,52 +17170,52 @@ msgstr ""
 "\n"
 "サイズ：%2"
 
-#: main.lua:21288 main.lua:21419
+#: main.lua:21305 main.lua:21436
 #, fuzzy
 msgid "API Keys"
 msgstr "APIキー"
 
-#: main.lua:21291 main.lua:21423
+#: main.lua:21308 main.lua:21440
 #, fuzzy
 msgid "Config Files"
 msgstr "設定ファイル"
 
-#: main.lua:21297 main.lua:21428
+#: main.lua:21314 main.lua:21445
 #, fuzzy
 msgid "%1 domains"
 msgstr "%1個のドメイン"
 
-#: main.lua:21299
+#: main.lua:21316
 #, fuzzy
 msgid "0 domains"
 msgstr "0個のドメイン"
 
-#: main.lua:21302 main.lua:21433
+#: main.lua:21319 main.lua:21450
 #, fuzzy
 msgid "%1 behaviors"
 msgstr "%1個の動作"
 
-#: main.lua:21304
+#: main.lua:21321
 #, fuzzy
 msgid "0 behaviors"
 msgstr "0個の動作"
 
-#: main.lua:21310 main.lua:21441
+#: main.lua:21327 main.lua:21458
 #, fuzzy
 msgid "%1 chats"
 msgstr "%1個のチャット"
 
-#: main.lua:21312
+#: main.lua:21329
 #, fuzzy
 msgid "0 chats"
 msgstr "0個のチャット"
 
-#: main.lua:21317
+#: main.lua:21334
 #, fuzzy
 msgid "Included:"
 msgstr "含まれる項目："
 
-#: main.lua:21327
+#: main.lua:21344
 #, fuzzy
 msgid ""
 "Backup failed:\n"
@@ -17226,7 +17226,7 @@ msgstr ""
 "\n"
 "%1"
 
-#: main.lua:21344
+#: main.lua:21361
 #, fuzzy
 msgid ""
 "No backups found.\n"
@@ -17239,12 +17239,12 @@ msgstr ""
 "次の場所を使用して最初にバックアップを作成してください:\n"
 "設定 → バックアップとリセット → バックアップを作成"
 
-#: main.lua:21364
+#: main.lua:21381
 #, fuzzy
 msgid "Restore Point"
 msgstr "復元ポイント"
 
-#: main.lua:21387
+#: main.lua:21404
 #, fuzzy
 msgid ""
 "Select backup to restore\n"
@@ -17255,7 +17255,7 @@ msgstr ""
 "\n"
 "合計：%1個のバックアップ"
 
-#: main.lua:21402 main.lua:21808
+#: main.lua:21419 main.lua:21825
 #, fuzzy
 msgid ""
 "Invalid backup:\n"
@@ -17266,7 +17266,7 @@ msgstr ""
 "\n"
 "%1"
 
-#: main.lua:21411
+#: main.lua:21428
 #, fuzzy
 msgid ""
 "Backup: %1\n"
@@ -17283,107 +17283,107 @@ msgstr ""
 "\n"
 "内容："
 
-#: main.lua:21421
+#: main.lua:21438
 #, fuzzy
 msgid "No API keys"
 msgstr "APIキーなし"
 
-#: main.lua:21430
+#: main.lua:21447
 #, fuzzy
 msgid "domains"
 msgstr "ドメイン"
 
-#: main.lua:21435
+#: main.lua:21452
 #, fuzzy
 msgid "behaviors"
 msgstr "ビヘイビア"
 
-#: main.lua:21443
+#: main.lua:21460
 #, fuzzy
 msgid "Chat history"
 msgstr "チャット履歴"
 
-#: main.lua:21453 main.lua:21680
+#: main.lua:21470 main.lua:21697
 #, fuzzy
 msgid "Warnings:"
 msgstr "警告:"
 
-#: main.lua:21470
+#: main.lua:21487
 #, fuzzy
 msgid "Restore →"
 msgstr "復元 →"
 
-#: main.lua:21507
+#: main.lua:21524
 #, fuzzy
 msgid "Settings: ✓ Restore"
 msgstr "設定: ✓ 復元"
 
-#: main.lua:21507
+#: main.lua:21524
 #, fuzzy
 msgid "Settings: ✗ Skip"
 msgstr "設定: ✗ スキップ"
 
-#: main.lua:21524
+#: main.lua:21541
 #, fuzzy
 msgid "API Keys: ✓ Restore"
 msgstr "APIキー: ✓ 復元"
 
-#: main.lua:21524
+#: main.lua:21541
 #, fuzzy
 msgid "API Keys: ✗ Skip"
 msgstr "APIキー: ✗ スキップ"
 
-#: main.lua:21541
+#: main.lua:21558
 #, fuzzy
 msgid "Config Files: ✓ Restore"
 msgstr "設定ファイル: ✓ 復元"
 
-#: main.lua:21541
+#: main.lua:21558
 #, fuzzy
 msgid "Config Files: ✗ Skip"
 msgstr "設定ファイル: ✗ スキップ"
 
-#: main.lua:21558
+#: main.lua:21575
 #, fuzzy
 msgid "Domains & Behaviors: ✓ Restore"
 msgstr "ドメインとビヘイビア: ✓ 復元"
 
-#: main.lua:21558
+#: main.lua:21575
 #, fuzzy
 msgid "Domains & Behaviors: ✗ Skip"
 msgstr "ドメインとビヘイビア: ✗ スキップ"
 
-#: main.lua:21575
+#: main.lua:21592
 #, fuzzy
 msgid "Chat History: ✓ Restore"
 msgstr "チャット履歴: ✓ 復元"
 
-#: main.lua:21575
+#: main.lua:21592
 #, fuzzy
 msgid "Chat History: ✗ Skip"
 msgstr "チャット履歴: ✗ スキップ"
 
-#: main.lua:21598
+#: main.lua:21615
 #, fuzzy
 msgid "Mode: Merge with existing"
 msgstr "モード: 既存とマージ"
 
-#: main.lua:21598
+#: main.lua:21615
 #, fuzzy
 msgid "Mode: Replace existing"
 msgstr "モード: 既存を置換"
 
-#: main.lua:21620
+#: main.lua:21637
 #, fuzzy
 msgid "Restore Now"
 msgstr "今すぐ復元"
 
-#: main.lua:21640
+#: main.lua:21657
 #, fuzzy
 msgid "What to restore:"
 msgstr "復元する項目:"
 
-#: main.lua:21653
+#: main.lua:21670
 #, fuzzy
 msgid ""
 "Restore from backup?\n"
@@ -17398,12 +17398,12 @@ msgstr ""
 "\n"
 "⚠ 変更を完全に反映するには、復元後にKOReaderを再起動する必要があります。"
 
-#: main.lua:21654 main.lua:21817
+#: main.lua:21671 main.lua:21834
 #, fuzzy
 msgid "Restore"
 msgstr "復元"
 
-#: main.lua:21658
+#: main.lua:21675
 #, fuzzy
 msgid ""
 "Restoring backup...\n"
@@ -17414,7 +17414,7 @@ msgstr ""
 "\n"
 "しばらくお待ちください。"
 
-#: main.lua:21677
+#: main.lua:21694
 #, fuzzy
 msgid ""
 "Restore completed successfully!\n"
@@ -17425,7 +17425,7 @@ msgstr ""
 "\n"
 "すべての変更を反映するには、KOReaderの再起動を推奨します。"
 
-#: main.lua:21689 koassistant_ui/prompts_manager.lua:1680
+#: main.lua:21706 koassistant_ui/prompts_manager.lua:1680
 #: koassistant_ui/prompts_manager.lua:3409
 #: koassistant_ui/prompts_manager.lua:3944
 #: koassistant_ui/prompts_manager.lua:4242
@@ -17438,12 +17438,12 @@ msgstr ""
 msgid "OK"
 msgstr "OK"
 
-#: main.lua:21695
+#: main.lua:21712
 #, fuzzy
 msgid "Restart Now"
 msgstr "今すぐ再起動"
 
-#: main.lua:21709
+#: main.lua:21726
 #, fuzzy
 msgid ""
 "Restore failed:\n"
@@ -17454,12 +17454,12 @@ msgstr ""
 "\n"
 "%1"
 
-#: main.lua:21732
+#: main.lua:21749
 #, fuzzy
 msgid "No backups found."
 msgstr "バックアップが見つかりません。"
 
-#: main.lua:21781
+#: main.lua:21798
 #, fuzzy
 msgid ""
 "Backups (%1)\n"
@@ -17470,7 +17470,7 @@ msgstr ""
 "\n"
 "合計サイズ: %2"
 
-#: main.lua:21833
+#: main.lua:21850
 #, fuzzy
 msgid ""
 "Delete backup?\n"
@@ -17485,12 +17485,12 @@ msgstr ""
 "\n"
 "この操作は元に戻せません。"
 
-#: main.lua:21841
+#: main.lua:21858
 #, fuzzy
 msgid "Backup deleted"
 msgstr "バックアップを削除しました"
 
-#: main.lua:21850
+#: main.lua:21867
 #, fuzzy
 msgid ""
 "Failed to delete backup:\n"
@@ -17501,13 +17501,13 @@ msgstr ""
 "\n"
 "%1"
 
-#: main.lua:21929
+#: main.lua:21946
 #, fuzzy
 msgid ""
 "KOAssistant moved its data out of KOReader's metadata files for %1 books."
 msgstr "KOAssistantは%1冊分のデータをKOReaderのメタデータファイルの外に移動しました。"
 
-#: main.lua:21966
+#: main.lua:21983
 #, fuzzy
 msgid ""
 "KOAssistant: Chat Storage Upgrade\n"
@@ -17526,22 +17526,22 @@ msgstr ""
 "\n"
 "古いチャットファイルは koassistant_chats.backup/ にバックアップされます。"
 
-#: main.lua:21973
+#: main.lua:21990
 #, fuzzy
 msgid "Migrate Now"
 msgstr "今すぐ移行"
 
-#: main.lua:22005
+#: main.lua:22022
 #, fuzzy
 msgid "KOAssistant: Migrating chat history..."
 msgstr "KOAssistant: チャット履歴を移行中..."
 
-#: main.lua:22018
+#: main.lua:22035
 #, fuzzy
 msgid "No old chats found to migrate"
 msgstr "移行する古いチャットが見つかりません"
 
-#: main.lua:22140
+#: main.lua:22157
 #, fuzzy
 msgid ""
 "KOAssistant: Migration Incomplete\n"
@@ -17562,12 +17562,12 @@ msgstr ""
 "次回起動時に移行を再試行します。\n"
 "詳細なエラーメッセージはコンソールを確認してください。"
 
-#: main.lua:22152
+#: main.lua:22169
 #, fuzzy
 msgid "Failed documents:"
 msgstr "失敗したドキュメント:"
 
-#: main.lua:22159
+#: main.lua:22176
 #, fuzzy
 msgid ""
 "KOAssistant: Migration Complete\n"
@@ -17586,323 +17586,323 @@ msgstr ""
 "古いチャットファイルのバックアップ先:\n"
 "koassistant_chats.backup/"
 
-#: main.lua:22200
+#: main.lua:22217
 #, fuzzy
 msgid "configuration.lua has errors and was not loaded."
 msgstr "configuration.luaにエラーがあり、読み込まれませんでした。"
 
-#: main.lua:22202
+#: main.lua:22219
 #, fuzzy
 msgid ""
 "Please fix the syntax error. Your custom settings (endpoints, provider, features) are not active."
 msgstr "構文エラーを修正してください。カスタム設定（エンドポイント、プロバイダー、機能）は有効になっていません。"
 
-#: main.lua:22282
+#: main.lua:22299
 #, fuzzy
 msgid "Continue Last Saved Chat"
 msgstr "最後に保存したチャットを続ける"
 
-#: main.lua:22285
+#: main.lua:22302
 #, fuzzy
 msgid "Toggle Dictionary Bypass"
 msgstr "辞書バイパスの切り替え"
 
-#: main.lua:22286
+#: main.lua:22303
 #, fuzzy
 msgid "Toggle Highlight Bypass"
 msgstr "ハイライトバイパスの切り替え"
 
-#: main.lua:22336
+#: main.lua:22353
 #, fuzzy
 msgid "file browser"
 msgstr "ファイルブラウザ"
 
-#: main.lua:22336
+#: main.lua:22353
 #, fuzzy
 msgid "reader"
 msgstr "リーダー"
 
-#: main.lua:22404
+#: main.lua:22421
 #, fuzzy
 msgid ""
 "Tap an action to assign or remove a gesture. Changes apply immediately."
 msgstr "アクションをタップしてジェスチャーを割り当てまたは削除します。変更はすぐに適用されます。"
 
-#: main.lua:22406
+#: main.lua:22423
 #, fuzzy
 msgid ""
 "KOReader's gesture data isn't ready, so assignment is unavailable here — use KOReader Settings > Taps and gestures."
 msgstr "KOReaderのジェスチャーデータが準備できていないため、ここでは割り当てができません — KOReader設定 > タップとジェスチャーを使用してください。"
 
-#: main.lua:22426
+#: main.lua:22443
 #, fuzzy
 msgid "Remove: %1 (%2)"
 msgstr "削除: %1 (%2)"
 
-#: main.lua:22430
+#: main.lua:22447
 #, fuzzy
 msgid "Gesture removed."
 msgstr "ジェスチャーが削除されました。"
 
-#: main.lua:22438
+#: main.lua:22455
 #, fuzzy
 msgid "— Reader —"
 msgstr "— リーダー —"
 
-#: main.lua:22439
+#: main.lua:22456
 #, fuzzy
 msgid "— File browser —"
 msgstr "— ファイルブラウザ —"
 
-#: main.lua:22453
+#: main.lua:22470
 #, fuzzy
 msgid "Gesture assigned: %1"
 msgstr "ジェスチャーが割り当てられました: %1"
 
-#: main.lua:22462
+#: main.lua:22479
 #, fuzzy
 msgid "%1 — %2"
 msgstr "%1 — %2"
 
-#: main.lua:22474
+#: main.lua:22491
 #, fuzzy
 msgid "Shortcut for: %1"
 msgstr "ショートカット: %1"
 
-#: main.lua:22475
+#: main.lua:22492
 #, fuzzy
 msgid "Pick a gesture — it starts working right away:"
 msgstr "ジェスチャーを選択してください — すぐに機能し始めます:"
 
-#: main.lua:22537
+#: main.lua:22554
 #, fuzzy
 msgid "KOAssistant detected your language as %1."
 msgstr "KOAssistantはあなたの言語を%1として検出しました。"
 
-#: main.lua:22538
+#: main.lua:22555
 #, fuzzy
 msgid "Use %1 for AI responses, translations, and dictionary?"
 msgstr "AIの応答、翻訳、辞書に%1を使用しますか?"
 
-#: main.lua:22539
+#: main.lua:22556
 #, fuzzy
 msgid "You can change this anytime in Settings → AI Language Settings."
 msgstr "設定 → AI言語設定 でいつでも変更できます。"
 
-#: main.lua:22544 main.lua:22648
+#: main.lua:22561 main.lua:22665
 #, fuzzy
 msgid "Use %1"
 msgstr "%1を使用"
 
-#: main.lua:22545 main.lua:22671
+#: main.lua:22562 main.lua:22688
 #, fuzzy
 msgid "Keep English"
 msgstr "英語のまま"
 
-#: main.lua:22602
+#: main.lua:22619
 #, fuzzy
 msgid ""
 "Your AI reading assistant is ready. Let's set up a few things. Tap the screen to continue."
 msgstr "AIリーディングアシスタントの準備ができました。いくつか設定を行いましょう。画面をタップして続行してください。"
 
-#: main.lua:22640 main.lua:22663
+#: main.lua:22657 main.lua:22680
 #, fuzzy
 msgid "LANGUAGE SETUP"
 msgstr "言語設定"
 
-#: main.lua:22641
+#: main.lua:22658
 #, fuzzy
 msgid "Your KOReader language is %1."
 msgstr "あなたのKOReaderの言語は%1です。"
 
-#: main.lua:22642
+#: main.lua:22659
 #, fuzzy
 msgid "Use %1 as your AI language?"
 msgstr "%1をAI言語として使用しますか?"
 
-#: main.lua:22643 main.lua:22666
+#: main.lua:22660 main.lua:22683
 #, fuzzy
 msgid "You can add more languages later in Settings."
 msgstr "後で設定から言語を追加できます。"
 
-#: main.lua:22649
+#: main.lua:22666
 #, fuzzy
 msgid "Choose different"
 msgstr "別の言語を選択"
 
-#: main.lua:22664
+#: main.lua:22681
 #, fuzzy
 msgid "KOAssistant will respond in English by default."
 msgstr "KOAssistantはデフォルトで英語で応答します。"
 
-#: main.lua:22665
+#: main.lua:22682
 #, fuzzy
 msgid "If you prefer a different language, tap \"Choose Language\"."
 msgstr "別の言語を希望する場合は、「言語を選択」をタップしてください。"
 
-#: main.lua:22672
+#: main.lua:22689
 #, fuzzy
 msgid "Choose language"
 msgstr "言語を選択"
 
-#: main.lua:22724
+#: main.lua:22741
 #, fuzzy
 msgid "Choose your AI language"
 msgstr "AI言語を選択"
 
-#: main.lua:22745
+#: main.lua:22762
 #, fuzzy
 msgid ""
 "See the README for instructions on how to enable emojis in the KOReader UI."
 msgstr "KOReaderのUIで絵文字を有効にする方法については、READMEを参照してください。"
 
-#: main.lua:22783
+#: main.lua:22800
 #, fuzzy
 msgid "GESTURE SETUP"
 msgstr "ジェスチャー設定"
 
-#: main.lua:22784
+#: main.lua:22801
 #, fuzzy
 msgid "KOAssistant has two quick-access panels:"
 msgstr "KOAssistantには2つのクイックアクセスパネルがあります："
 
-#: main.lua:22785
+#: main.lua:22802
 #, fuzzy
 msgid "Quick Actions: book actions, artifacts, and utilities (reader mode)"
 msgstr "クイックアクション: 本のアクション、アーティファクト、ユーティリティ（リーダーモード）"
 
-#: main.lua:22786
+#: main.lua:22803
 #, fuzzy
 msgid ""
 "Quick Settings: change provider, model, behavior, and more (file browser)"
 msgstr "クイック設定: プロバイダー、モデル、動作などを変更（ファイルブラウザ）"
 
-#: main.lua:22787
+#: main.lua:22804
 #, fuzzy
 msgid "Assign both to \"tap bottom right corner\"?"
 msgstr "両方を「右下隅をタップ」に割り当てますか？"
 
-#: main.lua:22788
+#: main.lua:22805
 #, fuzzy
 msgid ""
 "You can change these anytime in KOReader Settings (Gear icon) → Taps and Gestures."
 msgstr "これらはいつでもKOReader設定（歯車アイコン）→ タップとジェスチャーで変更できます。"
 
-#: main.lua:22789
+#: main.lua:22806
 #, fuzzy
 msgid "Requires KOReader restart to take effect."
 msgstr "有効にするにはKOReaderの再起動が必要です。"
 
-#: main.lua:22794
+#: main.lua:22811
 #, fuzzy
 msgid "Set up"
 msgstr "セットアップ"
 
-#: main.lua:22795
+#: main.lua:22812
 #, fuzzy
 msgid "No thanks"
 msgstr "後で"
 
-#: main.lua:22810
+#: main.lua:22827
 #, fuzzy
 msgid "GESTURE TIP"
 msgstr "ジェスチャーのヒント"
 
-#: main.lua:22811
+#: main.lua:22828
 #, fuzzy
 msgid "KOAssistant has two quick-access panels you can assign to gestures:"
 msgstr "KOAssistantには、ジェスチャーに割り当て可能な2つのクイックアクセスパネルがあります："
 
-#: main.lua:22812
+#: main.lua:22829
 #, fuzzy
 msgid ""
 "Quick Actions: book actions, artifacts, and utilities (assign in reader mode)"
 msgstr "クイックアクション: 本のアクション、アーティファクト、ユーティリティ（リーダーモードで割り当て）"
 
-#: main.lua:22813
+#: main.lua:22830
 #, fuzzy
 msgid ""
 "Quick Settings: change provider, model, behavior, and more (assign in file browser mode)"
 msgstr "クイック設定: プロバイダー、モデル、動作などを変更（ファイルブラウザモードで割り当て）"
 
-#: main.lua:22814
+#: main.lua:22831
 #, fuzzy
 msgid "Set them up in KOReader Settings (Gear icon) → Taps and Gestures."
 msgstr "KOReader設定（歯車アイコン）→ タップとジェスチャーでセットアップしてください。"
 
-#: main.lua:22825
+#: main.lua:22842
 #, fuzzy
 msgid "GETTING STARTED"
 msgstr "はじめに"
 
-#: main.lua:22827
+#: main.lua:22844
 #, fuzzy
 msgid ""
 "Some features need document text access. Enable in: Settings → Privacy & Data"
 msgstr "一部の機能にはドキュメントテキストへのアクセスが必要です。設定 → プライバシーとデータ で有効にしてください。"
 
-#: main.lua:22830
+#: main.lua:22847
 #, fuzzy
 msgid ""
 "Create or edit prompts: Settings → Actions & Prompts → Manage Actions (or from Quick Settings panel)"
 msgstr "プロンプトの作成または編集：設定 → アクションとプロンプト → アクションを管理（またはクイック設定パネルから）"
 
-#: main.lua:22834
+#: main.lua:22851
 #, fuzzy
 msgid "Gestures assigned. Please restart KOReader for changes to take effect."
 msgstr "ジェスチャーが割り当てられました。変更を有効にするにはKOReaderを再起動してください。"
 
-#: main.lua:22837
+#: main.lua:22854
 #, fuzzy
 msgid "Enjoy your reading!"
 msgstr "読書をお楽しみください！"
 
-#: main.lua:23242
+#: main.lua:23259
 #, fuzzy
 msgid "Move %1 notebook(s) to the new location?"
 msgstr "%1冊のノートブックを新しい場所に移動しますか？"
 
-#: main.lua:23258
+#: main.lua:23275
 #, fuzzy
 msgid "Moved %1 notebooks. %2 failed."
 msgstr "%1冊のノートブックを移動しました。%2件失敗しました。"
 
-#: main.lua:23263
+#: main.lua:23280
 #, fuzzy
 msgid "Moved %1 notebooks."
 msgstr "%1冊のノートブックを移動しました。"
 
-#: main.lua:23334
+#: main.lua:23351
 #, fuzzy
 msgid "No notebook exists for this document. Create one?"
 msgstr "この文書のノートブックが存在しません。作成しますか？"
 
-#: main.lua:23388
+#: main.lua:23405
 #, fuzzy
 msgid "Notebook is empty"
 msgstr "ノートブックは空です"
 
-#: main.lua:23437
+#: main.lua:23454
 #, fuzzy
 msgid "Failed to read notebook file."
 msgstr "ノートブックファイルの読み取りに失敗しました。"
 
-#: main.lua:23485
+#: main.lua:23502
 #, fuzzy
 msgid "Chat about this notebook"
 msgstr "このノートブックについてチャットする"
 
-#: main.lua:23486
+#: main.lua:23503
 #, fuzzy
 msgid "Start a new chat about this notebook"
 msgstr "このノートブックについて新しいチャットを開始"
 
-#: main.lua:23519
+#: main.lua:23536
 #, fuzzy
 msgid "Notebook saved"
 msgstr "ノートブックを保存しました"
 
-#: main.lua:23526
+#: main.lua:23543
 #, fuzzy
 msgid "Reset to last saved"
 msgstr "最後の保存状態に戻す"
@@ -20908,344 +20908,344 @@ msgid ""
 "This action skips the chat pipeline, but it does send one AI request: the framed prompt below goes to the image provider's API. Provider, model, size and prompt framing are set in Settings → Advanced → Image Generation."
 msgstr "このアクションはチャットのパイプラインを経由しないが、AIリクエストは1件送信される:以下の枠組み済みプロンプトが画像プロバイダーのAPIに送られる。プロバイダー、モデル、サイズ、プロンプトの枠組みは設定 → 詳細設定 → 画像生成で設定する。"
 
-#: prompts/actions.lua:1319
+#: prompts/actions.lua:1342
 #, fuzzy
 msgid ""
 "Comprehensive overview: what the work is about, its themes, significance, and reading experience. Based on AI knowledge: no book data needed."
 msgstr "包括的な概要:作品が何についてのものか、そのテーマ、意義、読書体験。AIの知識に基づく:書籍データは不要。"
 
-#: prompts/actions.lua:1365
+#: prompts/actions.lua:1388
 #, fuzzy
 msgid "Find Similar"
 msgstr "類似作品を探す"
 
-#: prompts/actions.lua:1366
+#: prompts/actions.lua:1389
 #, fuzzy
 msgid ""
 "Recommends 5-7 similar works, explaining what makes each one similar and who would prefer which. When library scanning is enabled, notes which recommendations you already own."
 msgstr "類似する作品を5〜7点推薦し、それぞれの類似点と向いている読者を説明します。ライブラリスキャンが有効な場合、すでに所有している推薦作品を表示します。"
 
-#: prompts/actions.lua:1394
+#: prompts/actions.lua:1417
 #, fuzzy
 msgid "About Author"
 msgstr "著者について"
 
-#: prompts/actions.lua:1395
+#: prompts/actions.lua:1418
 #, fuzzy
 msgid ""
 "Biography, major works, writing style, and suggested reading order for the author."
 msgstr "著者の経歴、主要作品、文体、および推奨読書順。"
 
-#: prompts/actions.lua:1406
+#: prompts/actions.lua:1429
 #, fuzzy
 msgid "Historical Context"
 msgstr "歴史的背景"
 
-#: prompts/actions.lua:1407
+#: prompts/actions.lua:1430
 #, fuzzy
 msgid ""
 "Explores when the work was written, what was happening at the time, and how it reflects or responds to its era."
 msgstr "作品が書かれた時期、当時の出来事、そしてその時代をどのように反映または呼応しているかを探ります。"
 
-#: prompts/actions.lua:1422
+#: prompts/actions.lua:1445
 #, fuzzy
 msgid ""
 "Builds a structured reference guide (characters, themes, locations, timeline) up to your current reading position, from the book text alone. Completely spoiler-free. Updates incrementally as you read further. Can also target a specific section from the table of contents."
 msgstr "現在の読書位置までの構造化されたリファレンスガイド(登場人物、テーマ、場所、年表)を、本文のみから生成します。完全にネタバレなしです。読み進めるごとに段階的に更新されます。目次から特定のセクションを指定することもできます。"
 
-#: prompts/actions.lua:1425
+#: prompts/actions.lua:1448
 #, fuzzy
 msgid "Or use X-Ray (Simple) for an overview based on AI knowledge."
 msgstr "またはX-Ray (Simple)を使用してAIの知識に基づく概要を取得します。"
 
-#: prompts/actions.lua:1523
+#: prompts/actions.lua:1546
 #, fuzzy
 msgid ""
 "A prose companion guide from AI knowledge: characters, themes, settings, key terms. No text extraction needed. Uses reading progress to avoid spoilers."
 msgstr "AIの知識から生成される読み物形式の副読本ガイド: 登場人物、テーマ、設定、重要な用語。テキスト抽出は不要です。読書の進捗を利用してネタバレを回避します。"
 
-#: prompts/actions.lua:1609
+#: prompts/actions.lua:1632
 #, fuzzy
 msgid ""
 "A 'Previously on...' refresher to help you get back into reading after time away. Covers recent events, active threads, and where you left off. Adapts to fiction or non-fiction. When highlights are shared, weaves in what you found notable. Updates incrementally as you read further."
 msgstr "しばらく離れていた読書に戻るための「これまでのあらすじ」的なおさらいです。最近の出来事、進行中のスレッド、中断した箇所をカバーします。フィクションとノンフィクションに対応。ハイライトが共有されている場合、あなたが注目した内容も織り交ぜます。読み進めるにつれて段階的に更新されます。"
 
-#: prompts/actions.lua:1696 prompts/actions.lua:2251
+#: prompts/actions.lua:1719 prompts/actions.lua:2274
 #, fuzzy
 msgid "Analyze Notes"
 msgstr "ノート分析"
 
-#: prompts/actions.lua:1697
+#: prompts/actions.lua:1720
 #, fuzzy
 msgid ""
 "Analyzes your note-taking and highlighting patterns to reveal what catches your attention, emerging themes, and connections between your notes. This is about understanding you as a reader, not summarizing the work."
 msgstr "メモやハイライトのパターンを分析し、あなたが注目する点、浮かび上がるテーマ、メモ間のつながりを明らかにします。作品を要約するのではなく、読者としてのあなたを理解することが目的です。"
 
-#: prompts/actions.lua:1758
+#: prompts/actions.lua:1781
 #, fuzzy
 msgid "Related Thinkers"
 msgstr "関連する思想家"
 
-#: prompts/actions.lua:1759
+#: prompts/actions.lua:1782
 #, fuzzy
 msgid ""
 "Maps the intellectual landscape: who influenced the author, who the author influenced, and contemporary thinkers working on similar problems. For fiction, focuses on literary influences and movements."
 msgstr "知的な系譜を描きます：著者に影響を与えた人物、著者が影響を与えた人物、同様の問題に取り組んでいる同時代の思想家を示します。フィクションの場合は、文学的影響と運動に焦点を当てます。"
 
-#: prompts/actions.lua:1795
+#: prompts/actions.lua:1818
 #, fuzzy
 msgid ""
 "Breaks down the work's thesis, supporting arguments, evidence, assumptions, and potential counterarguments. For fiction, analyzes themes and the author's worldview instead. Can target a specific section. Result is saved as an artifact."
 msgstr "作品の論旨、裏付けとなる議論、根拠、前提、潜在的な反論を分析します。フィクションの場合は、テーマと著者の世界観を分析します。特定のセクションを対象にすることも可能です。結果はアーティファクトとして保存されます。"
 
-#: prompts/actions.lua:1849
+#: prompts/actions.lua:1872
 #, fuzzy
 msgid ""
 "Prosecutes the case against the work: steelmanned opposing positions, the argument's weakest links, what would falsify it, and who disagrees and why. Key Arguments maps the argument; this one argues back. Can target a specific section. Result is saved as an artifact."
 msgstr "作品に対する反対の立場を主張する:相手の立場を最大限に補強した上での反論、論証の最も弱い部分、それを反証する条件、誰がなぜ異を唱えるか。キーアーギュメントが論証を整理するのに対し、これは反論する。特定のセクションを対象にすることも可能。結果はアーティファクトとして保存される。"
 
-#: prompts/actions.lua:1895
+#: prompts/actions.lua:1918
 #, fuzzy
 msgid ""
 "Generates 8-10 discussion questions spanning comprehension, analysis, interpretation, and personal connection. Good for book clubs or classroom use. Can target a specific section. Result is saved as an artifact."
 msgstr "読解、分析、解釈、個人的なつながりにわたる8〜10個のディスカッション用質問を生成します。読書会や授業での活用に最適です。特定のセクションを対象にすることも可能です。結果はアーティファクトとして保存されます。"
 
-#: prompts/actions.lua:1943
+#: prompts/actions.lua:1966
 #, fuzzy
 msgid ""
 "Interactive comprehension quiz with multiple choice, short answer, and essay questions. Answers one at a time with scoring. Result is saved as an artifact. Can be triggered automatically at chapter ends."
 msgstr "選択式、短答式、論述式の問題によるインタラクティブな読解クイズです。採点しながら1問ずつ回答します。結果はアーティファクトとして保存されます。章末に自動で実行することもできます。"
 
-#: prompts/actions.lua:1972
+#: prompts/actions.lua:1995
 #, fuzzy
 msgid "Document Analysis"
 msgstr "文書分析"
 
-#: prompts/actions.lua:1973
+#: prompts/actions.lua:1996
 #, fuzzy
 msgid ""
 "Analyzes the document's thesis, structure, key insights, and audience. The result is saved as an Analyze artifact that other actions can reference. Can target a specific section."
 msgstr "ドキュメントの論旨、構成、重要な洞察、対象読者を分析します。結果は他のアクションが参照できる分析アーティファクトとして保存されます。特定のセクションを対象にすることも可能です。"
 
-#: prompts/actions.lua:2007
+#: prompts/actions.lua:2030
 #, fuzzy
 msgid "Document Summary"
 msgstr "文書サマリー"
 
-#: prompts/actions.lua:2008
+#: prompts/actions.lua:2031
 #, fuzzy
 msgid ""
 "Creates a comprehensive summary preserving key details and structure. The result is saved as a Summary artifact, which other actions can use as their document source. Can target a specific section."
 msgstr "重要な詳細と構成を保持した包括的な要約を作成します。結果は要約アーティファクトとして保存され、他のアクションがドキュメントソースとして使用できます。特定のセクションを対象にすることも可能です。"
 
-#: prompts/actions.lua:2034
+#: prompts/actions.lua:2057
 #, fuzzy
 msgid "Extract Key Insights"
 msgstr "重要な洞察を抽出"
 
-#: prompts/actions.lua:2035
+#: prompts/actions.lua:2058
 #, fuzzy
 msgid ""
 "Distills the most important takeaways: ideas worth remembering, novel perspectives, actionable conclusions, and connections to broader concepts. Can target a specific section. Result is saved as an artifact."
 msgstr "記憶に値するアイデア、新しい視点、実践的な結論、より広い概念とのつながりなど、最も重要なポイントを抽出します。特定のセクションを対象にすることも可能です。結果はアーティファクトとして保存されます。"
 
-#: prompts/actions.lua:2072
+#: prompts/actions.lua:2095
 #, fuzzy
 msgid ""
 "A spoiler-free guide to what's ahead: themes developing, questions worth holding, patterns to notice. Uses your reading position to stay safe. Can target a specific section."
 msgstr "この先に待つ展開についてのネタバレなしガイド:発展していくテーマ、留意すべき問い、注目すべきパターン。読書位置を利用して安全性を保つ。特定のセクションを対象にすることも可能。"
 
-#: prompts/actions.lua:2119
+#: prompts/actions.lua:2142
 #, fuzzy
 msgid "Suggest from Library"
 msgstr "ライブラリから提案"
 
-#: prompts/actions.lua:2120
+#: prompts/actions.lua:2143
 #, fuzzy
 msgid ""
 "Suggests what to read next from your own library, based on the current book and your reading history."
 msgstr "現在の本と読書履歴に基づいて、自分のライブラリから次に読む本を提案します。"
 
-#: prompts/actions.lua:2124 prompts/actions.lua:2276 prompts/actions.lua:2293
-#: prompts/actions.lua:2309 prompts/actions.lua:2326
+#: prompts/actions.lua:2147 prompts/actions.lua:2299 prompts/actions.lua:2316
+#: prompts/actions.lua:2332 prompts/actions.lua:2349
 #, fuzzy
 msgid ""
 "Enable library scanning in Settings → Privacy & Data to use this action."
 msgstr "このアクションを使用するには、設定 → プライバシーとデータ でライブラリスキャンを有効にしてください。"
 
-#: prompts/actions.lua:2141
+#: prompts/actions.lua:2164
 #, fuzzy
 msgid "Reviews"
 msgstr "レビュー"
 
-#: prompts/actions.lua:2142
+#: prompts/actions.lua:2165
 #, fuzzy
 msgid ""
 "Searches the web for critical and reader reviews, awards, and any controversy about the work."
 msgstr "作品に関する批評家および読者のレビュー、受賞歴、論争をウェブで検索します。"
 
-#: prompts/actions.lua:2177
+#: prompts/actions.lua:2200
 #, fuzzy
 msgid "Compare"
 msgstr "比較"
 
-#: prompts/actions.lua:2178
+#: prompts/actions.lua:2201
 #, fuzzy
 msgid ""
 "Compares the selected works, focusing on meaningful contrasts: different approaches, unique strengths, and which readers would prefer which."
 msgstr "選択した作品を比較し、意味のある対比に焦点を当てます：異なるアプローチ、それぞれの強み、どの読者がどちらを好むか。"
 
-#: prompts/actions.lua:2189
+#: prompts/actions.lua:2212
 #, fuzzy
 msgid "Find Common Themes"
 msgstr "共通テーマを探す"
 
-#: prompts/actions.lua:2190
+#: prompts/actions.lua:2213
 #, fuzzy
 msgid ""
 "Identifies shared themes, intellectual traditions, and deeper patterns across the selected works: beyond surface-level genre labels."
 msgstr "選択した作品群に共通するテーマ、思想的系譜、より深いパターンを特定する:表面的なジャンルのラベルを超えて。"
 
-#: prompts/actions.lua:2201
+#: prompts/actions.lua:2224
 #, fuzzy
 msgid "Analyze Collection"
 msgstr "コレクションを分析"
 
-#: prompts/actions.lua:2202
+#: prompts/actions.lua:2225
 #, fuzzy
 msgid ""
 "Analyzes what the collection reveals about the reader's interests, perspective, and what might be missing for a more complete picture."
 msgstr "コレクションが読者の興味、視点、より完全な全体像のために欠けている可能性のあるものについて何を明らかにするかを分析します。"
 
-#: prompts/actions.lua:2214
+#: prompts/actions.lua:2237
 #, fuzzy
 msgid "Quick Summaries"
 msgstr "クイック要約"
 
-#: prompts/actions.lua:2215
+#: prompts/actions.lua:2238
 #, fuzzy
 msgid ""
 "A brief 2-3 sentence summary of each selected work, focusing on premise and appeal."
 msgstr "各選択作品について、前提と魅力に焦点を当てた2〜3文の簡潔な要約。"
 
-#: prompts/actions.lua:2226
+#: prompts/actions.lua:2249
 #, fuzzy
 msgid "Reading Order"
 msgstr "読書順序"
 
-#: prompts/actions.lua:2227
+#: prompts/actions.lua:2250
 #, fuzzy
 msgid ""
 "Suggests an optimal reading order based on conceptual dependencies, difficulty progression, and thematic arc."
 msgstr "概念的な依存関係、難易度の進行、テーマの流れに基づいて最適な読書順序を提案します。"
 
-#: prompts/actions.lua:2238
+#: prompts/actions.lua:2261
 #, fuzzy
 msgid "Recommend"
 msgstr "おすすめ"
 
-#: prompts/actions.lua:2239
+#: prompts/actions.lua:2262
 #, fuzzy
 msgid ""
 "Recommends 5-8 new works based on the patterns across your selected works: matching the intersection of your interests, not just similarity to one title. When library scanning is enabled, notes which recommendations you already own and prioritizes books you haven't read."
 msgstr "選択した作品群にまたがるパターンに基づいて、新たに5〜8作品を推薦する:一つの作品との類似性ではなく、興味の交差点に一致するもの。ライブラリスキャンが有効な場合、すでに所有している推薦作品を記し、未読の本を優先する。"
 
-#: prompts/actions.lua:2252
+#: prompts/actions.lua:2275
 #, fuzzy
 msgid ""
 "Analyzes your highlights, annotations, and notes across the selected books: what patterns emerge in what you mark, what you write, and how your thinking connects across works."
 msgstr "選択した書籍群にわたるハイライト、注釈、メモを分析する:何をマークするか、何を書くか、作品を横断して思考がどうつながるかにどんなパターンが現れるか。"
 
-#: prompts/actions.lua:2256
+#: prompts/actions.lua:2279
 #, fuzzy
 msgid ""
 "Enable highlights or annotations sharing in Settings → Privacy & Data to use this action."
 msgstr "このアクションを使用するには、設定 → プライバシーとデータ でハイライトまたは注釈の共有を有効にしてください。"
 
-#: prompts/actions.lua:2269
+#: prompts/actions.lua:2292
 #, fuzzy
 msgid "Next Read"
 msgstr "次に読む本"
 
-#: prompts/actions.lua:2270
+#: prompts/actions.lua:2293
 #, fuzzy
 msgid ""
 "Suggests what to read next from your library: including books worth revisiting or picking back up. Based on what you've finished recently, what's been sitting unread, and your reading patterns. When advanced stats are enabled, includes engagement context like books you've stalled on or read extensively."
 msgstr "あなたのライブラリから次に読むべき本を提案する:再読や読み直す価値のある本も含む。最近読み終えたもの、未読のまま放置されているもの、読書パターンに基づく。詳細統計が有効な場合、読みかけの本や熱心に読んでいる本などのエンゲージメント情報も含む。"
 
-#: prompts/actions.lua:2286
+#: prompts/actions.lua:2309
 #, fuzzy
 msgid "Discover New"
 msgstr "新しい本を発見"
 
-#: prompts/actions.lua:2287
+#: prompts/actions.lua:2310
 #, fuzzy
 msgid ""
 "Suggests new books based on your library: identifies your taste from what you own and recommends works you don't have yet, including a few picks outside your comfort zone. When advanced stats are enabled, uses engagement data to better understand your preferences."
 msgstr "あなたのライブラリに基づいて新しい本を提案する:所有している本から好みを特定し、まだ持っていない作品を推薦する。快適圏の外にあるいくつかの選択肢も含む。詳細統計が有効な場合、エンゲージメントデータを利用して好みをより正確に把握する。"
 
-#: prompts/actions.lua:2302
+#: prompts/actions.lua:2325
 #, fuzzy
 msgid "Analyze Library"
 msgstr "ライブラリを分析"
 
-#: prompts/actions.lua:2303
+#: prompts/actions.lua:2326
 #, fuzzy
 msgid ""
 "Analyzes your library to reveal genres and authors you gravitate toward, completion patterns, and gaps in your collection. When advanced stats are enabled, includes engagement insights like which books you spent the most time on."
 msgstr "ライブラリを分析して、好むジャンルや著者、読了パターン、コレクションのギャップを明らかにします。高度な統計が有効な場合、最も時間をかけた本などのエンゲージメントに関するインサイトも含まれます。"
 
-#: prompts/actions.lua:2319
+#: prompts/actions.lua:2342
 #, fuzzy
 msgid "Challenge My Taste"
 msgstr "あなたの好みに挑戦する"
 
-#: prompts/actions.lua:2320
+#: prompts/actions.lua:2343
 #, fuzzy
 msgid ""
 "Critiques your reading pattern rather than celebrating it: where your library is one-sided, which voices are missing, and what a sharp critic of your shelf would say: ending with a few books that would argue with it. When advanced stats are enabled, includes engagement patterns."
 msgstr "あなたの読書パターンを称賛するのではなく批評する:ライブラリがどこで偏っているか、どの声が欠けているか、あなたの本棚を鋭く批評する人なら何と言うか:最後にそれに異を唱えるであろう本をいくつか挙げる。詳細統計が有効な場合、エンゲージメントパターンも含む。"
 
-#: prompts/actions.lua:2340
+#: prompts/actions.lua:2363
 #, fuzzy
 msgid "News Update"
 msgstr "ニュース更新"
 
-#: prompts/actions.lua:2341
+#: prompts/actions.lua:2364
 #, fuzzy
 msgid ""
 "Fetches today's top global news stories from Al Jazeera with headlines, summaries, and links. Uses web search."
 msgstr "アルジャジーラから今日のトップグローバルニュースを見出し、サマリー、リンク付きで取得します。ウェブ検索を使用します。"
 
-#: prompts/actions.lua:2370
+#: prompts/actions.lua:2393
 #, fuzzy
 msgid ""
 "Translates the selected text into your configured translation language. This action also controls the Translate Current Page function."
 msgstr "選択されたテキストを設定された翻訳言語に翻訳します。このアクションは現在のページを翻訳機能も制御します。"
 
-#: prompts/actions.lua:2390
+#: prompts/actions.lua:2413
 #, fuzzy
 msgid "Quick Define"
 msgstr "クイック定義"
 
-#: prompts/actions.lua:2391
+#: prompts/actions.lua:2414
 #, fuzzy
 msgid ""
 "A brief, one-line dictionary definition of the selected word in your dictionary language."
 msgstr "選択された単語の辞書言語での簡潔な一行の辞書定義。"
 
-#: prompts/actions.lua:2424
+#: prompts/actions.lua:2447
 #, fuzzy
 msgid ""
 "Full dictionary entry with pronunciation, definitions, etymology, and synonyms."
 msgstr "発音、定義、語源、同義語を含む完全な辞書エントリ。"
 
-#: prompts/actions.lua:2457
+#: prompts/actions.lua:2480
 #, fuzzy
 msgid "Deep Analysis"
 msgstr "詳細分析"
 
-#: prompts/actions.lua:2458
+#: prompts/actions.lua:2481
 #, fuzzy
 msgid ""
 "Deep linguistic analysis covering morphology, word family, etymology, cognates, and cross-language borrowings. Adapts to the word's language family (Semitic roots, Indo-European stems, etc.)."
