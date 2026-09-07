@@ -250,14 +250,20 @@ function BookGroups.moveGroup(id, delta)
     return BookGroups.moveGroupTo(id, i + (tonumber(delta) or 0))
 end
 
---- Sort the list by name, once (G0 round 4, maintainer: sorting is an
---- ACTION on the stored order, not a second state — groups can still be
---- moved by hand afterwards). Case-insensitive, ties by id so the result is
---- stable. name_fn(group) → the display name (the UI's canon; nil = raw name).
---- Display order only: no on_change.
-function BookGroups.sortGroupsByName(name_fn)
+--- Sort the list once (G0 rounds 4+6, maintainer: sorting is an ACTION on
+--- the stored order, not a second state — groups can still be moved by hand
+--- afterwards). mode "name" = by name; "kind" = series, project, plain, then
+--- name. Case-insensitive, ties by id so the result is stable. name_fn(group)
+--- → the display name (the UI's canon; nil = raw name). Display order only:
+--- no on_change.
+function BookGroups.sortGroups(mode, name_fn)
+    local rank = { [BookGroups.KIND_SERIES] = 1, [BookGroups.KIND_PROJECT] = 2, [BookGroups.KIND_PLAIN] = 3 }
     local data = load()
     table.sort(data.groups, function(a, b)
+        if mode == "kind" then
+            local ra, rb = rank[BookGroups.kindOf(a)] or 9, rank[BookGroups.kindOf(b)] or 9
+            if ra ~= rb then return ra < rb end
+        end
         local na = (name_fn and name_fn(a) or a.name or ""):lower()
         local nb = (name_fn and name_fn(b) or b.name or ""):lower()
         if na ~= nb then return na < nb end

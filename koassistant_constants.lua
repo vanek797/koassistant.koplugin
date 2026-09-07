@@ -147,7 +147,7 @@ function Constants.getQuickActionUtilityText(id, _)
         chat_history = _("Chat History"),
         notebook = _("Notebook"),
         view_caches = _("View Artifacts"),
-        book_group = _("Group"),
+        book_group = _("Group Hub"),
         -- Rename alongside BookPage.pageName()/entryLabel() (can't require
         -- book_page from here — cycle)
         book_overview = _("Book Hub"),

@@ -1666,8 +1666,14 @@ local function getAllPrompts(configuration, plugin)
     -- Determine context
     local context = config and getPromptContext(config) or "highlight"
 
-    -- Check if a book is currently open (for filtering requires_open_book actions)
+    -- Check if a book is currently open (for filtering requires_open_book actions).
+    -- "Open" means THIS dialog's book: a closed book's dialog launched beside
+    -- another open book (a group hub's Book Hub) is the not-open kind
     local has_open_book = plugin and plugin.ui and plugin.ui.document ~= nil
+    if has_open_book and config and config.features and config.features.is_book_context then
+        local target = config.features.book_metadata and config.features.book_metadata.file
+        if target and target ~= plugin.ui.document.file then has_open_book = false end
+    end
 
     -- Debug logging
     local logger = require("koassistant_logger")
@@ -6863,8 +6869,17 @@ local function showChatGPTDialog(ui_instance, highlighted_text, config, prompt_t
             book_metadata, SafeDocSettings.resolve(document_path, ui_instance))
     end
 
-    -- Determine input context for per-context action ordering
+    -- Determine input context for per-context action ordering. "Open" means
+    -- THIS dialog's book is the open document: a closed book's dialog launched
+    -- while another book is open (a group hub's Book Hub, the artifact
+    -- browser) is the not-open kind — its actions, chips and title must not be
+    -- the open book's (device round 2026-09-07); the extraction side already
+    -- routes that case to sidecar mode (is_file_browser_target)
     local has_open_book = ui_instance and ui_instance.document ~= nil
+    if has_open_book and configuration and configuration.features and configuration.features.is_book_context then
+        local target = configuration.features.book_metadata and configuration.features.book_metadata.file
+        if target and target ~= ui_instance.document.file then has_open_book = false end
+    end
     local input_context
     if is_general_context then
         input_context = "general"  -- Uses existing getGeneralMenuActionObjects()

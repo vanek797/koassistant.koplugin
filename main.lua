@@ -17772,7 +17772,7 @@ function AskGPT:onKOAssistantQuickActions()
           -- the list: from the panel you want to GO somewhere.
           if self_ref:_inBookGroup(file) then
             addButton({
-              text = Constants.getEmojiText(qa_emoji_map[util_id], _("Group"), qa_enable_emoji),
+              text = Constants.getEmojiText(qa_emoji_map[util_id], _("Group Hub"), qa_enable_emoji),
               callback = function()
                 UIManager:close(dialog)
                 self_ref:openGroupHubFor(file)

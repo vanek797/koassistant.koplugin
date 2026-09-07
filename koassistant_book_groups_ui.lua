@@ -157,6 +157,78 @@ local function createWithKind(name, after)
     end)
 end
 
+-- KOReader collections as a book source (G0 round 6, maintainer: "we are
+-- still not able to add from collections?"). ReadCollection.coll = { name →
+-- { [file] = { file, order } } }; the default collection renders as
+-- "Favorites" the way KOReader labels it.
+local function collectionNames()
+    local ok, ReadCollection = pcall(require, "readcollection")
+    local names = {}
+    if ok and type(ReadCollection.coll) == "table" then
+        for name in pairs(ReadCollection.coll) do names[#names + 1] = name end
+        table.sort(names)
+    end
+    return names, ok and ReadCollection or nil
+end
+
+--- @return boolean Any collection exists (row gates)
+function GroupsUI.hasCollections()
+    return #collectionNames() > 0
+end
+
+-- The collection's books in ITS order (the reader may have arranged the
+-- collection by hand — for a series that order is the point)
+local function collectionBooks(ReadCollection, name)
+    local entries = {}
+    for f, item in pairs(ReadCollection.coll[name] or {}) do
+        entries[#entries + 1] = { file = f,
+            order = type(item) == "table" and tonumber(item.order) or math.huge }
+    end
+    table.sort(entries, function(a, b)
+        if a.order ~= b.order then return a.order < b.order end
+        return a.file < b.file
+    end)
+    local paths = {}
+    for i, e in ipairs(entries) do paths[i] = e.file end
+    return paths
+end
+
+-- "Which collection?" — one row per collection with its count;
+-- on_pick(label, paths), on_cancel() (Cancel or tap-outside)
+local function pickCollection(on_pick, on_cancel)
+    local ButtonDialog = require("ui/widget/buttondialog")
+    local names, ReadCollection = collectionNames()
+    if #names == 0 or not ReadCollection then
+        if on_cancel then on_cancel() end
+        return
+    end
+    local dialog
+    local rows = {}
+    for _idx, name in ipairs(names) do
+        local captured = name
+        local label = captured == ReadCollection.default_collection_name and _("Favorites") or captured
+        local paths = collectionBooks(ReadCollection, captured)
+        rows[#rows + 1] = {{
+            text = label .. " (" .. #paths .. ")",
+            align = "left",
+            callback = function()
+                UIManager:close(dialog)
+                on_pick(label, paths)
+            end,
+        }}
+    end
+    rows[#rows + 1] = {{ text = _("Cancel"), callback = function()
+        UIManager:close(dialog)
+        if on_cancel then on_cancel() end
+    end }}
+    dialog = ButtonDialog:new{
+        title = _("Which collection?"),
+        buttons = rows,
+        tap_close_callback = on_cancel,
+    }
+    UIManager:show(dialog)
+end
+
 -- P5 item 7 (Q5 gripe): series metadata → group. Detection reads the CHEAP
 -- local chain only (sidecar doc_props, coverbrowser cache, custom metadata —
 -- KOReader's own BookInfo:getDocProps with no_open_document); the scan behind
@@ -296,47 +368,14 @@ local function offerSeriesScan(group_id, seed_path, sp, opts)
             })
         end,
     }}
-    local coll_ok, ReadCollection = pcall(require, "readcollection")
-    local coll_names = {}
-    if coll_ok and type(ReadCollection.coll) == "table" then
-        for name in pairs(ReadCollection.coll) do coll_names[#coll_names + 1] = name end
-        table.sort(coll_names)
-    end
-    if #coll_names > 0 then
+    if GroupsUI.hasCollections() then
         rows[#rows + 1] = {{
             text = _("Look in a collection…"),
             callback = function()
                 UIManager:close(dialog)
-                local coll_dialog
-                local coll_rows = {}
-                for _idx, name in ipairs(coll_names) do
-                    local captured = name
-                    local label = captured == ReadCollection.default_collection_name
-                        and _("Favorites") or captured
-                    local n = 0
-                    for _f in pairs(ReadCollection.coll[captured] or {}) do n = n + 1 end
-                    coll_rows[#coll_rows + 1] = {{
-                        text = label .. " (" .. n .. ")",
-                        align = "left",
-                        callback = function()
-                            UIManager:close(coll_dialog)
-                            local paths = {}
-                            for f in pairs(ReadCollection.coll[captured] or {}) do
-                                paths[#paths + 1] = f
-                            end
-                            runSeriesScan(group_id, seed_path, sp, paths, label, opts)
-                        end,
-                    }}
-                end
-                coll_rows[#coll_rows + 1] = {{ text = _("Cancel"), callback = function()
-                    UIManager:close(coll_dialog)
-                    done()
-                end }}
-                coll_dialog = ButtonDialog:new{
-                    title = _("Which collection?"),
-                    buttons = coll_rows,
-                }
-                UIManager:show(coll_dialog)
+                pickCollection(function(label, paths)
+                    runSeriesScan(group_id, seed_path, sp, paths, label, opts)
+                end, done)
             end,
         }}
     end
@@ -768,6 +807,44 @@ function GroupsUI.addFolderFlow(group_id, opts)
     })
 end
 
+-- Round 6: a collection as the source — the folder flow's shape, in the
+-- COLLECTION's order (no "Choose which…": the picker has no collection
+-- source; drop strays with the hold dialog afterwards)
+function GroupsUI.addCollectionFlow(group_id, opts)
+    local BookGroups = groups()
+    pickCollection(function(label, paths)
+        if #paths == 0 then
+            UIManager:show(require("ui/widget/infomessage"):new{
+                text = T(_("No books in the collection \"%1\"."), label),
+                timeout = 3,
+            })
+            GroupsUI.showGroup(group_id, opts)
+            return
+        end
+        local ButtonDialog = require("ui/widget/buttondialog")
+        local ask
+        ask = ButtonDialog:new{
+            title = T(_("Add %1 book(s) from the collection \"%2\" to this group, in the collection's order?"),
+                #paths, label),
+            buttons = {
+                {{ text = T(_("Add all (%1)"), #paths), callback = function()
+                    UIManager:close(ask)
+                    local added = 0
+                    for _idx, path in ipairs(paths) do
+                        if BookGroups.addBook(group_id, path) then added = added + 1 end
+                    end
+                    addedDone(group_id, opts, added)
+                end }},
+                {{ text = _("Cancel"), callback = function()
+                    UIManager:close(ask)
+                    GroupsUI.showGroup(group_id, opts)
+                end }},
+            },
+        }
+        UIManager:show(ask)
+    end, function() GroupsUI.showGroup(group_id, opts) end)
+end
+
 -- A2/A3: the fold surface the kind picker promises — series chain or project
 -- fan-in, via the cross-book picker (ONE flow owns consent, skip-done
 -- accounting and the confirms). Callers gate on sharesKnowledge.
@@ -923,6 +1000,38 @@ function GroupsUI.newGroupFromFolderFlow(opts)
             if not picked then GroupsUI.showManager(opts) end
         end,
     })
+end
+
+-- Round 6: the folder flow's shape over a collection — name prefilled with
+-- the collection's, all its books join in the collection's order
+function GroupsUI.newGroupFromCollectionFlow(opts)
+    pickCollection(function(label, paths)
+        if #paths == 0 then
+            UIManager:show(require("ui/widget/infomessage"):new{
+                text = T(_("No books in the collection \"%1\"."), label),
+                timeout = 3,
+            })
+            GroupsUI.showManager(opts)
+            return
+        end
+        promptName(_("New group"), label,
+            function(name)
+                createWithKind(name, function(group)
+                    local added = 0
+                    for _idx, p in ipairs(paths) do
+                        if groups().addBook(group.id, p) then added = added + 1 end
+                    end
+                    UIManager:show(require("ui/widget/notification"):new{
+                        text = T(_("Added %1 book(s), in the collection's order."), added),
+                    })
+                    GroupsUI.showGroup(group.id, {
+                        plugin = opts.plugin, ui = opts.ui,
+                        on_close = function() GroupsUI.showManager(opts) end,
+                    })
+                end)
+            end, function() GroupsUI.showManager(opts) end,
+            { description = T(_("%1 book(s) from the collection will be added, in its order."), #paths) })
+    end, function() GroupsUI.showManager(opts) end)
 end
 
 -- Main-menu parity with Book Settings (kenken round 5): seed a group from

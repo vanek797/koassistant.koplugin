@@ -239,6 +239,10 @@ local function hubBuild(ctx)
         function() GroupsUI.addBooksFlow(ctx.group_id, flow_opts) end)
     row(E("\u{2795}", _("Add all books in a folder…"), em),
         function() GroupsUI.addFolderFlow(ctx.group_id, flow_opts) end)
+    if GroupsUI.hasCollections() then
+        row(E("\u{2795}", _("Add all books in a collection…"), em),
+            function() GroupsUI.addCollectionFlow(ctx.group_id, flow_opts) end)
+    end
     local kind = BookGroups.kindOf(group)
     -- A2/A3: the fold surface the kind picker promises — series chain or
     -- project fan-in. Plain groups share nothing by design: no row.
@@ -339,24 +343,37 @@ local function listHamburger(ctx)
         {{ text = _("New group from folder…"),
             callback = pick(function() GroupsUI.newGroupFromFolderFlow(flow_opts) end) }},
     }
+    if GroupsUI.hasCollections() then
+        rows[#rows + 1] = {{ text = _("New group from collection…"),
+            callback = pick(function() GroupsUI.newGroupFromCollectionFlow(flow_opts) end) }}
+    end
     local open_file = ctx.ui and ctx.ui.document and ctx.ui.document.file
     if open_file then
         rows[#rows + 1] = {{ text = _("New group with this book…"),
             callback = pick(function() GroupsUI.newGroupWithBookFlow(open_file, flow_opts) end) }}
     end
-    -- One-shot: rewrites the stored order (a hand-arranged list is one
-    -- mis-tap from scrambled, hence the confirm); moving by hand goes on
-    -- working afterwards
-    rows[#rows + 1] = {{ text = _("Sort groups by name…"), enabled = #groups().all() > 1,
+    -- One-shot sorts (round 6: by name or by kind): each rewrites the stored
+    -- order once; moving by hand goes on working afterwards. The picker's own
+    -- line stands in for a confirm.
+    rows[#rows + 1] = {{ text = _("Sort groups…"), enabled = #groups().all() > 1,
         callback = pick(function()
-            UIManager:show(require("ui/widget/confirmbox"):new{
-                text = _("Sort all groups by name? You can still move them by hand afterwards."),
-                ok_text = _("Sort"),
-                ok_callback = function()
-                    groups().sortGroupsByName(GroupsUI.displayName)
+            local sort_dialog
+            local function by(mode, label)
+                return {{ text = label, callback = function()
+                    UIManager:close(sort_dialog)
+                    groups().sortGroups(mode, GroupsUI.displayName)
                     GroupPage.showList(listOpts(ctx))
-                end,
-            })
+                end }}
+            end
+            sort_dialog = ButtonDialog:new{
+                title = _("Sort groups") .. "\n" .. _("You can still move them by hand afterwards."),
+                buttons = {
+                    by("name", _("By name")),
+                    by("kind", _("By kind, then name")),
+                    {{ text = _("Cancel"), callback = function() UIManager:close(sort_dialog) end }},
+                },
+            }
+            UIManager:show(sort_dialog)
         end) }}
     dialog = ButtonDialog:new{ title = _("Groups"), buttons = rows }
     UIManager:show(dialog)
@@ -402,6 +419,10 @@ local function listBuild(ctx)
     row(E("\u{2795}", _("New group…"), em), function() GroupsUI.newGroupFlow(flow_opts) end)
     row(E("\u{2795}", _("New group from folder…"), em),
         function() GroupsUI.newGroupFromFolderFlow(flow_opts) end)
+    if GroupsUI.hasCollections() then
+        row(E("\u{2795}", _("New group from collection…"), em),
+            function() GroupsUI.newGroupFromCollectionFlow(flow_opts) end)
+    end
     local open_file = ctx.ui and ctx.ui.document and ctx.ui.document.file
     if open_file then
         row(E("\u{2795}", _("New group with this book…"), em),

@@ -401,7 +401,7 @@ TestRunner:test("moveGroup / moveGroupTo: list order, clamped, no on_change", fu
     mem = saved_mem
 end)
 
-TestRunner:test("sortGroupsByName: one-shot, case-insensitive, display name canon, no on_change", function()
+TestRunner:test("sortGroups: one-shot, by name or by kind then name, display name canon, no on_change", function()
     local saved_mem = mem
     mem = {}
     local b = BookGroups.create("beta")
@@ -409,7 +409,7 @@ TestRunner:test("sortGroupsByName: one-shot, case-insensitive, display name cano
     local a = BookGroups.create("Alpha")
     local fired = false
     BookGroups.on_change = function() fired = true end
-    BookGroups.sortGroupsByName(function(g) return g.name == "?" and "(unnamed)" or g.name end)
+    BookGroups.sortGroups("name", function(g) return g.name == "?" and "(unnamed)" or g.name end)
     local list = BookGroups.all()
     TestRunner:assertEqual(list[1].id, q.id, "'(unnamed)' sorts first (punctuation before letters)")
     TestRunner:assertEqual(list[2].id, a.id, "Alpha before beta, case-insensitive")
@@ -417,6 +417,17 @@ TestRunner:test("sortGroupsByName: one-shot, case-insensitive, display name cano
     TestRunner:assertTrue(BookGroups.moveGroup(b.id, -2), "still movable by hand afterwards")
     TestRunner:assertEqual(BookGroups.all()[1].id, b.id, "moved to the top")
     TestRunner:assertEqual(fired, false, "display order never notifies")
+    -- By kind: series, project, plain, then name within a kind
+    BookGroups.setKind(a.id, BookGroups.KIND_PLAIN)
+    BookGroups.setKind(q.id, BookGroups.KIND_PROJECT)
+    BookGroups.setKind(b.id, BookGroups.KIND_SERIES)
+    fired = false
+    BookGroups.sortGroups("kind")
+    list = BookGroups.all()
+    TestRunner:assertEqual(list[1].id, b.id, "series first")
+    TestRunner:assertEqual(list[2].id, q.id, "project second")
+    TestRunner:assertEqual(list[3].id, a.id, "plain last")
+    TestRunner:assertEqual(fired, false, "sorting by kind never notifies either")
     BookGroups.on_change = nil
     mem = saved_mem
 end)
