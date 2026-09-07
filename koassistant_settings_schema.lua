@@ -968,7 +968,7 @@ local SettingsSchema = {
                             text = _("Categories for New X-Rays"),
                             callback = "showXrayDefaultCategoriesPicker",
                             keep_menu_open = true,
-                            help_text = _("Which category groups a new X-Ray tracks by default: everything, or a narrower preset such as Reference (no timeline) or Characters only. Applies when an X-Ray is created or rebuilt; individual books can pick their own categories in Book Settings."),
+                            help_text = _("Which category groups a new X-Ray tracks by default. Reference (everything except the timeline) unless changed here; All categories adds the timeline or argument development, Characters only is the lightest. Applies when an X-Ray is created or rebuilt; individual books can pick their own categories in Book Settings."),
                         },
                         {
                             id = "xray_default_depth_picker",

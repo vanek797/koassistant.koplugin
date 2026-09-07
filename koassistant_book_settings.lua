@@ -2048,13 +2048,15 @@ local XRAY_CATEGORY_LABELS = {
 }
 
 --- Effective category selection for NEW X-Rays: book pick > global default >
---- full. Sidecar value "full" is the explicit-full sentinel (this book stays
---- Full even under a narrowed global — the domain `_none` precedent); any
---- other sidecar value is a csv of group ids; nil follows the global
---- (`features.xray_default_categories`, csv, nil = full).
+--- Reference (Actions.XRAY_DEFAULT_CATEGORIES, since 2026-09-07; was Full).
+--- Sidecar value "full" is the explicit-full sentinel (this book stays Full
+--- even under a narrowed global — the domain `_none` precedent); any other
+--- sidecar value is a csv of group ids; nil follows the global
+--- (`features.xray_default_categories`: csv, or the "full" sentinel for an
+--- explicit All; nil = the shipped default).
 --- @param doc_settings table|nil the book's DocSettings (nil = no book layer)
 --- @param features table|nil global features table
---- @return string|nil normalized csv (nil = full), string|nil deciding layer ("book"/"global")
+--- @return string|nil normalized csv (nil = full), string|nil deciding layer ("book"/"global"; nil = shipped default)
 function BookSettings.resolveXrayCategories(doc_settings, features)
     doc_settings = BookStore.wrap(doc_settings)
     local Actions = require("prompts.actions")
@@ -2062,9 +2064,11 @@ function BookSettings.resolveXrayCategories(doc_settings, features)
     if raw == "full" then return nil, "book" end
     local sel = Actions.normalizeXrayCategories(raw)
     if sel then return sel, "book" end
-    local gsel = Actions.normalizeXrayCategories(features and features.xray_default_categories)
+    local graw = features and features.xray_default_categories
+    if Actions.isFullXrayCategories(graw) then return nil, "global" end
+    local gsel = Actions.normalizeXrayCategories(graw)
     if gsel then return gsel, "global" end
-    return nil, nil
+    return Actions.XRAY_DEFAULT_CATEGORIES, nil
 end
 
 --- Depth rung for NEW X-Rays: book pick > global default > standard.
@@ -2180,7 +2184,10 @@ function BookSettings.showXrayCategoriesPicker(opts)
     -- would actually use.
     local sel
     if is_global then
-        sel = stored
+        sel = BookSettings.resolveXrayCategories(nil, features)
+        -- Nothing stored globally = the shipped default: dot that preset
+        -- (the global tab has no "Follow" row to light up instead)
+        if raw == nil then stored = sel end
     else
         sel = BookSettings.resolveXrayCategories(doc_settings, features)
     end
@@ -2199,7 +2206,9 @@ function BookSettings.showXrayCategoriesPicker(opts)
         end
         local value = Actions.normalizeXrayCategories(table.concat(ids, ","))
         if is_global then
-            writeGlobalFeature(opts.plugin, "xray_default_categories", value)
+            -- All five checked = the explicit-full sentinel (the shipped
+            -- default is Reference, so a deleted key no longer means All)
+            writeGlobalFeature(opts.plugin, "xray_default_categories", value or "full")
         elseif value then
             doc_settings:saveSetting(BookSettings.KEY_XRAY_CATEGORIES, value)
             doc_settings:flush()
@@ -2235,7 +2244,7 @@ function BookSettings.showXrayCategoriesPicker(opts)
     local function header(text) return {{ text = text, enabled = false }} end
 
     local full_stored
-    if is_global then full_stored = (stored == nil) else full_stored = (raw == "full") end
+    full_stored = Actions.isFullXrayCategories(raw)
     -- G1: a followed group's value must not dot a preset row too
     local following = (not is_global and not is_group)
         and BookSettings.followingGroup(doc_settings, BookSettings.KEY_XRAY_CATEGORIES) or nil
@@ -2270,7 +2279,7 @@ function BookSettings.showXrayCategoriesPicker(opts)
     end
     if not is_global then
         local raw_stored = doc_settings.readRaw and doc_settings:readRaw(BookSettings.KEY_XRAY_CATEGORIES) or raw
-        local global_label = BookSettings.xrayCategoriesLabel(features.xray_default_categories)
+        local global_label = BookSettings.xrayCategoriesLabel((BookSettings.resolveXrayCategories(nil, features)))
         buttons[#buttons + 1] = {{ text = dot(raw_stored == nil)
                 .. (is_group and T(_("Not set (books follow global: %1)"), global_label)
                     or T(_("Follow global (%1)"), global_label)),

@@ -1435,13 +1435,26 @@ TestRunner:test("junk values fall through; nil doc settings still honours the gl
     TestRunner:assertEqual(BookSettings.xrayDepthLabel(nil), "Standard", "label")
 end)
 
-TestRunner:suite("resolveXrayCategories (book > global default > full)")
+TestRunner:suite("resolveXrayCategories (book > global default > Reference)")
 
 local KXC = BookSettings.KEY_XRAY_CATEGORIES
 
-TestRunner:test("nothing set = full, no layer", function()
+TestRunner:test("nothing set = the shipped Reference default, no layer", function()
     local sel, layer = BookSettings.resolveXrayCategories(makeDocSettings({}), {})
-    TestRunner:assertNil(sel); TestRunner:assertNil(layer)
+    TestRunner:assertEqual(sel, "people,places,ideas,terms"); TestRunner:assertNil(layer)
+end)
+
+TestRunner:test("global 'full' sentinel = All, global layer", function()
+    local sel, layer = BookSettings.resolveXrayCategories(
+        makeDocSettings({}), { xray_default_categories = "full" })
+    TestRunner:assertNil(sel, "explicit All = nil selection")
+    TestRunner:assertEqual(layer, "global")
+end)
+
+TestRunner:test("junk global falls through to the shipped default", function()
+    local sel, layer = BookSettings.resolveXrayCategories(
+        makeDocSettings({}), { xray_default_categories = "bogus" })
+    TestRunner:assertEqual(sel, "people,places,ideas,terms"); TestRunner:assertNil(layer)
 end)
 
 TestRunner:test("book csv beats a different global", function()
@@ -1479,7 +1492,7 @@ TestRunner:test("junk book value falls through; full-set global folds to full", 
         makeDocSettings({ [KXC] = "bogus" }),
         { xray_default_categories = "people,places,ideas,terms,events" })
     TestRunner:assertNil(sel, "full-set csv normalizes to nil = full")
-    TestRunner:assertNil(layer)
+    TestRunner:assertEqual(layer, "global")
 end)
 
 print("")
