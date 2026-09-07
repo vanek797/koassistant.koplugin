@@ -99,4 +99,23 @@ TestRunner:test("final pass (mode NONE) keeps declarations and forbids calls", f
     TestRunner:assertEqual(body.toolConfig.functionCallingConfig.mode, "NONE", "mode NONE forbids further calls")
 end)
 
+-- Parity audit F060 (2026-09-07): Google's default content filter blocks
+-- literary text; every request relaxes the four adjustable categories unless
+-- the reader picked "Google default".
+TestRunner:test("safety settings ride every request by default", function()
+    local result = GeminiHandler:buildRequestBody({ { role = "user", content = "hi" } },
+        { model = "gemini-2.5-flash" })
+    local ss = result.body.safetySettings
+    TestRunner:assertTrue(type(ss) == "table" and #ss == 4, "four categories")
+    for _idx, entry in ipairs(ss) do
+        TestRunner:assertEqual(entry.threshold, "BLOCK_NONE", entry.category)
+    end
+end)
+
+TestRunner:test("Google default sends no safety settings", function()
+    local result = GeminiHandler:buildRequestBody({ { role = "user", content = "hi" } },
+        { model = "gemini-2.5-flash", features = { gemini_safety = "google" } })
+    TestRunner:assertEqual(result.body.safetySettings, nil, "omitted")
+end)
+
 return TestRunner:summary()

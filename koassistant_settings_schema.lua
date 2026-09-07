@@ -3059,6 +3059,23 @@ local SettingsSchema = {
                             },
                         },
                         {
+                            id = "gemini_safety",
+                            type = "radio",
+                            text_func = function(plugin)
+                                local f = plugin.settings:readSetting("features") or {}
+                                local mode = f.gemini_safety or "relaxed"
+                                return T(_("Gemini Content Filter: %1"),
+                                    mode == "google" and _("Google default") or _("Relaxed for books"))
+                            end,
+                            help_text = _("Google's default content filter can block answers about violent or sexual passages in books. The reply then arrives empty, with the reason named.\n\nRelaxed turns the four adjustable filter categories off for this plugin's requests. Google default sends no filter setting."),
+                            path = "features.gemini_safety",
+                            default = "relaxed",
+                            options = {
+                                { value = "relaxed", text = _("Relaxed for books (default)") },
+                                { value = "google", text = _("Google default") },
+                            },
+                        },
+                        {
                             id = "qwen_region",
                             type = "radio",
                             text_func = function(plugin)

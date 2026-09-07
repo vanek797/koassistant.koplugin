@@ -4351,6 +4351,13 @@ function AskGPT:buildModelMenu(simplified, provider_override)
             { value = "search_std", text = _("Basic (Chinese web)") },
           } },
       },
+      gemini = {
+        { key = "gemini_safety", tpl = _("Content filter: %1"), default = "relaxed",
+          options = {
+            { value = "relaxed", text = _("Relaxed for books (default)") },
+            { value = "google", text = _("Google default") },
+          } },
+      },
       qwen = {
         { key = "qwen_region", tpl = _("Region: %1"), default = "international",
           options = {
