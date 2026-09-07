@@ -15626,9 +15626,10 @@ msgid "Delete checkpoints (%1)…"
 msgstr "Kontrol noktalarını sil (%1)…"
 
 #: main.lua:12722
+#, fuzzy
 msgid ""
 "Delete the %1 checkpoints? They include your complete version (100%), which is not installed as your current X-Ray; deleting now discards it."
-msgstr ""
+msgstr "%1 kontrol noktası silinsin mi? Bunlar, mevcut X-Ray'iniz olarak kurulu olmayan tam sürümünüzü (100%) içerir; şimdi silerseniz bu sürüm de atılır."
 
 #: main.lua:12725
 #, fuzzy
