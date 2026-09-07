@@ -7259,9 +7259,10 @@ function AskGPT:_installGroupSeedingHooks()
     GroupSettings.onRemoved(group_id, books)
   end
   require("koassistant_book_store").on_marker_replaced = function(_path, key, group_id)
-    UIManager:show(require("ui/widget/notification"):new{
-      text = GroupSettings.replacedNotice(key, group_id),
-    })
+    local text = GroupSettings.replacedNotice(key, group_id)  -- nil = the group is gone
+    if text then
+      UIManager:show(require("ui/widget/notification"):new{ text = text })
+    end
   end
   ActionCache.on_live_xray_written = function(file)
     for _idx, group in ipairs(BookGroups.groupsFor(file)) do

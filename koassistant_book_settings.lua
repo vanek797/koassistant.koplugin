@@ -1067,23 +1067,29 @@ function BookSettings.buildDomainResearchButtons(state, cb, opts)
     }})
 
     if state.is_book_target then
-        -- Book target: Follow global (<value>) / On / Off
+        -- Book target: Follow global (<value>) / On / Off. G1: a group
+        -- facade reads "Not set (books follow global: X)"; a book following
+        -- a group for research dots none of the three and gets the
+        -- "Follow group X (value)" rows below, like the domain rows above
+        local following = state.following_research
+        local global_label = state.global_research and _("On") or _("Off")
         table.insert(buttons, {
             {
-                text = dot(state.book_research == nil)
-                    .. T(_("Follow global (%1)"),
-                        state.global_research and _("On") or _("Off")),
+                text = dot(state.book_research == nil and not following)
+                    .. (state.is_group and T(_("Not set (books follow global: %1)"), global_label)
+                        or T(_("Follow global (%1)"), global_label)),
                 callback = function() cb.set_book_research(nil) end,
             },
             {
-                text = dot(state.book_research == true) .. _("On"),
+                text = dot(not following and state.book_research == true) .. _("On"),
                 callback = function() cb.set_book_research(true) end,
             },
             {
-                text = dot(state.book_research == false) .. _("Off"),
+                text = dot(not following and state.book_research == false) .. _("Off"),
                 callback = function() cb.set_book_research(false) end,
             },
         })
+        for _idx, row in ipairs(state.research_group_rows or {}) do table.insert(buttons, row) end
     else
         -- Global target: Off / On
         table.insert(buttons, {
@@ -1193,6 +1199,8 @@ function BookSettings.showDomainResearch(opts)
         is_group = is_group,
         following_domain = (not is_group and doc_settings)
             and BookSettings.followingGroup(doc_settings, BookSettings.KEY_DOMAIN) or nil,
+        following_research = (not is_group and doc_settings)
+            and BookSettings.followingGroup(doc_settings, BookSettings.KEY_RESEARCH) or nil,
     }
 
     local cb = {
@@ -1245,10 +1253,14 @@ function BookSettings.showDomainResearch(opts)
     }
 
     if state.is_book_target and not is_group then
-        state.group_rows = BookSettings.groupFollowRows(doc_settings,
-            document_path or (ui and ui.document and ui.document.file), BookSettings.KEY_DOMAIN,
+        local book_path = document_path or (ui and ui.document and ui.document.file)
+        local function mark(active) return active and "● " or "○ " end
+        state.group_rows = BookSettings.groupFollowRows(doc_settings, book_path, BookSettings.KEY_DOMAIN,
             function(v) return v == "_none" and _("None") or (domainDisplayName(v, features) or v) end,
-            cb.pick_book_domain, function(active) return active and "● " or "○ " end)
+            cb.pick_book_domain, mark)
+        state.research_group_rows = BookSettings.groupFollowRows(doc_settings, book_path, BookSettings.KEY_RESEARCH,
+            function(v) return v and _("On") or _("Off") end,
+            cb.set_book_research, mark)
     end
     dialog = ButtonDialog:new{
         title = _("Domain & Research"),
@@ -1360,8 +1372,12 @@ end
 function BookSettings.followingGroup(doc_settings, key)
     if not doc_settings or type(doc_settings.readRaw) ~= "function" then return nil end
     local raw = doc_settings:readRaw(key)
-    if BookStore.isMarker(raw) then return raw[BookStore.MARKER_FIELD] end
-    return nil
+    if not BookStore.isMarker(raw) then return nil end
+    -- A marker for a group that no longer exists (a groups file restored from
+    -- an older backup) reads as follow-global; never show a bare id
+    local gid = raw[BookStore.MARKER_FIELD]
+    if not require("koassistant_book_groups").byId(gid) then return nil end
+    return gid
 end
 
 --- Row label when the book follows a group for the key: "Follow group X

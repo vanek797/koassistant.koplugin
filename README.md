@@ -24,7 +24,7 @@ Note: This README is the main documentation for now, and is being migrated to th
 - **While reading** → reference guides (summaries, browsable X-Ray with character tracking, cross-references, chapter distribution, Section X-Rays for focused chapter/part analysis, AI Wiki for per-item encyclopedia entries, local (offline) X-Ray lookup, X-Ray (Simple) prose overview from AI knowledge, recap, book info, notes analysis), analyze your highlights/annotations, explore the book/document (author, context, arguments, similar works), generate discussion questions
 - **X-Ray that keeps up** → optional **Automatic X-Ray** (per book or global: once you have started a book's X-Ray, it keeps building in the background as you read — nothing ever starts one on its own), **checkpoints** (pre-build spoiler-safe X-Ray versions for the whole book, snapped to chapter ends, silently swapped in as you read), and **version history** (browse, restore, or delete earlier X-Ray snapshots, with a keep-count setting)
 - **X-Ray in the text** → known entity names get dotted underlines as you read; tap one for a compact identification card (footnote panel or anchored popup), tap through for the full entry; selecting or dictionary-looking-up an exact name opens its entry directly; a Mentions view maps appearances over your table of contents and jumps into the book at any occurrence; new X-Rays can be narrowed to just people / places / ideas / terms / events
-- **Book Groups** → track a series or project as a named, **ordered** list of books; series metadata detection offers to find the rest in a folder or collection; X-Ray knowledge can merge, fold, and carry forward along the group so later books recognize what earlier ones introduced
+- **Book Groups** → track a series or project as a named, **ordered** list of books, each with its own hub page and group settings its members follow; series metadata detection offers to find the rest in a folder or collection; X-Ray knowledge can merge, fold, and carry forward along the group so later books recognize what earlier ones introduced
 - **Book Hub** → one full-screen page per book gathering everything: artifacts, chat, chat history, notebook, group, and book settings (file-browser long-press, main menu, Quick Actions, or gesture)
 - **Session controls (chips)** → a configurable chip row in the input dialog — Domain, Web search, AI Book Tools, Quick Answer (one tap for a fast, brief reply; preset configurable), Scope (attach a text range; shows as Ctx on highlights), Attach, and Spoiler Protection — each tap-toggles for the current chat and hold-opens its defaults; choose which chips appear via the input gear menu
 - **See its sources** → a **Show Sources** viewer (web URLs, search queries, and book-tool lookups) alongside **Show Reasoning**, plus per-message "searched the web" and "searched the book" indicators
@@ -92,7 +92,7 @@ Note: This README is the main documentation for now, and is being migrated to th
 - [Domains](#domains): Add subject expertise to prompts
   - [Creating Domains](#creating-domains)
 - [Book Settings](#book-settings): Per-book overrides (domain, background, research, spoiler protection, privacy, X-Ray, book info, AI title/author, quiz, languages)
-- [Book Groups](#book-groups): Ordered groups for series and projects, with cross-book X-Ray knowledge
+- [Book Groups](#book-groups): Ordered groups for series and projects, with cross-book X-Ray knowledge, a hub page per group and group settings
 - [Book Hub](#book-hub): One page for everything about a book
 - [Managing Conversations](#managing-conversations): History, export, notebooks
   - [Auto-Save](#auto-save)
@@ -312,7 +312,7 @@ Assign "KOAssistant: Quick Settings" to a gesture for one-tap access to a two-co
 - **Quick Answer**: Toggle the Quick Answer posture for the next chat; hold for its preset settings
 - **Spoiler Protection**: Toggle it globally; hold for the per-book / global picker
 - **Minimal Popup**: Turn the chrome-less anchored response popup on or off; hold for its mode and action list
-- **Groups**: Open the Book Groups manager
+- **Groups**: Open the Groups list (every group's hub, settings and management)
 - **More Settings...**: Open the full settings menu
 
 In reader mode, one additional button appears (items naturally shift to accommodate):
@@ -327,7 +327,7 @@ The panel has a **gear icon** (top-left) that opens a small menu with **Sort Ite
 Assign "KOAssistant: Quick Actions" to a gesture for fast access to reading-related actions:
 - **Default actions**: X-Ray, Recap, About, Document Summary, Analyze Notes, Extract Key Insights, Key Arguments, Discussion Questions, Quiz, Suggest from Library
 - **Artifact button**: "View Artifacts" appears when any artifacts exist, opening a picker showing each cached artifact with progress % and age (e.g., "X-Ray (100%, 3d ago)"). The picker aggregates the twelve per-action artifacts (X-Ray, X-Ray (Simple), Summary, Analysis, Recap, About, Notes Analysis, Key Arguments, Discussion Questions, Quiz, Key Insights, Reading Guide) plus any section-scoped groups, any pinned artifacts, a **Generated Images** entry (opens the per-book image gallery), and a **Previous X-Ray Versions** entry (archived X-Ray snapshots) when those exist
-- **Utilities**: Translate Page, Book Chat/Action, Continue Last Chat, General Chat/Action, Chat History, Notebook, View Artifacts, Group (when the book is in one), Book Hub, Book Settings, Quick Settings
+- **Utilities**: Translate Page, Book Chat/Action, Continue Last Chat, General Chat/Action, Chat History, Notebook, View Artifacts, Group Hub (when the book is in one), Book Hub, Book Settings, Quick Settings
 
 You can add any book action to Quick Actions via **Action Manager → hold action → "+ Quick Actions"**. The panel has a **gear icon** (top-left) that lets you choose between managing **Panel Actions** (reorder/remove actions) or **Panel Utilities** (show/hide/reorder utility buttons). These managers are also reachable via the hamburger menu in **Manage Actions** and via **Settings → Menus & Buttons → Quick panels**. Defaults can also be removed.
 
@@ -381,7 +381,7 @@ After basic setup, explore these features to get the most out of KOAssistant:
 | **[AI Book Tools](#ai-book-tools-experimental)** | Let the AI search and read the open book on demand instead of sending the whole text (off by default) | Tools chip in the input dialog, or Settings → Advanced |
 | **[Web Search](#web-search)** | Let the AI search the web for current information, with a light/standard/thorough effort dial | Web chip in the input dialog, or Settings → Advanced |
 | **[Book Hub](#book-hub)** | One page for everything about the current book: artifacts, chat, history, notebook, group, settings | File browser long-press → Book Hub, Quick Actions, or a gesture |
-| **[Book Groups](#book-groups)** | Track a series or project as an ordered list of books; carry X-Ray knowledge forward | Main menu → Groups, or Book Settings → Group |
+| **[Book Groups](#book-groups)** | Track a series or project as an ordered list of books; carry X-Ray knowledge forward; group settings the members follow | Main menu → Groups, Book Hub → Group, or Book Settings → Group |
 | **[Book Settings](#book-settings)** | Per-book overrides for nearly everything: domain, background note, research, spoiler protection, X-Ray, privacy, quiz, languages | Input dialog gear icon → Book Settings, or Book Hub → Book Settings |
 | **[Image Generation](#image-generation)** | Turn a highlighted passage into an AI-generated illustration | Highlight menu → Generate Image |
 | **[Notebooks](#notebooks-per-book-notes)** | Per-book markdown notes with Obsidian vault support | Settings → Notebook Settings |
@@ -2195,7 +2195,7 @@ Chat History → hamburger menu → **View by Domain**
 
 ### What you can set per book
 
-Each row shows its current value ("Follow global (X)" when unset) and opens a small picker; **Follow global** is always an option inside each. The screen leads with a few **headline rows** (Domain, Background, Research mode, Spoiler protection, Group), followed by **six sub-screens**, each showing its own customized-count badge: **X-Ray**, **Chat behavior**, **Privacy**, **Identity**, **Quiz settings**, **Languages**.
+Each row shows its current value ("Follow global (X)" when unset, or "Follow group X (value)" when the book follows one of its [groups](#book-groups) for that setting) and opens a small picker; **Follow global** is always an option inside each, and so is following a group that sets the value. The screen leads with a few **headline rows** (Domain, Background, Research mode, Spoiler protection, Group), followed by **six sub-screens**, each showing its own customized-count badge: **X-Ray**, **Chat behavior**, **Privacy**, **Identity**, **Quiz settings**, **Languages**.
 
 **Headline rows**
 
@@ -2205,7 +2205,7 @@ Each row shows its current value ("Follow global (X)" when unset) and opens a sm
 | **Background** | Free text (up to 2000 chars) | A standing note about this book, sent alongside behavior and domain in **every** request for it ("I'm reading this critically — flag questionable claims"). Unlike a chat note, it applies to every action, gesture, and chat automatically. No privacy toggle: writing it is the consent. |
 | **Research mode** | Follow global / On / Off | See [Research Mode](#research-mode). "Off" suppresses it even when a DOI is detected. |
 | **Spoiler protection** | Follow global / On / Off | See [Spoiler Protection](#spoiler-protection). Research mode or a book marked Finished stands it down automatically (the row says so when active). |
-| **Group** | View / manage / "Add to group…" | The book's [group](#book-groups) membership. Tap for the members popup, hold to manage. |
+| **Group** | Group Hub / memberships / "Add to group…" | The book's [group](#book-groups) membership. Tap opens the book's Group Hub (a chooser when it is in several), hold opens the memberships popup. |
 
 **Chat behavior** (sub-screen)
 
@@ -2289,7 +2289,7 @@ Track a series or a multi-book project as a named, **ordered** group of books. O
 
 **Creating groups** (main menu → **Groups**, or Book Settings → **Group**):
 - **New group…** / **New group with this book…** — name it and pick a kind.
-- **New group from folder…** — pick a folder; every book in it joins in filename order (the name is prefilled from the folder).
+- **New group from folder…** / **New group from collection…** — pick a folder or a KOReader collection; every book in it joins (filename order for a folder, the collection's own order for a collection; the name is prefilled).
 - **Series suggestion** — when a book's metadata carries a series tag (including one typed into KOReader's own **Book information** editor), a **"New group from series …"** row creates the group named after the series with the book in it, then offers to find the rest: **Look in a folder…** or **Look in a collection…**. Matches are confirmed before joining, and the group sorts itself by series index.
 
 **Group kinds** tune what carries between books: **Series** (ordered; knowledge flows from earlier volumes into later ones), **Project** (books share a subject; folding picks an explicit target), and **Plain** (just a list; nothing carries). Only **Series** groups are ordered; picking Project or Plain turns the sequencing off, so the ordering-dependent behavior (predecessor seeding, series chains, the "book N of M" labels) stands down with it.
@@ -2300,8 +2300,12 @@ Track a series or a multi-book project as a named, **ordered** group of books. O
 - **Cross-book lookups**: looking a name up in a later book answers from the whole group, not just the open book. Tapping a marked word, an exact dictionary or highlight match, an entity card, and the X-Ray browser's search all fall back — in that order — to this book's carried list and then to the group's other X-Rays, nearest book first. Cards and result rows name their source ("Carried from *Title*", "From *Title*'s X-Ray"), the browser's search results fold the other books in as **"From *Title*"** groups, and a hit from another book offers **"Open in *Title*'s X-Ray"** and **"Add to this book's carried list"**.
 - **Later volumes stay closed**: in an ordered series a lookup only looks past a book once that book is read (marked **Finished**, or read to its last page) or its own spoiler protection is off — so volume 3 stays out of reach while volume 1 is still unread and protected. When something is held back, the search results and the no-results dialog carry a row naming the next volume (**"Search *Title* too (may contain spoilers)…"**), and each confirmation opens exactly one more book. Marking, entity cards, and matching selections never reach past that chain. A project group shares between all its members in both directions; a plain group shares nothing.
 - **One naming canon**: creating an X-Ray for a later book in a group nudges the model to keep the names its predecessors used, so a recurring character keeps one name across volumes.
-- **Navigation**: a **→ Group** row on X-Ray entries, viewers, and the members popup jumps to a member's [Book Hub](#book-hub) or its X-Ray entry for the same entity.
+- **Navigation**: a **→ Group** row on X-Ray entries, viewers, and the members popup jumps to a member's X-Ray entry for the same entity (from an entity page it opens as a read-only view over the page). In a series, a later volume still behind the spoiler chain is listed as "(later in the series)" without checking whether the entity appears in it, and opens only after the same confirmation the search reveal uses.
 - The library dialog can be launched pre-filled with the whole group for cross-book chats and comparisons.
+
+**Groups list and Group Hub.** Main menu → **Groups** opens the Groups list: one row per group with its kind icon and "Kind · N books"; tap a row for the group's hub, hold it to move, rename, change the kind or delete it, and the title-bar menu (☰) creates groups (blank, from a folder, from a collection, from the open book's series) and sorts the list by name or by kind (a one-shot sort; you can still move groups by hand). A **Group Hub** is a full-screen page per group: its action rows first (**Group Settings…**, the X-Ray fold row, **Series/Project/Group Chat/Action…** which opens the library dialog with the members pre-selected), then the members in order (tap for a book's [Book Hub](#book-hub), hold to move, open or remove it), then the add rows (**Add books…**, **Add all books in a folder…**, **Add all books in a collection…**). Its ☰ menu carries the add flows, **Kind**, **Rename** and **Delete group**; the bottom-left up-arrow returns to the list. The Book Hub's Group row, the **→ Group** buttons on X-Ray surfaces and the Quick Actions **Group Hub** utility all land on the book's hub (a chooser when it is in several groups). The book picker used by the add flows browses KOReader **collections** beside history and folders.
+
+**Group settings.** A group can set the same settings a book can: **Domain**, **Research mode**, **Background**, **Spoiler protection**, **Automatic X-Ray**, **New X-Ray categories** and **depth**, and the three **Languages**, through the very same pickers ("For this group" instead of "For this book"). Setting a value offers to apply it to every member; a member that follows the group shows **"Follow group X (value)"** on its Book Settings row and in every picker, and reads the group's value live until it picks its own, which the Group Settings screen then lists as "not following" with **Re-apply to all**. Books added to a group that sets values are asked once whether to follow; leaving a group, or deleting it, returns its books to the global settings. **Clear all group settings…** does the same for every member at once.
 
 Groups are stored in KOAssistant's settings folder (not inside the books), survive book moves, and deleting a book never silently edits a group: missing members are marked, and removal is manual.
 
@@ -2310,7 +2314,7 @@ Groups are stored in KOAssistant's settings folder (not inside the books), survi
 One full-screen page per book that gathers everything KOAssistant knows about it:
 
 - Every **artifact** with live status (X-Ray first — an open book without one gets a create route), tap any row to view it.
-- 💬 **Chat/Action**, 🔍 **Search in book** (open book; hands off to KOReader's fulltext search), 📖 **Open Book** (on closed-book views), 📜 **Chat History** (with count), 📓 **Notebook** (tap to view, hold to edit), 🗂️ **Group** (tap for members, hold to manage, "Add to group…" when ungrouped), and 📕 **Book Settings** ("N customized").
+- 💬 **Chat/Action**, 🔍 **Search in book** (open book; hands off to KOReader's fulltext search), 📖 **Open Book** (on closed-book views), 📜 **Chat History** (with count), 📓 **Notebook** (tap to view, hold to edit), 🗂️ **Group** (tap opens the book's Group Hub, hold the memberships popup, "Add to group…" when ungrouped), and 📕 **Book Settings** ("N customized"). A book in a group also gets a bottom-left up-arrow back to its Group Hub.
 - Rows refresh in place as you generate things.
 - The title-bar menu (☰): **Refresh index**, **Export all artifacts** (to a folder, in your chosen format), **Browse all books** (the cross-book artifact browser), and **Delete all** (with a confirmation naming what's covered).
 
@@ -2569,7 +2573,7 @@ These launch entries sit at the top of the menu:
 - **Chat History**: Browse saved conversations
 - **Browse Notebooks**: Open the Notebook Manager to view all notebooks
 - **Browse Artifacts**: Open the Artifact Browser to view all cached artifacts
-- **Groups**: Open the Book Groups manager. See [Book Groups](#book-groups)
+- **Groups**: Open the Groups list, one row per group. See [Book Groups](#book-groups)
 
 ### Provider & Model
 - **Model: <model> (<Provider>)**: one row for both. Tap it to open the provider and model hub (31 built-in providers + custom)
@@ -2890,7 +2894,7 @@ Listed in the order the buttons appear in the long-press popup. All eight defaul
 
 #### Quick panels
 - **Panel Actions**: Choose which actions appear on the Quick Actions panel (reader mode). Add new ones via Action Manager → hold action → **+ Quick Actions**. Also reachable from the panel's gear icon.
-- **Panel Utilities**: Choose and order the utility buttons on the Quick Actions panel (Translate Page, Book Chat/Action, Continue Last Chat, General Chat/Action, Chat History, Notebook, View Artifacts, Group, Book Hub, Book Settings, Quick Settings). Also reachable from the panel's gear icon.
+- **Panel Utilities**: Choose and order the utility buttons on the Quick Actions panel (Translate Page, Book Chat/Action, Continue Last Chat, General Chat/Action, Chat History, Notebook, View Artifacts, Group Hub, Book Hub, Book Settings, Quick Settings). Also reachable from the panel's gear icon.
 - **Quick Settings Items**: Choose and order the tiles on the Quick Settings panel (Provider, Model, Behavior, Domain, Reasoning, Web Search, Book Tools, Quick Answer, Spoiler Protection, Minimal Popup, Language, Translation/Dictionary Language, bypass toggles, Text Extraction, Chat History, Browse Notebooks/Artifacts, Book Groups, Library and General Chat, Continue Last Chat, Manage Actions, Quick Actions, More Settings). Also reachable from the panel's gear icon.
 
 #### Gestures

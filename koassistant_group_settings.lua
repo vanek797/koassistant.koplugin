@@ -14,8 +14,9 @@ screen with "Re-apply to all". Leaving a group (or deleting it) turns that
 group's markers on the book into follow-global. Joining a group that has
 settings asks once per add (offerJoin).
 
-Wave 1 = domain, Background, spoiler protection, automatic X-Ray, the
-categories and depth of new X-Rays, the three per-book languages. Nothing new
+Wave 1 = domain, research mode, Background, spoiler protection, automatic
+X-Ray, the categories and depth of new X-Rays, the three per-book languages
+(the chat dials stay per book for now, Q-E in the plan). Nothing new
 is defined: every row opens the shared BookSettings picker on a GROUP FACADE
 (`GroupSettings.facade`) — an object with the doc_settings surface the
 pickers already speak, backed by the group's values, whose writes run the
@@ -41,7 +42,7 @@ end
 function GroupSettings.keys()
     local BS = bookSettings()
     return {
-        BS.KEY_DOMAIN, BS.KEY_BACKGROUND, BS.KEY_SPOILER_FREE, BS.KEY_XRAY_AUTO,
+        BS.KEY_DOMAIN, BS.KEY_RESEARCH, BS.KEY_BACKGROUND, BS.KEY_SPOILER_FREE, BS.KEY_XRAY_AUTO,
         BS.KEY_XRAY_CATEGORIES, BS.KEY_XRAY_DEPTH,
         BS.KEY_RESPONSE_LANG, BS.KEY_TRANSLATION_LANG, BS.KEY_DICTIONARY_LANG,
     }
@@ -216,11 +217,12 @@ function GroupSettings.onRemoved(group_id, books)
     GroupSettings.clearMarkers(group_id, books)
 end
 
---- The toast text when a book's own pick replaces a follow-group marker.
+--- The toast text when a book's own pick replaces a follow-group marker;
+--- nil when the group no longer exists (a stale marker: nothing to say).
 function GroupSettings.replacedNotice(key, group_id)
     local group = groups().byId(group_id)
-    local name = group and displayName(group) or group_id
-    return T(_("%1: this book no longer follows the group %2."), GroupSettings.keyLabel(key), name)
+    if not group then return nil end
+    return T(_("%1: this book no longer follows the group %2."), GroupSettings.keyLabel(key), displayName(group))
 end
 
 -- ---------------------------------------------------------------- apply confirm
@@ -365,6 +367,8 @@ function GroupSettings.show(opts)
     local rows = {}
     local function row(text, fn) rows[#rows + 1] = {{ text = text, align = "left", callback = fn }} end
     row(T(_("Domain: %1"), value(BS.KEY_DOMAIN)), picker(BS.showDomainResearch))
+    -- Research shares the domain picker (its lower section), as in Book Settings
+    row(T(_("Research mode: %1"), value(BS.KEY_RESEARCH)), picker(BS.showDomainResearch))
     row(T(_("Background: %1"), value(BS.KEY_BACKGROUND)), picker(BS.showBackgroundEditor))
     row(T(_("Spoiler protection: %1"), value(BS.KEY_SPOILER_FREE)), picker(BS.showSpoilerFree))
     row(T(_("Automatic X-Ray: %1"), value(BS.KEY_XRAY_AUTO)),

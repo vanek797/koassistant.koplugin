@@ -464,6 +464,21 @@ TestRunner:test("group settings: get/set/clear, settingsOf copy, no on_change; l
     BookGroups.on_change = nil; BookGroups.on_leave = nil; BookGroups.on_removed = nil
 end)
 
+TestRunner:test("follow-group helpers: a marker of a group that no longer exists reads as follow-global", function()
+    local BookSettings = require("koassistant_book_settings")
+    local BookStore = require("koassistant_book_store")
+    local GroupSettings = require("koassistant_group_settings")
+    local g = BookGroups.create("Series")
+    local key = "koassistant_book_research_mode"
+    local function fakeDS(marker) return { readRaw = function(_, k) if k == key then return marker end end } end
+    TestRunner:assertEqual(BookSettings.followingGroup(fakeDS(BookStore.marker(g.id)), key), g.id, "live group: following")
+    TestRunner:assertEqual(BookSettings.followingGroup(fakeDS(BookStore.marker("gone")), key), nil, "missing group: not following")
+    TestRunner:assertEqual(BookSettings.followGroupLabel(fakeDS(BookStore.marker("gone")), key, "On"), nil, "missing group: caller keeps its label")
+    TestRunner:assertEqual(BookSettings.followingGroup(fakeDS(true), key), nil, "own value: not following")
+    TestRunner:assertEqual(GroupSettings.replacedNotice(key, "gone"), nil, "missing group: no toast text")
+    BookGroups.remove(g.id)
+end)
+
 TestRunner:test("shortName: UTF-8 safe cap with an ellipsis", function()
     TestRunner:assertEqual(BookGroups.shortName("short"), "short", "under the cap untouched")
     TestRunner:assertEqual(BookGroups.shortName("abcdef", 3), "abc\u{2026}", "cut at the cap")
