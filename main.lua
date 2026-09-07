@@ -7228,6 +7228,8 @@ function AskGPT:_installGroupSeedingHooks()
       local ok, meta = pcall(DocSettings.findSidecarFile, DocSettings, file)
       key = stampOf(ok and meta or nil) .. "|"
         .. stampOf(require("koassistant_book_store").pathFor(file, "koassistant_book_settings.lua"))
+        -- G1: a follow-group marker reads the groups file's value
+        .. "|" .. stampOf(BookGroups.filePath())
         .. "|" .. tostring(features.spoiler_free_chat) .. "/" .. tostring(features.research_mode)
       local hit = chain_memo[file]
       if hit and hit.key == key then return hit.clears end
@@ -7244,6 +7246,22 @@ function AskGPT:_installGroupSeedingHooks()
   end)
   BookGroups.on_change = function(group_id)
     self_ref:_scheduleGroupReseed(group_id)
+  end
+  -- G1 group settings (docs/group_hub_plan.md §2.1): a book that leaves a
+  -- group, or a deleted group, turns that group's follow markers on the
+  -- book(s) into follow-global; a book's own pick replacing a marker gets
+  -- the "no longer follows" toast
+  local GroupSettings = require("koassistant_group_settings")
+  BookGroups.on_leave = function(group_id, path)
+    GroupSettings.onLeave(group_id, path)
+  end
+  BookGroups.on_removed = function(group_id, books)
+    GroupSettings.onRemoved(group_id, books)
+  end
+  require("koassistant_book_store").on_marker_replaced = function(_path, key, group_id)
+    UIManager:show(require("ui/widget/notification"):new{
+      text = GroupSettings.replacedNotice(key, group_id),
+    })
   end
   ActionCache.on_live_xray_written = function(file)
     for _idx, group in ipairs(BookGroups.groupsFor(file)) do

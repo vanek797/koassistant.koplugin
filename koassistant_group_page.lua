@@ -4,8 +4,8 @@ singletons in the Book Hub's shape.
 
 - The GROUP HUB: THE per-group screen — GroupsUI.showGroup opens it, so every
   entry point and every group flow's reopen lands here. Rows: the ACTION
-  rows first (the fold row, the kind-named Chat/Action row; group settings
-  join them in G1) so a long book list never pushes them onto the next
+  rows first (Group Settings… = koassistant_group_settings.lua, the fold
+  row, the kind-named Chat/Action row) so a long book list never pushes them onto the next
   page, then a dim hint and the members in order (tap = that book's Book
   Hub, hold = the move / open / remove dialog; the open book's row says
   "open"), and LAST the add rows (Add books…, Add all books in a folder…,
@@ -222,9 +222,17 @@ local function hubBuild(ctx)
     local function row(text, fn)
         items[#items + 1] = { text = text, callback = fn }
     end
-    -- ACTION rows FIRST (round 9, maintainer): the fold, the Chat/Action and
-    -- later the group settings sit above the members, in a predictable place
-    -- a long book list can never push onto the next page.
+    -- ACTION rows FIRST (round 9, maintainer): the group settings, the fold
+    -- and the Chat/Action sit above the members, in a predictable place a
+    -- long book list can never push onto the next page.
+    -- G1: the settings the group sets for its members (docs/group_hub_plan.md §2.1)
+    row(E("\u{2699}\u{FE0F}", require("koassistant_group_settings").rowLabel(ctx.group_id) .. "\u{2026}", em),
+        function()
+            require("koassistant_group_settings").show({
+                group_id = ctx.group_id, plugin = ctx.plugin, ui = ctx.ui,
+                on_close = function() GroupsUI.showGroup(ctx.group_id, flow_opts) end,
+            })
+        end)
     -- A2/A3: the fold surface the kind picker promises — series chain or
     -- project fan-in. Plain groups share nothing by design: no row.
     if #group.books > 1 and ctx.plugin and ctx.plugin._startCrossBookXrayFlow

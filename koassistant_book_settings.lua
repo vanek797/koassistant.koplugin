@@ -383,8 +383,10 @@ end
 function BookSettings.xrayAutoLabel(doc_settings, features)
     doc_settings = BookStore.wrap(doc_settings)
     local ov = BookSettings.xrayAutoOverride(doc_settings, features)
-    if ov == "on" then return _("On") end
-    if ov == "off" then return _("Off") end
+    if ov == "on" or ov == "off" then
+        local label = ov == "on" and _("On") or _("Off")
+        return BookSettings.followGroupLabel(doc_settings, BookSettings.KEY_XRAY_AUTO, label) or label
+    end
     local global_on = features and features.xray_auto_update == true
     return T(_("Follow global (%1)"), global_on and _("On") or _("Off"))
 end
@@ -828,11 +830,15 @@ function BookSettings.resetBook(doc_settings)
     if not doc_settings then return end
     require("koassistant_logger").dbg("KOAssistant BookSettings: clearing all",
         #BookSettings.SIDECAR_KEYS, "per-book overrides")
+    -- G1: markers go too (the reset IS the reader's pick); one reset, no toast per marker
+    BookStore.suppress_marker_hook = true
     for _i, key in ipairs(BookSettings.SIDECAR_KEYS) do
-        if doc_settings:readSetting(key) ~= nil then
+        if doc_settings:readSetting(key) ~= nil
+            or (type(doc_settings.has) == "function" and doc_settings:has(key)) then
             doc_settings:saveSetting(key, nil)  -- nil = delete (facade + DocSettings alike)
         end
     end
+    BookStore.suppress_marker_hook = false
     doc_settings:flush()
 end
 
@@ -882,6 +888,11 @@ function BookSettings.backgroundRowLabel(doc_settings)
     doc_settings = BookStore.wrap(doc_settings)
     local v = BookSettings.getBackground(doc_settings)
     if not v then return _("not set") end
+    local gid = BookSettings.followingGroup(doc_settings, BookSettings.KEY_BACKGROUND)
+    if gid then
+        local g = require("koassistant_book_groups").byId(gid)
+        return T(_("Follow group %1"), g and require("koassistant_book_groups_ui").displayName(g) or gid)
+    end
     v = v:gsub("%s+", " ")
     if #v > 28 then
         v = require("koassistant_attachments").truncate(v, 28, "head") .. "…"
@@ -908,31 +919,58 @@ function BookSettings.showBackgroundEditor(opts)
         UIManager:close(input)
         if opts.on_close then opts.on_close() end
     end
+    local is_group = opts.scope == "group"
+    -- G1: a book in a group that sets a Background can follow it from here
+    local group_rows = {}
+    if not is_group then
+        local path = opts.document_path or doc_settings._path
+            or (type(doc_settings.data) == "table" and doc_settings.data.doc_path) or nil
+        group_rows = BookSettings.groupFollowRows(doc_settings, path, BookSettings.KEY_BACKGROUND,
+            function(v)
+                v = (tostring(v):gsub("%s+", " "))
+                if #v > 24 then v = require("koassistant_attachments").truncate(v, 24, "head") .. "…" end
+                return v
+            end,
+            function(m)
+                doc_settings:saveSetting(BookSettings.KEY_BACKGROUND, m)
+                doc_settings:flush()
+                if opts.plugin and opts.plugin.updateConfigFromSettings then
+                    opts.plugin:updateConfigFromSettings()
+                end
+                finish()
+            end, function(active) return active and "● " or "○ " end)
+    end
+    local buttons = {{
+        { text = _("Cancel"), id = "close", callback = function() finish() end },
+        {
+            text = _("Save"),
+            is_enter_default = true,
+            callback = function()
+                local text = input:getInputText() or ""
+                if text:match("^%s*$") then text = nil end
+                doc_settings:saveSetting(BookSettings.KEY_BACKGROUND, text)
+                doc_settings:flush()
+                if opts.plugin and opts.plugin.updateConfigFromSettings then
+                    opts.plugin:updateConfigFromSettings()
+                end
+                finish()
+            end,
+        },
+    }}
+    for _idx, r in ipairs(group_rows) do buttons[#buttons + 1] = r end
+    local current = doc_settings:readSetting(BookSettings.KEY_BACKGROUND)
+    if type(current) ~= "string" then current = "" end
     input = InputDialog:new{
-        title = _("Background (this book)"),
-        description = _("Standing context for this book: why you're reading it, the stance you bring, anything the book's own description gets wrong. It is kept with this book and sent with every request about it, alongside your domain and behavior settings. Leave empty to remove."),
-        input = doc_settings:readSetting(BookSettings.KEY_BACKGROUND) or "",
+        title = is_group and _("Background (this group)") or _("Background (this book)"),
+        description = is_group
+            and _("Standing context for every book in this group: why you're reading them, the stance you bring. Books that follow the group send it with every request about them, alongside your domain and behavior settings. Leave empty to remove.")
+            or _("Standing context for this book: why you're reading it, the stance you bring, anything the book's own description gets wrong. It is kept with this book and sent with every request about it, alongside your domain and behavior settings. Leave empty to remove."),
+        input = current,
         input_hint = _("e.g. \"I'm reading this biography critically; I admire its subject and I think the author has an axe to grind\"\ne.g. \"for a seminar on X\" · \"this is the Arberry translation\""),
         allow_newline = true,
         -- Multi-line by default; only text_height works for InputDialog sizing
         text_height = require("device").screen:scaleBySize(200),
-        buttons = {{
-            { text = _("Cancel"), id = "close", callback = function() finish() end },
-            {
-                text = _("Save"),
-                is_enter_default = true,
-                callback = function()
-                    local text = input:getInputText() or ""
-                    if text:match("^%s*$") then text = nil end
-                    doc_settings:saveSetting(BookSettings.KEY_BACKGROUND, text)
-                    doc_settings:flush()
-                    if opts.plugin and opts.plugin.updateConfigFromSettings then
-                        opts.plugin:updateConfigFromSettings()
-                    end
-                    finish()
-                end,
-            },
-        }},
+        buttons = buttons,
     }
     UIManager:show(input)
     input:onShowKeyboard()
@@ -970,7 +1008,7 @@ function BookSettings.buildDomainResearchButtons(state, cb, opts)
     if state.has_book then
         table.insert(buttons, {
             {
-                text = dot(state.is_book_target) .. _("For this book"),
+                text = dot(state.is_book_target) .. (state.is_group and _("For this group") or _("For this book")),
                 callback = function()
                     if not state.is_book_target then cb.set_target("book") end
                 end,
@@ -987,20 +1025,23 @@ function BookSettings.buildDomainResearchButtons(state, cb, opts)
     if state.is_book_target then
         -- Book target: "Follow global (<value>)" + "None" + each domain (Q3
         -- invariant: the follow row always names the current global value)
+        local following = state.following_domain
+        local global_label = state.global_domain_label or state.global_domain or _("None")
         table.insert(buttons, {{
-            text = dot(state.book_domain == nil)
-                .. T(_("Follow global (%1)"),
-                    state.global_domain_label or state.global_domain or _("None")),
+            text = dot(state.book_domain == nil and not following)
+                .. (state.is_group and T(_("Not set (books follow global: %1)"), global_label)
+                    or T(_("Follow global (%1)"), global_label)),
             callback = function() cb.pick_book_domain(nil) end,
         }})
+        for _idx, row in ipairs(state.group_rows or {}) do table.insert(buttons, row) end
         table.insert(buttons, {{
-            text = dot(state.book_domain == "_none") .. _("None"),
+            text = dot(not following and state.book_domain == "_none") .. _("None"),
             callback = function() cb.pick_book_domain("_none") end,
         }})
         for _idx, domain in ipairs(state.domains) do
             local id = domain.id
             table.insert(buttons, {{
-                text = dot(state.book_domain == id) .. (domain.display_name or domain.name or id),
+                text = dot(not following and state.book_domain == id) .. (domain.display_name or domain.name or id),
                 callback = function() cb.pick_book_domain(id) end,
             }})
         end
@@ -1106,7 +1147,8 @@ function BookSettings.showDomainResearch(opts)
     local on_close = opts.on_close
     local document_path = opts.document_path
 
-    local doc_settings = resolveDocSettings(ui, document_path)
+    local is_group = opts.scope == "group"
+    local doc_settings = opts.doc_settings or resolveDocSettings(ui, document_path)
     local features = plugin and plugin.settings and plugin.settings:readSetting("features") or {}
     local all_domains = DomainLoader.getSortedDomains(features.custom_domains or {})
 
@@ -1148,6 +1190,9 @@ function BookSettings.showDomainResearch(opts)
         book_research = book_research,
         global_research = features.research_mode,
         background_label = doc_settings and BookSettings.backgroundRowLabel(doc_settings) or nil,
+        is_group = is_group,
+        following_domain = (not is_group and doc_settings)
+            and BookSettings.followingGroup(doc_settings, BookSettings.KEY_DOMAIN) or nil,
     }
 
     local cb = {
@@ -1155,6 +1200,7 @@ function BookSettings.showDomainResearch(opts)
             closeDialog()
             BookSettings.showDomainResearch({
                 plugin = plugin, ui = ui, document_path = document_path,
+                doc_settings = opts.doc_settings, scope = opts.scope,
                 on_close = on_close, target_override = new_target,
             })
         end,
@@ -1179,12 +1225,14 @@ function BookSettings.showDomainResearch(opts)
         edit_background = function()
             closeDialog()
             BookSettings.showBackgroundEditor({
-                plugin = plugin, doc_settings = doc_settings,
+                plugin = plugin, doc_settings = doc_settings, scope = opts.scope,
+                document_path = document_path,
                 -- Reopen this picker on the same (book) target so the row's
                 -- preview refreshes in place
                 on_close = function()
                     BookSettings.showDomainResearch({
                         plugin = plugin, ui = ui, document_path = document_path,
+                        doc_settings = opts.doc_settings, scope = opts.scope,
                         on_close = on_close, target_override = "book",
                     })
                 end,
@@ -1196,6 +1244,12 @@ function BookSettings.showDomainResearch(opts)
         end,
     }
 
+    if state.is_book_target and not is_group then
+        state.group_rows = BookSettings.groupFollowRows(doc_settings,
+            document_path or (ui and ui.document and ui.document.file), BookSettings.KEY_DOMAIN,
+            function(v) return v == "_none" and _("None") or (domainDisplayName(v, features) or v) end,
+            cb.pick_book_domain, function(active) return active and "● " or "○ " end)
+    end
     dialog = ButtonDialog:new{
         title = _("Domain & Research"),
         buttons = BookSettings.buildDomainResearchButtons(state, cb),
@@ -1235,7 +1289,8 @@ end
 --- a pick; refresh state + reopen your surface), on_cancel }.
 function BookSettings.showXrayAutoPicker(opts)
     opts = opts or {}
-    local doc_settings = resolveDocSettings(opts.ui, opts.document_path)
+    local is_group = opts.scope == "group"
+    local doc_settings = opts.doc_settings or resolveDocSettings(opts.ui, opts.document_path)
     if not doc_settings then return end
     local features = opts.plugin and opts.plugin.settings
         and opts.plugin.settings:readSetting("features") or {}
@@ -1254,37 +1309,91 @@ function BookSettings.showXrayAutoPicker(opts)
         -- stack two copies of the popup. Only when the picker's book IS the
         -- open book: the engine and the revert both act on the open book's
         -- settings, and Book Settings can target any book from hub surfaces
-        local open_here = not opts.document_path
+        local open_here = not is_group and (not opts.document_path
             or (opts.ui and opts.ui.document and opts.ui.document.file
-                and require("koassistant_doc_settings").samePath(opts.ui.document.file, opts.document_path))
+                and require("koassistant_doc_settings").samePath(opts.ui.document.file, opts.document_path)))
         if val == "on" and open_here and opts.plugin and opts.plugin._onXrayAutoTurnedOn
                 and opts.plugin:_onXrayAutoTurnedOn(cur, opts.on_change) then
             return
         end
         if opts.on_change then opts.on_change() end
     end
+    local following = not is_group and BookSettings.followingGroup(doc_settings, BookSettings.KEY_XRAY_AUTO) or nil
+    local rows = {}
+    if is_group then
+        rows[#rows + 1] = {{ text = dot(cur == nil) .. T(_("Not set (books follow global: %1)"), global_on and _("On") or _("Off")),
+            callback = function() pick(nil) end }}
+    else
+        rows[#rows + 1] = {{ text = dot(cur == nil and not following) .. T(_("Follow global (%1)"), global_on and _("On") or _("Off")),
+            callback = function() pick(nil) end }}
+        for _idx, r in ipairs(BookSettings.groupFollowRows(doc_settings,
+                opts.document_path or (opts.ui and opts.ui.document and opts.ui.document.file),
+                BookSettings.KEY_XRAY_AUTO,
+                function(v) return v == "on" and _("On") or _("Off") end, pick, dot)) do
+            rows[#rows + 1] = r
+        end
+    end
+    rows[#rows + 1] = {{ text = dot(not following and cur == "on") .. _("On: fully automatic"),
+        callback = function() pick("on") end }}
+    rows[#rows + 1] = {{ text = dot(not following and cur == "off") .. _("Off: never automatic"),
+        callback = function() pick("off") end }}
+    rows[#rows + 1] = {{ text = _("Cancel"), id = "close",
+        callback = function()
+            UIManager:close(picker)
+            if opts.on_cancel then opts.on_cancel() end
+        end }}
     picker = ButtonDialog:new{
-        title = _("Automatic X-Ray (this book)") .. "\n"
+        title = (is_group and _("Automatic X-Ray (this group)") or _("Automatic X-Ray (this book)")) .. "\n"
             .. _("On: build this book's X-Ray automatically as you read: a spoiler-free introduction first, then checkpoints, always keeping the next one ready ahead of you (background API calls; WiFi + text-extraction consent required).")
             .. (isPageBased(opts.ui, opts.document_path)
                 and ("\n" .. _("This book is page-based (PDF/DJVU): automatic X-Ray only runs on flowing books (EPUB), so this setting has no effect here."))
                 or ""),
-        buttons = {
-            {{ text = dot(cur == nil) .. T(_("Follow global (%1)"), global_on and _("On") or _("Off")),
-                callback = function() pick(nil) end }},
-            {{ text = dot(cur == "on") .. _("On: fully automatic"),
-                callback = function() pick("on") end }},
-            {{ text = dot(cur == "off") .. _("Off: never automatic"),
-                callback = function() pick("off") end }},
-            {{ text = _("Cancel"), id = "close",
-                callback = function()
-                    UIManager:close(picker)
-                    if opts.on_cancel then opts.on_cancel() end
-                end }},
-        },
+        buttons = rows,
         tap_close_callback = function() if opts.on_cancel then opts.on_cancel() end end,
     }
     UIManager:show(picker)
+end
+
+--- G1 (group settings, docs/group_hub_plan.md §2.1): the group a book FOLLOWS
+--- for a key — the marker its raw value holds (nil = an own value / follow
+--- global / no raw read available, e.g. the group facade itself).
+function BookSettings.followingGroup(doc_settings, key)
+    if not doc_settings or type(doc_settings.readRaw) ~= "function" then return nil end
+    local raw = doc_settings:readRaw(key)
+    if BookStore.isMarker(raw) then return raw[BookStore.MARKER_FIELD] end
+    return nil
+end
+
+--- Row label when the book follows a group for the key: "Follow group X
+--- (<value>)", nil otherwise (callers keep their own label then).
+function BookSettings.followGroupLabel(doc_settings, key, value_label)
+    local gid = BookSettings.followingGroup(doc_settings, key)
+    if not gid then return nil end
+    local g = require("koassistant_book_groups").byId(gid)
+    local name = g and require("koassistant_book_groups_ui").displayName(g) or gid
+    return T(_("Follow group %1 (%2)"), name, value_label)
+end
+
+--- The pickers' "Follow group X (<value>)" rows for a book: one per group the
+--- book is in that sets the key. pick(marker) writes the marker through the
+--- picker's own book write; dot(active) is the picker's marker glyph.
+function BookSettings.groupFollowRows(doc_settings, path, key, value_label, pick, dot)
+    local rows = {}
+    if not path or not doc_settings or type(doc_settings.readRaw) ~= "function" then return rows end
+    local BookGroups = require("koassistant_book_groups")
+    local following = BookSettings.followingGroup(doc_settings, key)
+    for _idx, g in ipairs(BookGroups.groupsFor(path)) do
+        local gv = BookGroups.getSetting(g.id, key)
+        if gv ~= nil then
+            local gid = g.id
+            rows[#rows + 1] = {{
+                text = dot(following == gid) .. T(_("Follow group %1 (%2)"),
+                    require("koassistant_book_groups_ui").displayName(g), value_label(gv)),
+                callback = function() pick(BookStore.marker(gid)) end,
+            }}
+        end
+    end
+    return rows
 end
 
 --- Canonical two-layer picker engine (book_global_consolidation_plan.md P1,
@@ -1322,7 +1431,10 @@ function BookSettings.showLayeredPicker(spec, opts)
     local on_close = opts.on_close
     local document_path = opts.document_path
 
-    local doc_settings = resolveDocSettings(ui, document_path)
+    -- G1: opts.doc_settings = the group facade (scope "group") — the same
+    -- picker edits a GROUP's value; the book tab then reads "For this group"
+    local is_group = opts.scope == "group"
+    local doc_settings = opts.doc_settings or resolveDocSettings(ui, document_path)
     local features = plugin and plugin.settings and plugin.settings:readSetting("features") or {}
     -- Explicit if-chain: read_book may legitimately return false (an and/or
     -- fold here would drop explicit-off overrides)
@@ -1403,7 +1515,7 @@ function BookSettings.showLayeredPicker(spec, opts)
     if doc_settings then
         table.insert(buttons, {
             {
-                text = dot(is_book_target) .. _("For this book"),
+                text = dot(is_book_target) .. (is_group and _("For this group") or _("For this book")),
                 callback = function()
                     if not is_book_target then setTarget("book") end
                 end,
@@ -1433,12 +1545,28 @@ function BookSettings.showLayeredPicker(spec, opts)
         return row
     end
     if is_book_target then
-        table.insert(buttons, {{
-            text = dot(book_val == nil) .. T(_("Follow global (%1)"), valueLabel(global_val)),
-            callback = function() pickBook(nil) end,
-        }})
+        if is_group then
+            table.insert(buttons, {{
+                text = dot(book_val == nil) .. T(_("Not set (books follow global: %1)"), valueLabel(global_val)),
+                callback = function() pickBook(nil) end,
+            }})
+        else
+            -- G1: the raw value tells follow-global (nil) from a follow-group
+            -- marker; a followed group's value must not dot an option row too
+            local raw = doc_settings:readRaw(spec.key)
+            table.insert(buttons, {{
+                text = dot(raw == nil) .. T(_("Follow global (%1)"), valueLabel(global_val)),
+                callback = function() pickBook(nil) end,
+            }})
+            for _idx, r in ipairs(BookSettings.groupFollowRows(doc_settings,
+                    document_path or (ui and ui.document and ui.document.file),
+                    spec.key, valueLabel, pickBook, dot)) do
+                table.insert(buttons, r)
+            end
+        end
+        local following = not is_group and BookSettings.followingGroup(doc_settings, spec.key) or nil
         for _idx, o in ipairs(spec.options) do
-            table.insert(buttons, optionRow(o, book_val == o.value, pickBook))
+            table.insert(buttons, optionRow(o, not following and book_val == o.value, pickBook))
         end
     else
         for _idx, o in ipairs(spec.options) do
@@ -2012,9 +2140,10 @@ function BookSettings.showXrayCategoriesPicker(opts)
     local is_global = opts.target == "global"
     local features = opts.plugin and opts.plugin.settings
         and opts.plugin.settings:readSetting("features") or {}
+    local is_group = opts.scope == "group"
     local doc_settings
     if not is_global then
-        doc_settings = resolveDocSettings(opts.ui, opts.document_path)
+        doc_settings = opts.doc_settings or resolveDocSettings(opts.ui, opts.document_path)
         if not doc_settings then
             if opts.on_close then opts.on_close() end
             return
@@ -2090,15 +2219,19 @@ function BookSettings.showXrayCategoriesPicker(opts)
 
     local full_stored
     if is_global then full_stored = (stored == nil) else full_stored = (raw == "full") end
+    -- G1: a followed group's value must not dot a preset row too
+    local following = (not is_global and not is_group)
+        and BookSettings.followingGroup(doc_settings, BookSettings.KEY_XRAY_CATEGORIES) or nil
+    if following then stored = nil; full_stored = false end
     local buttons = {}
     -- Target toggle row [For this book] [Global], the layered-picker engine's
     -- header (maintainer 2026-08-25: every two-layer picker carries it) — only
     -- when a book is in scope; the Settings entry has none and shows no row
     local book_in_scope = doc_settings ~= nil
-        or (is_global and resolveDocSettings(opts.ui, opts.document_path) ~= nil)
+        or (is_global and (opts.doc_settings or resolveDocSettings(opts.ui, opts.document_path)) ~= nil)
     if book_in_scope then
         buttons[#buttons + 1] = {
-            { text = dot(not is_global) .. _("For this book"),
+            { text = dot(not is_global) .. (is_group and _("For this group") or _("For this book")),
               callback = function()
                   if not is_global then return end
                   if dialog then UIManager:close(dialog); dialog = nil end
@@ -2119,14 +2252,29 @@ function BookSettings.showXrayCategoriesPicker(opts)
         }
     end
     if not is_global then
-        buttons[#buttons + 1] = {{ text = dot(raw == nil)
-                .. T(_("Follow global (%1)"),
-                    BookSettings.xrayCategoriesLabel(features.xray_default_categories)),
+        local raw_stored = doc_settings.readRaw and doc_settings:readRaw(BookSettings.KEY_XRAY_CATEGORIES) or raw
+        local global_label = BookSettings.xrayCategoriesLabel(features.xray_default_categories)
+        buttons[#buttons + 1] = {{ text = dot(raw_stored == nil)
+                .. (is_group and T(_("Not set (books follow global: %1)"), global_label)
+                    or T(_("Follow global (%1)"), global_label)),
             callback = function()
                 doc_settings:delSetting(BookSettings.KEY_XRAY_CATEGORIES)
                 doc_settings:flush()
                 reshow()
             end }}
+        if not is_group then
+            for _idx, r in ipairs(BookSettings.groupFollowRows(doc_settings,
+                    opts.document_path or (opts.ui and opts.ui.document and opts.ui.document.file),
+                    BookSettings.KEY_XRAY_CATEGORIES,
+                    function(v) return BookSettings.xrayCategoriesLabel(v ~= "full" and v or nil) end,
+                    function(m)
+                        doc_settings:saveSetting(BookSettings.KEY_XRAY_CATEGORIES, m)
+                        doc_settings:flush()
+                        reshow()
+                    end, dot)) do
+                buttons[#buttons + 1] = r
+            end
+        end
     end
     buttons[#buttons + 1] = header(_("Presets"))
     buttons[#buttons + 1] = {{ text = dot(full_stored) .. _("All categories"),
@@ -2416,11 +2564,15 @@ function BookSettings.show(opts)
         domain_label = T(_("Follow global (%1)"),
             g and (domainDisplayName(g, features) or g) or _("None"))
     else domain_label = domainDisplayName(book_domain, features) or book_domain end
+    -- G1: a value the book follows from a group reads "Follow group X (value)"
+    domain_label = BookSettings.followGroupLabel(doc_settings, BookSettings.KEY_DOMAIN, domain_label) or domain_label
 
     local research_label = boolLabel(doc_settings:readSetting(BookSettings.KEY_RESEARCH),
         features.research_mode == true)
+    research_label = BookSettings.followGroupLabel(doc_settings, BookSettings.KEY_RESEARCH, research_label) or research_label
     local spoiler_label = boolLabel(doc_settings:readSetting(BookSettings.KEY_SPOILER_FREE),
         features.spoiler_free_chat ~= false)
+    spoiler_label = BookSettings.followGroupLabel(doc_settings, BookSettings.KEY_SPOILER_FREE, spoiler_label) or spoiler_label
 
     -- Regrouped 2026-08-12 (release prep A7 — the flat screen ran 13 "AI behavior"
     -- rows; consolidation P3 2026-08-16 moved the X-Ray rows into their own
@@ -2928,7 +3080,9 @@ function BookSettings.showXrayConfig(opts)
     -- Depth for NEW X-Rays (depth axis 2026-08-25): same shape as categories.
     local depth_val, depth_layer = BookSettings.resolveXrayDepth(doc_settings, features)
     table.insert(buttons, {{ text = T(_("New X-Ray depth: %1"),
-            depth_layer == "book" and BookSettings.xrayDepthLabel(depth_val)
+            depth_layer == "book"
+                and (BookSettings.followGroupLabel(doc_settings, BookSettings.KEY_XRAY_DEPTH,
+                        BookSettings.xrayDepthLabel(depth_val)) or BookSettings.xrayDepthLabel(depth_val))
                 or T(_("Follow global (%1)"), BookSettings.xrayDepthLabel(depth_val))),
         callback = function()
             closeDialog()
@@ -2948,7 +3102,9 @@ function BookSettings.showXrayConfig(opts)
     -- chooser's button needs the form).
     local cat_sel, cat_layer = BookSettings.resolveXrayCategories(doc_settings, features)
     table.insert(buttons, {{ text = T(_("New X-Ray categories: %1"),
-            cat_layer == "book" and BookSettings.xrayCategoriesLabel(cat_sel)
+            cat_layer == "book"
+                and (BookSettings.followGroupLabel(doc_settings, BookSettings.KEY_XRAY_CATEGORIES,
+                        BookSettings.xrayCategoriesLabel(cat_sel)) or BookSettings.xrayCategoriesLabel(cat_sel))
                 or T(_("Follow global (%1)"), BookSettings.xrayCategoriesLabel(cat_sel))),
         callback = function()
             closeDialog()
@@ -3503,8 +3659,10 @@ function BookSettings.showLanguageConfig(opts)
     local ui = opts.ui
     local on_close = opts.on_close
 
-    local doc_settings = resolveDocSettings(ui, opts.document_path)
+    local is_group = opts.scope == "group"
+    local doc_settings = opts.doc_settings or resolveDocSettings(ui, opts.document_path)
     if not doc_settings then return end
+    local book_path = opts.document_path or (ui and ui.document and ui.document.file)
 
     local features = plugin and plugin.settings and plugin.settings:readSetting("features") or {}
 
@@ -3557,12 +3715,21 @@ function BookSettings.showLanguageConfig(opts)
             UIManager:close(picker)
             BookSettings.showLanguageConfig(opts)
         end
+        local following = not is_group and BookSettings.followingGroup(doc_settings, key) or nil
         local rows = {
-            {{ text = dot(cur == nil or cur == "") .. T(_("Follow global (%1)"), global_display),
+            {{ text = dot((cur == nil or cur == "") and not following)
+                    .. (is_group and T(_("Not set (books follow global: %1)"), global_display)
+                        or T(_("Follow global (%1)"), global_display)),
                 callback = function() setVal(nil) end }},
         }
+        if not is_group then
+            for _idx, r in ipairs(BookSettings.groupFollowRows(doc_settings, book_path, key,
+                    Languages.getDisplay, setVal, dot)) do
+                table.insert(rows, r)
+            end
+        end
         for _i, id in ipairs(Languages.getAllIds()) do
-            table.insert(rows, {{ text = dot(cur == id) .. Languages.getDisplay(id),
+            table.insert(rows, {{ text = dot(not following and cur == id) .. Languages.getDisplay(id),
                 callback = function() setVal(id) end }})
         end
         table.insert(rows, {{ text = _("Custom…"),
@@ -3579,9 +3746,16 @@ function BookSettings.showLanguageConfig(opts)
         return Languages.getDisplay(v)
     end
     -- P4: follow-global rows carry the effective global value
-    local function langLabel(v, global_display)
-        if v == nil or v == "" then return T(_("Follow global (%1)"), global_display) end
-        return Languages.getDisplay(v)
+    local function langLabel(key, v, global_display)
+        if v == nil or v == "" then
+            if is_group then return T(_("Not set (books follow global: %1)"), global_display) end
+            return T(_("Follow global (%1)"), global_display)
+        end
+        return BookSettings.followGroupLabel(doc_settings, key, Languages.getDisplay(v))
+            or Languages.getDisplay(v)
+    end
+    local function scoped(book_title, group_title)
+        return is_group and group_title or book_title
     end
 
     -- Effective global target languages (for the "Follow global (X)" hints).
@@ -3611,20 +3785,20 @@ function BookSettings.showLanguageConfig(opts)
     local cur_d = doc_settings:readSetting(BookSettings.KEY_DICTIONARY_LANG)
 
     local buttons = {
-        {{ text = T(_("AI response language: %1"), langLabel(cur_r, gdisp(global_response))),
+        {{ text = T(_("AI response language: %1"), langLabel(BookSettings.KEY_RESPONSE_LANG, cur_r, gdisp(global_response))),
             callback = function()
                 showLangPicker(BookSettings.KEY_RESPONSE_LANG,
-                    _("AI response language (this book)"), gdisp(global_response))
+                    scoped(_("AI response language (this book)"), _("AI response language (this group)")), gdisp(global_response))
             end }},
-        {{ text = T(_("Translation language: %1"), langLabel(cur_t, gdisp(global_trans))),
+        {{ text = T(_("Translation language: %1"), langLabel(BookSettings.KEY_TRANSLATION_LANG, cur_t, gdisp(global_trans))),
             callback = function()
                 showLangPicker(BookSettings.KEY_TRANSLATION_LANG,
-                    _("Translation language (this book)"), gdisp(global_trans))
+                    scoped(_("Translation language (this book)"), _("Translation language (this group)")), gdisp(global_trans))
             end }},
-        {{ text = T(_("Dictionary language: %1"), langLabel(cur_d, gdisp(global_dict))),
+        {{ text = T(_("Dictionary language: %1"), langLabel(BookSettings.KEY_DICTIONARY_LANG, cur_d, gdisp(global_dict))),
             callback = function()
                 showLangPicker(BookSettings.KEY_DICTIONARY_LANG,
-                    _("Dictionary language (this book)"), gdisp(global_dict))
+                    scoped(_("Dictionary language (this book)"), _("Dictionary language (this group)")), gdisp(global_dict))
             end }},
         {{ text = _("Close"), id = "close", callback = function()
             closeDialog()
@@ -3632,7 +3806,7 @@ function BookSettings.showLanguageConfig(opts)
         end }},
     }
 
-    dialog = ButtonDialog:new{ title = _("Languages (this book)"), buttons = buttons,
+    dialog = ButtonDialog:new{ title = scoped(_("Languages (this book)"), _("Languages (this group)")), buttons = buttons,
         tap_close_callback = function() dialog = nil; if on_close then on_close() end end }
     UIManager:show(dialog)
 end

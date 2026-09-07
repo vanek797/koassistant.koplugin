@@ -554,6 +554,13 @@ function GroupsUI.showGroupDialog(group_id, opts)
             -- the kind popup closes (Done or tap-outside)
             GroupsUI.showKindDialog(group_id, opts, reshow)
         end }}
+    rows[#rows + 1] = {{ text = _("Group settings…"),
+        callback = flow(function()
+            require("koassistant_group_settings").show({
+                group_id = group_id, plugin = opts.plugin, ui = opts.ui,
+                on_close = refresh,
+            })
+        end) }}
     rows[#rows + 1] = {{ text = _("Rename…"),
         callback = flow(function() GroupsUI.renameFlow(group_id, opts) end) }}
     rows[#rows + 1] = {{ text = _("Delete group…"),
@@ -637,25 +644,32 @@ end
 -- one move fixes a stray.
 -- Shared tail for every add path: name an unnamed group after its first
 -- book (kenken QoL #90 — CJK typing is painful in KOReader), report, reopen.
+-- `added` = the paths that joined (G1: the join ask needs them, not a count)
 local function addedDone(group_id, opts, added)
     local BookGroups = groups()
     local g = BookGroups.byId(group_id)
     if g and (g.name == "?" or g.name == "") and g.books[1] then
         BookGroups.rename(group_id, BookGroups.displayTitle(g.books[1], opts.ui))
     end
-    if added and added > 0 then
+    if added and #added > 0 then
         UIManager:show(require("ui/widget/notification"):new{
-            text = T(_("Added %1 book(s)."), added),
+            text = T(_("Added %1 book(s)."), #added),
         })
     end
     GroupsUI.showGroup(group_id, opts)
+    -- G1 (Q-A, "ask on add"): a group that sets values asks once per batch
+    if added and #added > 0 then
+        require("koassistant_group_settings").offerJoin(group_id, added,
+            { plugin = opts.plugin, ui = opts.ui },
+            function() GroupsUI.showGroup(group_id, opts) end)
+    end
 end
 local function addSelected(group_id, opts, selected_files)
     local BookPicker = require("koassistant_book_picker")
     local BookGroups = groups()
-    local added = 0
+    local added = {}
     for _idx, path in ipairs(BookPicker.orderedSelection(selected_files)) do
-        if BookGroups.addBook(group_id, path) then added = added + 1 end
+        if BookGroups.addBook(group_id, path) then added[#added + 1] = path end
     end
     addedDone(group_id, opts, added)
 end
@@ -714,9 +728,9 @@ function GroupsUI.addFolderFlow(group_id, opts)
                 buttons = {
                     {{ text = T(_("Add all (%1)"), #paths), callback = function()
                         UIManager:close(ask)
-                        local added = 0
+                        local added = {}
                         for _idx, path in ipairs(paths) do
-                            if BookGroups.addBook(group_id, path) then added = added + 1 end
+                            if BookGroups.addBook(group_id, path) then added[#added + 1] = path end
                         end
                         addedDone(group_id, opts, added)
                     end }},
@@ -766,9 +780,9 @@ function GroupsUI.addCollectionFlow(group_id, opts)
             buttons = {
                 {{ text = T(_("Add all (%1)"), #paths), callback = function()
                     UIManager:close(ask)
-                    local added = 0
+                    local added = {}
                     for _idx, path in ipairs(paths) do
-                        if BookGroups.addBook(group_id, path) then added = added + 1 end
+                        if BookGroups.addBook(group_id, path) then added[#added + 1] = path end
                     end
                     addedDone(group_id, opts, added)
                 end }},
@@ -1060,6 +1074,9 @@ function GroupsUI.showBookRow(path, opts)
             callback = function()
                 BookGroups.addBook(captured.id, path)
                 reopen()
+                -- G1 (Q-A): a group that sets values asks before the book follows them
+                require("koassistant_group_settings").offerJoin(captured.id, { path },
+                    { plugin = opts.plugin, ui = opts.ui }, reopen)
             end,
         }}
     end

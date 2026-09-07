@@ -432,6 +432,38 @@ TestRunner:test("sortGroups: one-shot, by name or by kind then name, display nam
     mem = saved_mem
 end)
 
+TestRunner:test("group settings: get/set/clear, settingsOf copy, no on_change; leave and delete hooks", function()
+    local g = BookGroups.create("Series")
+    BookGroups.addBook(g.id, "/v1.epub"); BookGroups.addBook(g.id, "/v2.epub")
+    local fired = false
+    BookGroups.on_change = function() fired = true end
+    TestRunner:assertEqual(BookGroups.getSetting(g.id, "koassistant_book_spoiler_free"), nil, "unset")
+    TestRunner:assertTrue(BookGroups.setSetting(g.id, "koassistant_book_spoiler_free", false), "set")
+    TestRunner:assertEqual(BookGroups.getSetting(g.id, "koassistant_book_spoiler_free"), false, "false stored")
+    TestRunner:assertEqual(BookGroups.setSetting(g.id, "koassistant_book_spoiler_free", false), false, "same value = no change")
+    TestRunner:assertTrue(BookGroups.setSetting(g.id, "koassistant_book_domain", "history"), "second key")
+    local copy = BookGroups.settingsOf(g.id)
+    TestRunner:assertEqual(copy.koassistant_book_domain, "history", "copy carries the value")
+    copy.koassistant_book_domain = "x"
+    TestRunner:assertEqual(BookGroups.getSetting(g.id, "koassistant_book_domain"), "history", "copy is a copy")
+    TestRunner:assertTrue(BookGroups.setSetting(g.id, "koassistant_book_domain", nil), "clear")
+    TestRunner:assertEqual(BookGroups.getSetting(g.id, "koassistant_book_domain"), nil, "cleared")
+    TestRunner:assertEqual(BookGroups.setSetting("nope", "k", 1), false, "unknown group")
+    TestRunner:assertEqual(BookGroups.setSetting(g.id, "", 1), false, "empty key refused")
+    TestRunner:assertEqual(BookGroups.getSetting("nope", "k"), nil, "unknown group reads nil")
+    TestRunner:assertEqual(fired, false, "settings never fire on_change")
+    BookGroups.setSetting(g.id, "koassistant_book_spoiler_free", nil)
+    TestRunner:assertEqual(BookGroups.byId(g.id).settings, nil, "emptied settings table dropped")
+    local left, removed = {}, nil
+    BookGroups.on_leave = function(id, path) left[#left + 1] = id .. ":" .. path end
+    BookGroups.on_removed = function(id, books) removed = id .. ":" .. table.concat(books, ",") end
+    BookGroups.removeBook(g.id, "/v1.epub")
+    TestRunner:assertEqual(left[1], g.id .. ":/v1.epub", "on_leave fired with the path")
+    BookGroups.remove(g.id)
+    TestRunner:assertEqual(removed, g.id .. ":/v2.epub", "on_removed fired with the remaining members")
+    BookGroups.on_change = nil; BookGroups.on_leave = nil; BookGroups.on_removed = nil
+end)
+
 TestRunner:test("shortName: UTF-8 safe cap with an ellipsis", function()
     TestRunner:assertEqual(BookGroups.shortName("short"), "short", "under the cap untouched")
     TestRunner:assertEqual(BookGroups.shortName("abcdef", 3), "abc\u{2026}", "cut at the cap")
