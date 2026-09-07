@@ -2,12 +2,14 @@
 Book Picker for KOAssistant
 
 Multi-select book picker for library actions.
-Shows books from history or folder as a selectable list; selected books
-are passed to the on_confirm callback.
+Shows books from history, a folder or a KOReader collection as a selectable
+list; selected books are passed to the on_confirm callback.
 
-Supports source switching (history / folder), filtering by book status
-(All, Reading, On Hold, Finished, Finished 75%+), and search by
-title/author.
+Supports source switching (history / folder / collection — a collection is
+the source id COLLECTION_PREFIX .. name, listed in the collection's own
+order; the collection helpers are exported for the group flows), filtering
+by book status (All, Reading, On Hold, Finished, Finished 75%+), and search
+by title/author.
 
 @module koassistant_book_picker
 ]]
@@ -189,6 +191,99 @@ local function buildMenuItems(entries, selected, toggle_callback)
     return items
 end
 
+-- ---------------------------------------------------------------- collections
+-- KOReader collections as a source (G0 rounds 6+7, ref #90 — maintainer:
+-- "can collections be added as browsable in that window? like history").
+-- ReadCollection.coll = { name → { [file] = { file, order } } }; the default
+-- collection renders as "Favorites" the way KOReader labels it.
+BookPicker.COLLECTION_PREFIX = "collection:"
+
+-- The collection name behind a source id, nil for history / folders
+local function collectionOf(source)
+    if type(source) ~= "string" then return nil end
+    local prefix = BookPicker.COLLECTION_PREFIX
+    if source:sub(1, #prefix) == prefix then return source:sub(#prefix + 1) end
+    return nil
+end
+
+--- @return table names (sorted), table|nil ReadCollection
+function BookPicker.collectionNames()
+    local ok, ReadCollection = pcall(require, "readcollection")
+    local names = {}
+    if ok and type(ReadCollection.coll) == "table" then
+        for name in pairs(ReadCollection.coll) do names[#names + 1] = name end
+        table.sort(names)
+    end
+    return names, ok and ReadCollection or nil
+end
+
+--- @return boolean Any collection exists (row gates)
+function BookPicker.hasCollections()
+    return #BookPicker.collectionNames() > 0
+end
+
+--- Display label: KOReader's default collection is shown as Favorites
+function BookPicker.collectionLabel(name)
+    local ok, ReadCollection = pcall(require, "readcollection")
+    if ok and name == ReadCollection.default_collection_name then return _("Favorites") end
+    return name
+end
+
+--- The collection's books in ITS order (the reader may have arranged the
+--- collection by hand — for a series that order is the point)
+--- @return table paths
+function BookPicker.collectionBooks(name)
+    local ok, ReadCollection = pcall(require, "readcollection")
+    if not ok or type(ReadCollection.coll) ~= "table" then return {} end
+    local entries = {}
+    for f, item in pairs(ReadCollection.coll[name] or {}) do
+        entries[#entries + 1] = { file = f,
+            order = type(item) == "table" and tonumber(item.order) or math.huge }
+    end
+    table.sort(entries, function(a, b)
+        if a.order ~= b.order then return a.order < b.order end
+        return a.file < b.file
+    end)
+    local paths = {}
+    for i, e in ipairs(entries) do paths[i] = e.file end
+    return paths
+end
+
+--- "Which collection?" — one row per collection with its count.
+--- on_pick(name, label, paths); on_cancel() on Cancel or a tap outside.
+function BookPicker.pickCollection(on_pick, on_cancel)
+    local names = BookPicker.collectionNames()
+    if #names == 0 then
+        if on_cancel then on_cancel() end
+        return
+    end
+    local dialog
+    local rows = {}
+    for _idx, name in ipairs(names) do
+        local captured = name
+        local label = BookPicker.collectionLabel(captured)
+        local paths = BookPicker.collectionBooks(captured)
+        rows[#rows + 1] = {{
+            text = label .. " (" .. #paths .. ")",
+            align = "left",
+            callback = function()
+                UIManager:close(dialog)
+                on_pick(captured, label, paths)
+            end,
+        }}
+    end
+    rows[#rows + 1] = {{ text = _("Cancel"), callback = function()
+        UIManager:close(dialog)
+        if on_cancel then on_cancel() end
+    end }}
+    dialog = ButtonDialog:new{
+        title = _("Which collection?"),
+        buttons = rows,
+        tap_close_callback = on_cancel,
+    }
+    UIManager:show(dialog)
+end
+
 --- Load entries from reading history
 --- @return table entries Array of book entries, or empty table
 function BookPicker:_loadHistoryEntries()
@@ -247,50 +342,85 @@ function BookPicker:_loadFolderEntries(folder_path)
     return entries
 end
 
+--- Load entries from a collection, in the collection's order
+--- @param name string Collection name
+--- @return table entries Array of book entries, or empty table
+function BookPicker:_loadCollectionEntries(name)
+    local entries = {}
+    for _idx, file in ipairs(BookPicker.collectionBooks(name)) do
+        local title, author, status, progress = getBookMetadata(file)
+        table.insert(entries, {
+            file = file,
+            title = title,
+            author = author,
+            status = status,
+            progress = progress,
+            mandatory = progress and progress > 0
+                and string.format("%d%%", math.floor(progress * 100)) or nil,
+        })
+    end
+    return entries
+end
+
+--- Load one source: "history", a folder path, or COLLECTION_PREFIX .. name.
+--- @return table|nil entries, string|nil err (also when the source is empty)
+function BookPicker:_loadSource(source)
+    local entries, err
+    local coll = collectionOf(source)
+    if source == "history" then
+        entries = self:_loadHistoryEntries()
+        if #entries == 0 then err = _("No books in reading history.") end
+    elseif coll then
+        entries = self:_loadCollectionEntries(coll)
+        if #entries == 0 then
+            err = T(_("No books in the collection \"%1\"."), BookPicker.collectionLabel(coll))
+        end
+    else
+        entries, err = self:_loadFolderEntries(source)
+        if entries and #entries == 0 then err = T(_("No books found in:\n%1"), source) end
+    end
+    if err then return nil, err end
+    return entries
+end
+
 --- Get the display label for the current source
 --- @return string
 function BookPicker:_getSourceLabel()
     if self._current_source == "history" then
         return _("History")
-    else
-        return getFolderDisplayName(self._current_source)
+    end
+    local coll = collectionOf(self._current_source)
+    if coll then return BookPicker.collectionLabel(coll) end
+    return getFolderDisplayName(self._current_source)
+end
+
+--- Remember the last browsed folder / collection so the options menu can
+--- offer them back
+function BookPicker:_rememberSource(source)
+    local coll = collectionOf(source)
+    if coll then
+        self._collection = coll
+    elseif source ~= "history" then
+        self._folder_path = source
     end
 end
 
 --- Switch to a new source, preserving selections
---- @param source string "history" or folder path
+--- @param source string "history", a folder path, or COLLECTION_PREFIX .. name
 function BookPicker:_switchSource(source)
     if source == self._current_source then return end
 
-    local entries, err
-    if source == "history" then
-        entries = self:_loadHistoryEntries()
-    else
-        entries, err = self:_loadFolderEntries(source)
-        if not entries then
-            UIManager:show(InfoMessage:new{
-                text = err or _("Failed to load folder."),
-                timeout = 3,
-            })
-            return
-        end
-    end
-
-    if #entries == 0 then
-        local msg = source == "history"
-            and _("No books in reading history.")
-            or T(_("No books found in:\n%1"), source)
+    local entries, err = self:_loadSource(source)
+    if not entries then
         UIManager:show(InfoMessage:new{
-            text = msg,
+            text = err or _("Failed to load folder."),
             timeout = 3,
         })
         return
     end
 
     self._current_source = source
-    if source ~= "history" then
-        self._folder_path = source
-    end
+    self:_rememberSource(source)
     self._entries = entries
     self._filter = "all"
     self._search_string = nil
@@ -422,40 +552,19 @@ function BookPicker:show(opts)
     local initial_source = opts and opts.initial_source or "history"
 
     -- Load initial entries
-    local entries, err
-    if initial_source == "history" then
-        entries = self:_loadHistoryEntries()
-    else
-        entries, err = self:_loadFolderEntries(initial_source)
-        if not entries then
-            UIManager:show(InfoMessage:new{
-                text = err or _("Failed to load folder."),
-                timeout = 3,
-            })
-            if on_close then on_close() end
-            return
-        end
-    end
-
-    if #entries == 0 then
-        if initial_source == "history" then
-            UIManager:show(InfoMessage:new{
-                text = _("No books in reading history."),
-            })
-        else
-            UIManager:show(InfoMessage:new{
-                text = T(_("No books found in:\n%1"), initial_source),
-            })
-        end
+    local entries, err = self:_loadSource(initial_source)
+    if not entries then
+        UIManager:show(InfoMessage:new{
+            text = err or _("Failed to load folder."),
+            timeout = 3,
+        })
         if on_close then on_close() end
         return
     end
 
     -- Initialize state
     self._current_source = initial_source
-    if initial_source ~= "history" then
-        self._folder_path = initial_source
-    end
+    self:_rememberSource(initial_source)
     self._entries = entries
     self._selected = {}
     if opts and opts.select_all then
@@ -620,6 +729,22 @@ function BookPicker:_showPickerOptions()
         }})
     end
 
+    -- Last browsed collection (if any)
+    if self._collection then
+        local coll_source = BookPicker.COLLECTION_PREFIX .. self._collection
+        local coll_label = T(_("Collection: %1"), BookPicker.collectionLabel(self._collection))
+        if self._current_source == coll_source then
+            coll_label = coll_label .. "  \u{2713}"
+        end
+        table.insert(buttons, {{ text = coll_label,
+           align = "left",
+           callback = function()
+                UIManager:close(dialog)
+                self_ref:_switchSource(coll_source)
+           end,
+        }})
+    end
+
     -- Browse Folder...
     table.insert(buttons, {{ text = _("Browse Folder…"),
        align = "left",
@@ -628,6 +753,19 @@ function BookPicker:_showPickerOptions()
             self_ref:_browseFolder()
        end,
     }})
+
+    -- Browse Collection... (only when the reader has any)
+    if BookPicker.hasCollections() then
+        table.insert(buttons, {{ text = _("Browse Collection…"),
+           align = "left",
+           callback = function()
+                UIManager:close(dialog)
+                BookPicker.pickCollection(function(name)
+                    self_ref:_switchSource(BookPicker.COLLECTION_PREFIX .. name)
+                end)
+           end,
+        }})
+    end
 
     -- Filter
     local counts = countPerFilter(self._entries, self._search_string)

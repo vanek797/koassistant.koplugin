@@ -6,19 +6,20 @@ singletons in the Book Hub's shape.
   entry point and every group flow's reopen lands here. Rows: a dim hint, the
   members in order (tap = that book's Book Hub, hold = the move / open /
   remove dialog; the open book's row says "open"), then Add books…, Add all
-  books in a folder…, the fold row, the kind-named Chat/Action row. The
-  title-bar hamburger opens the group's management popup (kind radio,
-  Rename…, Delete group…). Subtitle = the members' authors, the kind and the
-  count. Up-arrow = the Groups list.
+  books in a folder…, Add all books in a collection…, the fold row, the
+  kind-named Chat/Action row. The title-bar hamburger is an anchored dropdown
+  (round 7, the list's shape): the add flows again, Kind: X… (the stacked
+  radio popup), Rename…, Delete group…. Subtitle = the members' authors, the
+  kind and the count. Up-arrow = the Groups list.
 - The GROUPS LIST: THE all-groups screen — GroupsUI.showManager opens it.
   Rows: a dim hint, every group with its kind's emoji and "Kind · N books"
   on the right (tap = its hub, hold = the group's management popup,
   GroupsUI.showGroupDialog with the move arrows), then New group…, New group
-  from folder…, and with a book open New group with this book… + the series
-  suggestion. The title-bar hamburger
-  repeats the create rows and holds "Sort groups by name" — a one-shot
-  reorder of the stored list (groups stay movable by hand; sorting is an
-  action, not a second state).
+  from folder…, New group from collection…, and with a book open New group
+  with this book… + the series suggestion. The title-bar hamburger is an
+  anchored dropdown: the create rows again and "Sort groups…" — one-shot
+  reorders of the stored list by name or by kind (groups stay movable by
+  hand; sorting is an action, not a second state).
 
 Both are strictly VIEWS: nothing generated, nothing stored. Group settings
 (G1) and the series view (G3) arrive as hub rows.
@@ -63,6 +64,35 @@ local function kindEmoji(kind)
     if kind == BookGroups.KIND_SERIES then return "\u{1F4DA}" end
     if kind == BookGroups.KIND_PROJECT then return "\u{1F4C2}" end
     return "\u{1F5C2}\u{FE0F}"
+end
+
+-- The title-bar hamburger's dropdown (round 7, both pages): anchored under
+-- the icon, sized to its rows — the action managers' recipe. rows = { {
+-- text, callback, enabled } }
+local function anchoredMenu(menu, rows)
+    local ButtonDialog = require("ui/widget/buttondialog")
+    local dialog
+    local buttons = {}
+    for _idx, r in ipairs(rows) do
+        local fn = r.callback
+        buttons[#buttons + 1] = {{
+            text = r.text,
+            enabled = r.enabled,
+            align = "left",
+            callback = function()
+                UIManager:close(dialog)
+                fn()
+            end,
+        }}
+    end
+    dialog = ButtonDialog:new{
+        buttons = buttons,
+        shrink_unneeded_width = true,
+        anchor = function()
+            return menu.title_bar.left_button.image.dimen, true
+        end,
+    }
+    UIManager:show(dialog)
 end
 
 -- "Series · 3 books": the hub's subtitle tail and the list rows' right column
@@ -114,7 +144,7 @@ local function openPage(slot, ctx, build, extra)
         items_font_size = 18,
         items_mandatory_font_size = 14,
         title_bar_left_icon = extra.hamburger and "appbar.menu" or nil,
-        onLeftButtonTap = extra.hamburger and function() extra.hamburger(ctx) end or nil,
+        onLeftButtonTap = extra.hamburger and function() extra.hamburger(ctx, menu) end or nil,
         onReturn = extra.on_return and function() extra.on_return(ctx) end or nil,
         -- NOTE: no close_callback — Menu fires it after EVERY item tap (the
         -- Book Hub's trap); on_close rides onCloseWidget below
@@ -268,13 +298,33 @@ local function hubBuild(ctx)
     return { title = GroupsUI.displayName(group), subtitle = subtitle, items = items }
 end
 
--- Title-bar hamburger = the group's management popup (kind radio, Rename…,
--- Delete group…), the same popup the Groups list opens on hold — minus the
--- arrows, which only mean something on the list. Flows land back here
--- through their default tail (GroupsUI.showGroup = this hub's refresh).
-local function hubHamburger(ctx)
+-- Title-bar hamburger (round 7, maintainer: the same setup as the list's):
+-- an anchored dropdown with the add flows, then Kind: X… (the stacked radio
+-- popup), Rename…, Delete group…. Flows land back here through their default
+-- tail (GroupsUI.showGroup = this hub's refresh).
+local function hubHamburger(ctx, menu)
+    local BookGroups = groups()
+    local GroupsUI = groupsUI()
+    local group = BookGroups.byId(ctx.group_id)
+    if not group then return end
     GroupPage._stale = true
-    groupsUI().showGroupDialog(ctx.group_id, { plugin = ctx.plugin, ui = ctx.ui, on_close = ctx.on_close })
+    local flow_opts = { plugin = ctx.plugin, ui = ctx.ui, on_close = ctx.on_close }
+    local rows = {
+        { text = _("Add books…"), callback = function() GroupsUI.addBooksFlow(ctx.group_id, flow_opts) end },
+        { text = _("Add all books in a folder…"),
+            callback = function() GroupsUI.addFolderFlow(ctx.group_id, flow_opts) end },
+    }
+    if GroupsUI.hasCollections() then
+        rows[#rows + 1] = { text = _("Add all books in a collection…"),
+            callback = function() GroupsUI.addCollectionFlow(ctx.group_id, flow_opts) end }
+    end
+    rows[#rows + 1] = { text = T(_("Kind: %1…"), GroupsUI.kindLabel(BookGroups.kindOf(group))),
+        callback = function() GroupsUI.showKindDialog(ctx.group_id, flow_opts) end }
+    rows[#rows + 1] = { text = _("Rename…"),
+        callback = function() GroupsUI.renameFlow(ctx.group_id, flow_opts) end }
+    rows[#rows + 1] = { text = _("Delete group…"),
+        callback = function() GroupsUI.deleteFlow(ctx.group_id, flow_opts) end }
+    anchoredMenu(menu, rows)
 end
 
 --- Close the hub. opts.silent = do not run on_close (code-driven closes).
@@ -326,37 +376,30 @@ local function listHold(ctx, group_id)
     })
 end
 
-local function listHamburger(ctx)
+local function listHamburger(ctx, menu)
     local ButtonDialog = require("ui/widget/buttondialog")
     local GroupsUI = groupsUI()
     local flow_opts = { plugin = ctx.plugin, ui = ctx.ui }
-    local dialog
-    local function pick(fn)
-        return function()
-            UIManager:close(dialog)
-            GroupPage._list_stale = true
-            fn()
-        end
-    end
+    GroupPage._list_stale = true
     local rows = {
-        {{ text = _("New group…"), callback = pick(function() GroupsUI.newGroupFlow(flow_opts) end) }},
-        {{ text = _("New group from folder…"),
-            callback = pick(function() GroupsUI.newGroupFromFolderFlow(flow_opts) end) }},
+        { text = _("New group…"), callback = function() GroupsUI.newGroupFlow(flow_opts) end },
+        { text = _("New group from folder…"),
+            callback = function() GroupsUI.newGroupFromFolderFlow(flow_opts) end },
     }
     if GroupsUI.hasCollections() then
-        rows[#rows + 1] = {{ text = _("New group from collection…"),
-            callback = pick(function() GroupsUI.newGroupFromCollectionFlow(flow_opts) end) }}
+        rows[#rows + 1] = { text = _("New group from collection…"),
+            callback = function() GroupsUI.newGroupFromCollectionFlow(flow_opts) end }
     end
     local open_file = ctx.ui and ctx.ui.document and ctx.ui.document.file
     if open_file then
-        rows[#rows + 1] = {{ text = _("New group with this book…"),
-            callback = pick(function() GroupsUI.newGroupWithBookFlow(open_file, flow_opts) end) }}
+        rows[#rows + 1] = { text = _("New group with this book…"),
+            callback = function() GroupsUI.newGroupWithBookFlow(open_file, flow_opts) end }
     end
     -- One-shot sorts (round 6: by name or by kind): each rewrites the stored
     -- order once; moving by hand goes on working afterwards. The picker's own
     -- line stands in for a confirm.
-    rows[#rows + 1] = {{ text = _("Sort groups…"), enabled = #groups().all() > 1,
-        callback = pick(function()
+    rows[#rows + 1] = { text = _("Sort groups…"), enabled = #groups().all() > 1,
+        callback = function()
             local sort_dialog
             local function by(mode, label)
                 return {{ text = label, callback = function()
@@ -374,9 +417,8 @@ local function listHamburger(ctx)
                 },
             }
             UIManager:show(sort_dialog)
-        end) }}
-    dialog = ButtonDialog:new{ title = _("Groups"), buttons = rows }
-    UIManager:show(dialog)
+        end }
+    anchoredMenu(menu, rows)
 end
 
 local function listBuild(ctx)

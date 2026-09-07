@@ -157,76 +157,12 @@ local function createWithKind(name, after)
     end)
 end
 
--- KOReader collections as a book source (G0 round 6, maintainer: "we are
--- still not able to add from collections?"). ReadCollection.coll = { name →
--- { [file] = { file, order } } }; the default collection renders as
--- "Favorites" the way KOReader labels it.
-local function collectionNames()
-    local ok, ReadCollection = pcall(require, "readcollection")
-    local names = {}
-    if ok and type(ReadCollection.coll) == "table" then
-        for name in pairs(ReadCollection.coll) do names[#names + 1] = name end
-        table.sort(names)
-    end
-    return names, ok and ReadCollection or nil
-end
-
---- @return boolean Any collection exists (row gates)
+--- Any KOReader collection exists (the collection rows' gate). The
+--- collection helpers live in koassistant_book_picker.lua since round 7 —
+--- the picker browses collections as a source, the flows below reuse its
+--- pickCollection / collectionBooks.
 function GroupsUI.hasCollections()
-    return #collectionNames() > 0
-end
-
--- The collection's books in ITS order (the reader may have arranged the
--- collection by hand — for a series that order is the point)
-local function collectionBooks(ReadCollection, name)
-    local entries = {}
-    for f, item in pairs(ReadCollection.coll[name] or {}) do
-        entries[#entries + 1] = { file = f,
-            order = type(item) == "table" and tonumber(item.order) or math.huge }
-    end
-    table.sort(entries, function(a, b)
-        if a.order ~= b.order then return a.order < b.order end
-        return a.file < b.file
-    end)
-    local paths = {}
-    for i, e in ipairs(entries) do paths[i] = e.file end
-    return paths
-end
-
--- "Which collection?" — one row per collection with its count;
--- on_pick(label, paths), on_cancel() (Cancel or tap-outside)
-local function pickCollection(on_pick, on_cancel)
-    local ButtonDialog = require("ui/widget/buttondialog")
-    local names, ReadCollection = collectionNames()
-    if #names == 0 or not ReadCollection then
-        if on_cancel then on_cancel() end
-        return
-    end
-    local dialog
-    local rows = {}
-    for _idx, name in ipairs(names) do
-        local captured = name
-        local label = captured == ReadCollection.default_collection_name and _("Favorites") or captured
-        local paths = collectionBooks(ReadCollection, captured)
-        rows[#rows + 1] = {{
-            text = label .. " (" .. #paths .. ")",
-            align = "left",
-            callback = function()
-                UIManager:close(dialog)
-                on_pick(label, paths)
-            end,
-        }}
-    end
-    rows[#rows + 1] = {{ text = _("Cancel"), callback = function()
-        UIManager:close(dialog)
-        if on_cancel then on_cancel() end
-    end }}
-    dialog = ButtonDialog:new{
-        title = _("Which collection?"),
-        buttons = rows,
-        tap_close_callback = on_cancel,
-    }
-    UIManager:show(dialog)
+    return require("koassistant_book_picker").hasCollections()
 end
 
 -- P5 item 7 (Q5 gripe): series metadata → group. Detection reads the CHEAP
@@ -373,7 +309,7 @@ local function offerSeriesScan(group_id, seed_path, sp, opts)
             text = _("Look in a collection…"),
             callback = function()
                 UIManager:close(dialog)
-                pickCollection(function(label, paths)
+                require("koassistant_book_picker").pickCollection(function(_name, label, paths)
                     runSeriesScan(group_id, seed_path, sp, paths, label, opts)
                 end, done)
             end,
@@ -808,11 +744,12 @@ function GroupsUI.addFolderFlow(group_id, opts)
 end
 
 -- Round 6: a collection as the source — the folder flow's shape, in the
--- COLLECTION's order (no "Choose which…": the picker has no collection
--- source; drop strays with the hold dialog afterwards)
+-- COLLECTION's order; round 7: "Choose which…" opens the picker on the
+-- collection source with everything ticked, like the folder arm
 function GroupsUI.addCollectionFlow(group_id, opts)
     local BookGroups = groups()
-    pickCollection(function(label, paths)
+    local BookPicker = require("koassistant_book_picker")
+    BookPicker.pickCollection(function(name, label, paths)
         if #paths == 0 then
             UIManager:show(require("ui/widget/infomessage"):new{
                 text = T(_("No books in the collection \"%1\"."), label),
@@ -834,6 +771,15 @@ function GroupsUI.addCollectionFlow(group_id, opts)
                         if BookGroups.addBook(group_id, path) then added = added + 1 end
                     end
                     addedDone(group_id, opts, added)
+                end }},
+                {{ text = _("Choose which…"), callback = function()
+                    UIManager:close(ask)
+                    BookPicker:show({
+                        initial_source = BookPicker.COLLECTION_PREFIX .. name,
+                        select_all = true,
+                        on_confirm = function(selected_files) addSelected(group_id, opts, selected_files) end,
+                        on_close = function() GroupsUI.showGroup(group_id, opts) end,
+                    })
                 end }},
                 {{ text = _("Cancel"), callback = function()
                     UIManager:close(ask)
@@ -1005,7 +951,7 @@ end
 -- Round 6: the folder flow's shape over a collection — name prefilled with
 -- the collection's, all its books join in the collection's order
 function GroupsUI.newGroupFromCollectionFlow(opts)
-    pickCollection(function(label, paths)
+    require("koassistant_book_picker").pickCollection(function(_name, label, paths)
         if #paths == 0 then
             UIManager:show(require("ui/widget/infomessage"):new{
                 text = T(_("No books in the collection \"%1\"."), label),
