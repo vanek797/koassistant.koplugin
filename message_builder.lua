@@ -177,6 +177,16 @@ function MessageBuilder.build(params)
         user_prompt = ""
     end
 
+    -- {user_input}: the typed text rides INSIDE the prompt instead of the
+    -- "[Additional user input]" tail (2026-09-07; the placeholder was recognized by
+    -- the action manager but never substituted, so the braces went to the model)
+    local input_consumed = false
+    if data.additional_input and data.additional_input ~= ""
+            and user_prompt:find("{user_input}", 1, true) then
+        user_prompt = replace_placeholder(user_prompt, "{user_input}", data.additional_input)
+        input_consumed = true
+    end
+
     -- Substitute utility placeholders (conciseness/hallucination nudges)
     -- These are defined in Templates but used in both template and direct-prompt actions
     -- Hallucination nudge adapts: when web search is active, encourages searching before admitting
@@ -692,8 +702,8 @@ function MessageBuilder.build(params)
         table.insert(parts, user_prompt)
     end
 
-    -- Add additional user input if provided
-    if data.additional_input and data.additional_input ~= "" then
+    -- Add additional user input if provided (unless the prompt placed it itself)
+    if not input_consumed and data.additional_input and data.additional_input ~= "" then
         table.insert(parts, "")
         table.insert(parts, "[Additional user input]")
         table.insert(parts, data.additional_input)

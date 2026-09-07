@@ -271,6 +271,7 @@ After the setup wizard, complete these steps for the best experience:
 - [ ] **Set your languages** (if you skipped the wizard): KOAssistant auto-detects from your KOReader UI language, but you can configure additional languages or change your primary (Settings → AI Language Settings)
 - [ ] **Add custom actions to gestures**: Any book/general action can become a gesture (Manage Actions → hold → "+ Gesture Menu", requires restart)
 - [ ] **Pin actions to file browser**: Add frequently-used book actions directly to the long-press menu (Manage Actions → hold → "+ File Browser")
+- [ ] **Hold any action button**: In the highlight menu, the dictionary popup, Quick Actions, the input dialog and the file browser menu, a long press on an action opens the same menu: its description, Add to / Remove from that menu, its other placements, and the editor
 - [ ] **Try Generate Image**: Turn a highlighted passage into an AI-generated illustration (highlight menu → Generate Image; requires an OpenAI, xAI, or Gemini image model). See [Image Generation](#image-generation)
 
 > **Tip**: Edit built-in actions to always use the provider/model of your choice (regardless of your main settings); e.g. Dictionary actions benefit from a lighter model for speed.
@@ -1432,6 +1433,7 @@ Insert these in your action prompt to reference dynamic values:
 | Variable | Context | Description | Privacy Setting |
 |----------|---------|-------------|-----------------|
 | `{highlighted_text}` | Highlight | The selected text | — |
+| `{user_input}` | Any | The text typed in the input dialog, placed where the placeholder sits (without it, typed text is appended after the prompt). Actions using it stay out of the tap-only menus (highlight menu, dictionary popup) | — |
 | `{title}` | Book, Highlight | Book title | — |
 | `{author}` | Book, Highlight | Book author | — |
 | `{author_clause}` | Book, Highlight | " by Author" or empty | — |
@@ -1861,7 +1863,7 @@ Both dictionary view modes share the same button layout:
 
 **[Action]**: Shows the name of the current dictionary action. Tap to switch to a different dictionary popup action. If only one other action is available, switches directly; otherwise shows a picker with all available dictionary actions.
 
-**Close**: Close the view.
+**Close**: Close the view. Hold to close everything down to the page at once (dictionary windows and the highlight menu too).
 
 **RTL-aware rendering**: When viewing dictionary results for RTL languages, both dictionary view modes automatically use Plain Text mode (if enabled in settings) and apply correct bidirectional text alignment for proper display of RTL content.
 

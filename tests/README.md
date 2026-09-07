@@ -202,6 +202,7 @@ The 96 files, with what each one pins:
 
 - `test_action_cache_parity.lua` - ActionCache `set()` / `saveCache()` / `loadCache()` field parity through a real disk round-trip
 - `test_action_display_text.lua` - `ActionService.getActionDisplayText`: the badge text on action buttons
+- `test_action_hold.lua` - the shared action hold menu: row plan per source/surface, one membership pair per surface, real action_service method names
 - `test_action_service.lua` - pure ActionService helpers: copyAction, getApiParams, custom-action flag migration, duplicate naming
 - `test_actions.lua` - placeholder gating, flag cascading, `DOUBLE_GATED_FLAGS`, `inferOpenBookFlags()`
 - `test_anthropic_tools_request.lua` - Anthropic tool declarations and replay, through the handler's real `buildRequestBody`
@@ -287,6 +288,8 @@ The 96 files, with what each one pins:
 - `test_wave1_tools_request.lua` - DeepSeek / Mistral / Groq / xAI tool requests at handler level, plus the xAI routing invariant
 - `test_web_search.lua` - web-search request building, response parsing, streaming detection
 - `test_web_tools.lua` - the SearXNG / Tavily backend module (built but not wired into the plugin yet): request and parse, null sentinels, result formatting
+- `test_update_versions.lua` - update checker version order: SemVer pre-release identifiers (rc.11 > rc.9), one-to-three-part tags, a release beats its rc
+- `test_user_input_placeholder.lua` - `{user_input}` puts the typed text in the prompt in place of the tail block
 - `test_xai_responses.lua` - the xAI Responses routing and request builder
 - `test_xray_auto.lua` - the background auto-update gate matrix and the checkpoint ring
 - `test_xray_card.lua` - the entity card's identification line (`firstSentence` / `sentenceEnd`) and its resolve ordering

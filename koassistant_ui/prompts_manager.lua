@@ -5280,6 +5280,7 @@ function PromptsManager:getPlaceholdersForContext(context)
     local all_placeholders = {
         -- Basic placeholders
         { value = "{highlighted_text}", text = _("Selected Text"), contexts = {"highlight", "both"} },
+        { value = "{user_input}", text = _("Typed Input"), contexts = {"highlight", "book", "both", "general", "library"} },
         { value = "{title}", text = _("Book Title"), contexts = {"highlight", "book", "both"} },
         { value = "{author}", text = _("Author Name"), contexts = {"highlight", "book", "both"} },
         { value = "{author_clause}", text = _("Author Clause"), contexts = {"highlight", "book", "both"} },

@@ -835,12 +835,8 @@ function AskGPT:generateFileDialogRows(file, is_file, book_props)
           self_ref:executeFileBrowserAction(file, title, authors, book_props, fb_action.id)
         end,
         hold_callback = function()
-          if action_for_hold and action_for_hold.description then
-            local InfoMessage = require("ui/widget/infomessage")
-            UIManager:show(InfoMessage:new{
-              text = action_for_hold.description,
-            })
-          end
+          -- rows rebuild on the next long-press (separator generator, 2026-08-17)
+          require("koassistant_action_hold").show(self_ref, action_for_hold, { surface = "file_browser" })
         end,
       })
     end
@@ -6560,6 +6556,11 @@ function AskGPT:syncDictButtons()
     spec.callback = function(popup)
       self_ref:executeDictAction(act, popup.word, popup, popup._koassistant_non_reader,
         popup._koassistant_lookup_book)
+    end
+    -- Long press: the shared hold menu (the popup keeps its buttons; the next
+    -- lookup re-syncs through the showDict wrap)
+    spec.hold_callback = function()
+      require("koassistant_action_hold").show(self_ref, act, { surface = "dictionary" })
     end
     dictionary:addToDictButtons(spec)
   end
@@ -17735,11 +17736,13 @@ function AskGPT:onKOAssistantQuickActions()
           self_ref:executeBookLevelAction(action_id)
         end,
         hold_callback = function()
-          if action.description then
-            UIManager:show(InfoMessage:new{
-              text = action.description,
-            })
-          end
+          require("koassistant_action_hold").show(self_ref, action, {
+            surface = "quick_actions",
+            on_change = function()
+              UIManager:close(dialog)
+              self_ref:onKOAssistantQuickActions()
+            end,
+          })
         end,
       })
     end
@@ -18720,11 +18723,9 @@ function AskGPT:registerHighlightMenuActions()
         enabled = Device:hasClipboard(),
         allow_hold_when_disabled = true,
         hold_callback = function()
-          if action.description then
-            UIManager:show(InfoMessage:new{
-              text = action.description,
-            })
-          end
+          -- The menu stays open (the selection lives in it); a removed row leaves
+          -- on the next open
+          require("koassistant_action_hold").show(self, action, { surface = "highlight" })
         end,
         callback = function()
           -- Capture text and extract context BEFORE closing highlight overlay

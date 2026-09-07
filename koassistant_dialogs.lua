@@ -9838,11 +9838,10 @@ local function showChatGPTDialog(ui_instance, highlighted_text, config, prompt_t
                         executeInputAction(prompt, custom_prompt_type)
                     end,
                     hold_callback = function()
-                        if prompt.description then
-                            UIManager:show(InfoMessage:new{
-                                text = prompt.description,
-                            })
-                        end
+                        require("koassistant_action_hold").show(plugin, prompt, {
+                            surface = "input", ctx = input_context,
+                            on_change = refreshInputDialog,
+                        })
                     end,
                 })
             end
@@ -9915,11 +9914,10 @@ local function showChatGPTDialog(ui_instance, highlighted_text, config, prompt_t
                         executeInputAction(action, action.id)
                     end,
                     hold_callback = function()
-                        if action.description then
-                            UIManager:show(InfoMessage:new{
-                                text = action.description,
-                            })
-                        end
+                        require("koassistant_action_hold").show(plugin, action, {
+                            surface = "input", ctx = input_context,
+                            on_change = refreshInputDialog,
+                        })
                     end,
                 })
             end
