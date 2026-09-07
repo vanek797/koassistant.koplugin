@@ -3,12 +3,13 @@ Group pages (G0, docs/group_hub_plan.md, 2026-09-06): two full-screen
 singletons in the Book Hub's shape.
 
 - The GROUP HUB: THE per-group screen — GroupsUI.showGroup opens it, so every
-  entry point and every group flow's reopen lands here. Rows: a dim hint, the
-  members in order (tap = that book's Book Hub, hold = the move / open /
-  remove dialog; the open book's row says "open"), then the fold row, the
-  kind-named Chat/Action row, and LAST the add rows (Add books…, Add all
-  books in a folder…, Add all books in a collection…) so they never push the
-  others onto the next page. The title-bar hamburger is an anchored dropdown
+  entry point and every group flow's reopen lands here. Rows: the ACTION
+  rows first (the fold row, the kind-named Chat/Action row; group settings
+  join them in G1) so a long book list never pushes them onto the next
+  page, then a dim hint and the members in order (tap = that book's Book
+  Hub, hold = the move / open / remove dialog; the open book's row says
+  "open"), and LAST the add rows (Add books…, Add all books in a folder…,
+  Add all books in a collection…). The title-bar hamburger is an anchored dropdown
   (round 7, the list's shape): the add flows again, Kind: X… (the stacked
   radio popup), Rename…, Delete group…. Subtitle = the members' authors, the
   kind and the count. Up-arrow = the Groups list.
@@ -217,8 +218,33 @@ local function hubBuild(ctx)
     local flow_opts = { plugin = ctx.plugin, ui = ctx.ui, on_close = ctx.on_close }
     local open_file = ctx.ui and ctx.ui.document and ctx.ui.document.file
     local em = ctx.enable_emoji
-    -- Help line at the top (maintainer): the hold gesture is the one thing a
-    -- reader cannot see
+    local kind = BookGroups.kindOf(group)
+    local function row(text, fn)
+        items[#items + 1] = { text = text, callback = fn }
+    end
+    -- ACTION rows FIRST (round 9, maintainer): the fold, the Chat/Action and
+    -- later the group settings sit above the members, in a predictable place
+    -- a long book list can never push onto the next page.
+    -- A2/A3: the fold surface the kind picker promises — series chain or
+    -- project fan-in. Plain groups share nothing by design: no row.
+    if #group.books > 1 and ctx.plugin and ctx.plugin._startCrossBookXrayFlow
+        and BookGroups.sharesKnowledge(group) then
+        row(E("\u{1F500}", kind == BookGroups.KIND_PROJECT
+                and _("Fold X-Rays into one book…") or _("Merge series X-Rays…"), em),
+            function() GroupsUI.foldFlow(ctx.group_id, flow_opts) end)
+    end
+    -- Item 48(a): the group as launch surface — library chat/actions with the
+    -- members pre-selected. Named after the kind (maintainer, G0 round 3),
+    -- in the Book Hub's "Book Chat/Action" shape with its 💬.
+    if #group.books > 0 and ctx.plugin and ctx.plugin.openLibraryDialogForGroup then
+        local chat_label = kind == BookGroups.KIND_PROJECT and _("Project Chat/Action…")
+            or kind == BookGroups.KIND_SERIES and _("Series Chat/Action…")
+            or _("Group Chat/Action…")
+        row(E("\u{1F4AC}", chat_label, em),
+            function() ctx.plugin:openLibraryDialogForGroup(ctx.group_id) end)
+    end
+    -- Help line above the members (maintainer): the hold gesture is the one
+    -- thing a reader cannot see
     items[#items + 1] = {
         text = _("Tap a book for its hub. Hold it to move, open or remove it."),
         dim = true,
@@ -263,30 +289,8 @@ local function hubBuild(ctx)
             callback = function() end,
         }
     end
-    local function row(text, fn)
-        items[#items + 1] = { text = text, callback = fn }
-    end
-    local kind = BookGroups.kindOf(group)
-    -- A2/A3: the fold surface the kind picker promises — series chain or
-    -- project fan-in. Plain groups share nothing by design: no row.
-    if #group.books > 1 and ctx.plugin and ctx.plugin._startCrossBookXrayFlow
-        and BookGroups.sharesKnowledge(group) then
-        row(E("\u{1F500}", kind == BookGroups.KIND_PROJECT
-                and _("Fold X-Rays into one book…") or _("Merge series X-Rays…"), em),
-            function() GroupsUI.foldFlow(ctx.group_id, flow_opts) end)
-    end
-    -- Item 48(a): the group as launch surface — library chat/actions with the
-    -- members pre-selected. Named after the kind (maintainer, G0 round 3),
-    -- in the Book Hub's "Book Chat/Action" shape with its 💬.
-    if #group.books > 0 and ctx.plugin and ctx.plugin.openLibraryDialogForGroup then
-        local chat_label = kind == BookGroups.KIND_PROJECT and _("Project Chat/Action…")
-            or kind == BookGroups.KIND_SERIES and _("Series Chat/Action…")
-            or _("Group Chat/Action…")
-        row(E("\u{1F4AC}", chat_label, em),
-            function() ctx.plugin:openLibraryDialogForGroup(ctx.group_id) end)
-    end
     -- The add rows LAST (round 8, maintainer): the hamburger has them too,
-    -- and they must not push the fold and chat rows onto the next page
+    -- and they must never push the action rows around
     row(E("\u{2795}", _("Add books…"), em),
         function() GroupsUI.addBooksFlow(ctx.group_id, flow_opts) end)
     row(E("\u{2795}", _("Add all books in a folder…"), em),
