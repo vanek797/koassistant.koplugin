@@ -5,9 +5,10 @@ singletons in the Book Hub's shape.
 - The GROUP HUB: THE per-group screen — GroupsUI.showGroup opens it, so every
   entry point and every group flow's reopen lands here. Rows: a dim hint, the
   members in order (tap = that book's Book Hub, hold = the move / open /
-  remove dialog; the open book's row says "open"), then Add books…, Add all
-  books in a folder…, Add all books in a collection…, the fold row, the
-  kind-named Chat/Action row. The title-bar hamburger is an anchored dropdown
+  remove dialog; the open book's row says "open"), then the fold row, the
+  kind-named Chat/Action row, and LAST the add rows (Add books…, Add all
+  books in a folder…, Add all books in a collection…) so they never push the
+  others onto the next page. The title-bar hamburger is an anchored dropdown
   (round 7, the list's shape): the add flows again, Kind: X… (the stacked
   radio popup), Rename…, Delete group…. Subtitle = the members' authors, the
   kind and the count. Up-arrow = the Groups list.
@@ -265,14 +266,6 @@ local function hubBuild(ctx)
     local function row(text, fn)
         items[#items + 1] = { text = text, callback = fn }
     end
-    row(E("\u{2795}", _("Add books…"), em),
-        function() GroupsUI.addBooksFlow(ctx.group_id, flow_opts) end)
-    row(E("\u{2795}", _("Add all books in a folder…"), em),
-        function() GroupsUI.addFolderFlow(ctx.group_id, flow_opts) end)
-    if GroupsUI.hasCollections() then
-        row(E("\u{2795}", _("Add all books in a collection…"), em),
-            function() GroupsUI.addCollectionFlow(ctx.group_id, flow_opts) end)
-    end
     local kind = BookGroups.kindOf(group)
     -- A2/A3: the fold surface the kind picker promises — series chain or
     -- project fan-in. Plain groups share nothing by design: no row.
@@ -291,6 +284,16 @@ local function hubBuild(ctx)
             or _("Group Chat/Action…")
         row(E("\u{1F4AC}", chat_label, em),
             function() ctx.plugin:openLibraryDialogForGroup(ctx.group_id) end)
+    end
+    -- The add rows LAST (round 8, maintainer): the hamburger has them too,
+    -- and they must not push the fold and chat rows onto the next page
+    row(E("\u{2795}", _("Add books…"), em),
+        function() GroupsUI.addBooksFlow(ctx.group_id, flow_opts) end)
+    row(E("\u{2795}", _("Add all books in a folder…"), em),
+        function() GroupsUI.addFolderFlow(ctx.group_id, flow_opts) end)
+    if GroupsUI.hasCollections() then
+        row(E("\u{2795}", _("Add all books in a collection…"), em),
+            function() GroupsUI.addCollectionFlow(ctx.group_id, flow_opts) end)
     end
     local subtitle = kindCount(kind, #group.books)
     local by = authorsLine(authors)
