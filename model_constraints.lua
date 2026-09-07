@@ -202,6 +202,10 @@ ModelConstraints.capabilities = {
     },
     groq = {
         -- Models with reasoning_effort support
+        -- Probed live 2026-09-07 (free key, #106): both gpt-oss ids reason by
+        -- default and accept low/medium/high ONLY (none/minimal/xhigh/max 400);
+        -- the compound pair rejects reasoning_effort outright ("is not
+        -- supported with this model") and stays out of this list.
         reasoning = {
             "openai/gpt-oss-120b", "openai/gpt-oss-20b",
             "qwen/qwen3-32b",
@@ -210,6 +214,13 @@ ModelConstraints.capabilities = {
         -- console.groq.com/docs/tool-use). groq/compound* excluded: built-in
         -- agentic tools only — user-defined tools are explicitly unsupported.
         -- (qwen3-32b + llama-4-scout deprecated by Groq 2026-07-17, not listed.)
+        -- Probed live 2026-09-07: both gpt-oss ids accept the runner's real
+        -- specs, a forced call on a lookup prompt and the two-round replay.
+        -- Caveat: when a model answers PROSE under tool_choice "required",
+        -- Groq returns 400 ("Tool choice is required, but model did not call
+        -- a tool") where other hosts return the prose, so a gather round that
+        -- drifts into prose fails the request instead of falling back. The
+        -- compound pair: "tool calling is not supported with this model".
         tools = {
             "llama-3.3-70b-versatile", "llama-3.1-8b-instant",
             "openai/gpt-oss-120b", "openai/gpt-oss-20b",
@@ -576,6 +587,8 @@ ModelConstraints._max_output_tokens = {
         ["meta-llama/llama-3.3-70b-instruct"] = 12288,
     },
     groq = {
+        -- Probed live 2026-09-07 (oversized max_tokens error + the list's
+        -- max_completion_tokens): 8192 for the compound pair, 65536 for gpt-oss.
         ["groq/compound"] = 8192,
         ["groq/compound-mini"] = 8192,
         ["meta-llama/llama-4-scout"] = 8192,
@@ -708,6 +721,15 @@ ModelConstraints._context_windows = {
         ["perplexity/sonar"]            = 127072,
         ["moonshotai/kimi-k2-thinking"] = 262144,
         ["minimax/minimax-m2.1"]        = 204800,
+    },
+    groq = {
+        -- [probe] GET /openai/v1/models field context_window, 2026-09-07 (the
+        -- same list states max_completion_tokens = the output caps above).
+        ["openai/gpt-oss"] = 131072, -- 120b, 20b (and the safeguard-20b id)
+        ["groq/compound"]  = 131072, -- compound, compound-mini
+        -- Guards for the two ids a "Fetch models" run surfaces (not curated):
+        ["qwen/qwen3.6-27b"] = 131072,
+        ["qwen/qwen3.8-27b"] = 131042,
     },
 }
 
@@ -1088,6 +1110,8 @@ ModelConstraints.reasoning_profiles = {
           stance_map = { minimal = { option = "low" }, maximum = { option = "high" } } },
     },
     groq = {
+        -- Both gpt-oss entries probed live 2026-09-07: default ON, effort
+        -- low/medium/high, no off (matches the stanzas below).
         { match = "openai/gpt-oss-120b", axis = "effort", default_state = "on", can_disable = false, can_enable = true,
           options = { "low", "medium", "high" }, default_option = "high",
           stance_map = { minimal = { option = "low" }, maximum = { option = "high" } } },

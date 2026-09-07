@@ -3763,7 +3763,7 @@ KOAssistant supports **31 built-in AI providers** — a **curated set** the main
 | **DeepSeek** | Cost-effective reasoning models | Tested | [platform.deepseek.com](https://platform.deepseek.com/) |
 | **Gemini** | Google's Gemini models | Tested | [aistudio.google.com](https://aistudio.google.com/) |
 | **Ollama** | Local models (no API key needed) | Tested | [ollama.ai](https://ollama.ai/) |
-| **Groq** | Extremely fast inference | Docs-based* | [console.groq.com](https://console.groq.com/) |
+| **Groq** | Extremely fast inference; free tier | Tested | [console.groq.com](https://console.groq.com/) |
 | **Fireworks** | Fast inference for open models; book tools supported | Tested | [fireworks.ai](https://fireworks.ai/) |
 | **SambaNova** | Fastest inference; small free tier (3 models, 20 requests/day) | Docs-based* | [cloud.sambanova.ai](https://cloud.sambanova.ai/) |
 | **Together** | 200+ open source models | Docs-based* | [api.together.xyz](https://api.together.xyz/) |
@@ -3799,7 +3799,7 @@ KOAssistant supports **31 built-in AI providers** — a **curated set** the main
 > **Free & Low-Cost Options**
 >
 > Several providers offer free tiers perfect for testing or budget-conscious use:
-> - **Groq**: nearly all models free, no card (per-model limits, ~30 requests/min)
+> - **Groq**: nearly all models free, no card (per-model limits: about 30 requests and 8,000 tokens a minute on the gpt-oss models, so long answers are sized to fit)
 > - **Gemini**: Flash-class models free, no card (Pro models are paid-only)
 > - **Ollama**: completely free (runs locally on your hardware)
 > - **Mistral**: free tier covers all its models (~1B tokens/month, phone verification)
