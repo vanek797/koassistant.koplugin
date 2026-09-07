@@ -68,7 +68,9 @@ end
 --- @return number|nil progress Reading progress (0.0-1.0), or nil
 local function getBookMetadata(doc_path)
     local doc_settings = DocSettings:open(doc_path)
-    local doc_props = SafeDocSettings.overlayCustomProps(doc_settings:readSetting("doc_props"), doc_path)
+    -- Never-opened books fall back to KOReader's cheap metadata chain (cover
+    -- browser cache, custom metadata); no document opens in a bulk list
+    local doc_props = SafeDocSettings.effectiveProps(doc_settings:readSetting("doc_props"), doc_path, nil, { no_open = true })
     local title = doc_props and (doc_props.display_title or doc_props.title) or nil
     if not title or title == "" then
         title = doc_path:match("([^/]+)%.[^%.]+$") or doc_path

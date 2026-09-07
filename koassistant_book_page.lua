@@ -472,7 +472,7 @@ function BookPage.show(opts)
         local SafeDocSettings = require("koassistant_doc_settings")
         local ok, ds = pcall(SafeDocSettings.resolve, file, ui)
         if ok and ds then
-            local props = SafeDocSettings.overlayCustomProps(ds:readSetting("doc_props"), file) or {}
+            local props = SafeDocSettings.effectiveProps(ds:readSetting("doc_props"), file, ui) or {}
             if not title or title == "" then title = props.display_title or props.title end
             if not author then author = props.authors end
         end
