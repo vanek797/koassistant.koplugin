@@ -11356,7 +11356,8 @@ local function showCrossSectionResults(grouped_results, query, ui, config, plugi
             local captured_sh = sh
             table.insert(items, {
                 text = "  " .. captured_sh.stub.name,
-                mandatory = captured_sh.source_title or "",
+                mandatory = require("koassistant_xray_browser").fitSourceTitle(
+                    "  " .. captured_sh.stub.name, captured_sh.source_title),
                 mandatory_dim = true,
                 callback = function()
                     openCarriedStubDetail(ui, carried.data, config, plugin, book_metadata,

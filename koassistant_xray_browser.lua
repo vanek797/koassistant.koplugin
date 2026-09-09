@@ -98,6 +98,29 @@ local function fitMandatory(name, secondary, opts)
     return best or (table.concat(chars, "", 1, min_chars) .. ELLIPSIS)
 end
 
+--- Fit a carried row's SOURCE TITLE beside its name with the carried list's
+--- measured options. Every list that puts a source title in the right column
+--- goes through this: a raw title longer than the row (long CJK book titles
+--- are the norm, #90) drove the Menu's text width negative and crashed
+--- TextWidget:makeLine, so the title is never passed through unfitted.
+--- @param name string The row's subject
+--- @param source string|nil The source title (empty or nil → "")
+--- @param reserved string|nil Right-column text kept whole next to the title
+---   (category tag, "(alias)"); it is charged against the name's side
+--- @return string fitted source title, "" when there is none
+function XrayBrowser.fitSourceTitle(name, source, reserved)
+    if type(source) ~= "string" or source == "" then return "" end
+    local Font = require("ui/font")
+    local Size = require("ui/size")
+    return fitMandatory((name or "") .. (reserved or ""), source, {
+        content_width = Screen:getWidth() - 2 * (Size.padding.fullscreen or 0),
+        text_face = Font:getFace("smallinfofont", 18),
+        mandatory_face = Font:getFace("infont", 14),
+        padding = Screen:scaleBySize(10),
+        min_chars = 4,
+    })
+end
+
 --- Show a floating "Back to X-Ray" button overlay.
 --- Appears after a mention row / fallback launch closes the browser and
 --- enters the native search session (launchSearchSession).
@@ -1476,23 +1499,12 @@ function XrayBrowser:_buildDormantItems()
     -- carried entity's NAME — the thing you are reading the list for — got
     -- elided. Same measured fitter as the category lists now; the category tag
     -- is protected as the minimum, since it survives being the only thing left.
-    local Font = require("ui/font")
-    local Size = require("ui/size")
-    local fit_opts = {
-        content_width = Screen:getWidth() - 2 * (Size.padding.fullscreen or 0),
-        text_face = Font:getFace("smallinfofont", 18),
-        mandatory_face = Font:getFace("infont", 14),
-        padding = Screen:scaleBySize(10),
-        min_chars = 4,
-    }
     for i, r in ipairs(rows) do
         local captured_i, captured, display_i = r.idx, r.stub, i
         local short_cat = CHAPTER_CATEGORY_SHORT[captured.category]
-        local src = (type(captured.source) == "string" and captured.source) or ""
         -- The source title is what overflows, so fit THAT and keep the tag whole
         local tag = short_cat and (short_cat .. " · ") or ""
-        local fitted_src = src ~= "" and fitMandatory(
-            (captured.name or "") .. tag, src, fit_opts) or ""
+        local fitted_src = XrayBrowser.fitSourceTitle(captured.name, captured.source, tag)
         table.insert(items, {
             text = captured.name,
             mandatory = tag .. fitted_src,
@@ -6174,10 +6186,11 @@ function XrayBrowser:showSearchResults(query, skip_cross_search)
         local dormant_rows = self:_dormantRows()
         for _idx, sh in ipairs(stub_hits) do
             local captured = sh
-            local mand = captured.source_title or ""
-            if captured.match_field == "alias" then
-                mand = mand ~= "" and (mand .. " (" .. _("alias") .. ")")
-                    or ("(" .. _("alias") .. ")")
+            local alias_tag = captured.match_field == "alias" and ("(" .. _("alias") .. ")") or ""
+            local mand = XrayBrowser.fitSourceTitle(captured.stub.name, captured.source_title,
+                alias_tag ~= "" and (" " .. alias_tag) or nil)
+            if alias_tag ~= "" then
+                mand = mand ~= "" and (mand .. " " .. alias_tag) or alias_tag
             end
             table.insert(items, {
                 text = captured.stub.name,
