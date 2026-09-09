@@ -83,6 +83,12 @@ Rules:
 local function normalizeName(name)
     if type(name) ~= "string" then return nil end
     local n = name:lower()
+    -- Separator-insensitive (#90, 2026-09-09): the katakana middle dot, the
+    -- Chinese middle dot, the Japanese double hyphen, "_" and "-" all read
+    -- as a space, so a model's "_" spelling pairs with the source text's
+    -- "・" and a CJK multi-part name tokenizes for the contained-name rule
+    n = n:gsub("\227\131\187", " "):gsub("\194\183", " "):gsub("\239\188\157", " ")
+    n = n:gsub("[_%-]", " ")
     n = n:gsub("%s+", " ")
     n = n:match("^%s*(.-)%s*$")
     if n == "" then return nil end

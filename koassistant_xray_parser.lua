@@ -360,6 +360,47 @@ local SINGLETON_KEYS = { current_state = true, current_position = true, conclusi
 local SINGLETON_ARRAY_FIELDS = { "conflicts", "questions", "questions_addressed",
     "building_toward", "resolutions", "themes_resolved", "key_findings", "implications" }
 
+-- Japanese separators (#90, 2026-09-09): the source text writes the parts of
+-- a foreign name with the katakana middle dot (ミラ・エル・ソーン); models
+-- sometimes emit "_" or "-" in its place, even mixing the two inside one
+-- name, so one person lands under two spellings no exact key reconciles. An
+-- underscore or hyphen BETWEEN two kana is never source spelling, so it is
+-- restored to the dot at the parse chokepoint (names, terms, aliases,
+-- connections, carried stubs) and every exact-name key downstream agrees.
+-- Han-only names stay untouched: the right separator differs between
+-- Japanese (・) and Chinese (·) text. Idempotent.
+local KANA = "\227[\129-\131][\128-\191]" -- U+3041..U+30FF, hiragana + katakana
+local KANA_SEPARATOR = "(" .. KANA .. ")[_%-](" .. KANA .. ")"
+local function repairSeparators(s)
+    if type(s) ~= "string" or not s:find("[_%-]") then return s end
+    local out, n = s, 0
+    repeat
+        out, n = out:gsub(KANA_SEPARATOR, "%1\227\131\187%2")
+    until n == 0
+    return out
+end
+XrayParser.repairName = repairSeparators
+
+-- Repaired aliases dedupe case-insensitively (four "_" spellings collapse
+-- onto one dotted form) and drop the entry's own name (a model habit that
+-- read "Also known as: <the name itself>")
+local function repairAliases(name, aliases)
+    if type(aliases) ~= "table" then return aliases end
+    local out, seen = {}, {}
+    if type(name) == "string" then seen[name:lower()] = true end
+    for _idx, a in ipairs(aliases) do
+        if type(a) == "string" then
+            a = repairSeparators(a)
+            local k = a:lower()
+            if a ~= "" and not seen[k] then
+                seen[k] = true
+                out[#out + 1] = a
+            end
+        end
+    end
+    return out
+end
+
 local function normalizeItem(item, name_field)
     if type(item) == "string" then
         if item == "" then return nil end
@@ -379,6 +420,12 @@ local function normalizeItem(item, name_field)
     if item.background ~= nil then
         item.background = sanitizeBackground(item.background)
     end
+    item.name = repairSeparators(item.name)
+    item.term = repairSeparators(item.term)
+    if type(item.connections) == "table" then
+        for i, v in ipairs(item.connections) do item.connections[i] = repairSeparators(v) end
+    end
+    item.aliases = repairAliases(item[name_field], item.aliases)
     return item
 end
 
@@ -462,6 +509,17 @@ local function normalizeShapes(data)
             end
         end
         data.background_updates = out
+    end
+    -- Carried stubs: the shape stays code-owned, but their names came from
+    -- other books' model output and get the same separator repair
+    local ledger = data["__dormant"]
+    if type(ledger) == "table" then
+        for _n, stub in ipairs(ledger) do
+            if type(stub) == "table" then
+                stub.name = repairSeparators(stub.name)
+                stub.aliases = repairAliases(stub.name, stub.aliases)
+            end
+        end
     end
 end
 
@@ -1212,7 +1270,8 @@ function XrayParser.mergeUserAliases(data, user_aliases)
             local add = entry.add or {}
             local ignore = entry.ignore or {}
             if #add > 0 or #ignore > 0 then
-                lookup[name:lower()] = entry
+                -- Keys stored before the separator repair keep attaching (#90)
+                lookup[repairSeparators(name):lower()] = entry
             end
         end
     end
@@ -2724,7 +2783,11 @@ local function renameTarget(new_item, lookup, never_set, new_key)
     if type(new_item) ~= "table" or type(new_item.aliases) ~= "table" then return nil end
     local target, bridge
     for _ai, alias in ipairs(new_item.aliases) do
-        if type(alias) == "string" and alias:find("%s") then
+        -- A multi-part name: whitespace-joined, or "・"-joined in Japanese
+        -- (#90, 2026-09-09: CJK full names carry no spaces, so the bridge
+        -- never fired for them)
+        if type(alias) == "string"
+                and (alias:find("%s") or alias:find("\227\131\187", 1, true)) then
             local idx = lookup[alias:lower()]
             if idx then
                 if target and target ~= idx then return nil end -- ambiguous
@@ -2964,6 +3027,111 @@ local function stubBackgroundAdditions(stub, existing_background)
     return additions
 end
 
+--- Fold carried stubs that are one entity under two names (#90, 2026-09-09):
+--- two source books naming a person differently, each listing the other's
+--- name as an alias, arrived as two stubs because every ledger writer keys by
+--- exact name. Identity = one stub's NAME equals the other's name or one of
+--- its aliases (never alias-to-alias: single-character CJK aliases are shared
+--- between people), same category family, never-merge pairs honored. The
+--- earlier row keeps its position, name, source and description (seeding
+--- appends the nearest source first); the later row's name and aliases join
+--- its aliases, its description becomes a carried line under its own source,
+--- its background lines union in, its role fills a gap. Chains fold to one.
+--- Idempotent. Pure.
+--- @param data table Parsed X-Ray (mutated)
+--- @param never_pairs table|nil Array of { name_a, name_b }
+--- @return number folded
+function XrayParser.foldLedger(data, never_pairs)
+    if type(data) ~= "table" then return 0 end
+    local ledger = data[XrayParser.DORMANT_KEY]
+    if type(ledger) ~= "table" or #ledger < 2 then return 0 end
+    local never = {}
+    for _idx, pair in ipairs(never_pairs or {}) do
+        if type(pair) == "table" and type(pair[1]) == "string" and type(pair[2]) == "string" then
+            local a, b = pair[1]:lower(), pair[2]:lower()
+            if a > b then a, b = b, a end
+            never[a .. "\0" .. b] = true
+        end
+    end
+    local function family(stub)
+        local cat = type(stub.category) == "string" and stub.category ~= ""
+            and stub.category or "characters"
+        return XrayParser.CATEGORY_FAMILY[cat] or cat
+    end
+    local function aliasSet(stub)
+        local set = {}
+        for _idx, a in ipairs(ensure_array(stub.aliases) or {}) do
+            if type(a) == "string" and a ~= "" then set[a:lower()] = true end
+        end
+        return set
+    end
+    -- Keys once per stub (a 300-stub ledger is 45k pair checks; e-ink)
+    local keys = {}
+    for i, stub in ipairs(ledger) do
+        keys[i] = type(stub) == "table" and type(stub.name) == "string" and stub.name ~= ""
+            and { name = stub.name:lower(), aliases = aliasSet(stub), family = family(stub) }
+            or false
+    end
+    local folded = 0
+    local i = 1
+    while i <= #ledger do
+        local keep, kk = ledger[i], keys[i]
+        if kk then
+            local j = i + 1
+            while j <= #ledger do
+                local drop, dk = ledger[j], keys[j]
+                local same = dk and dk.family == kk.family
+                    and (dk.name == kk.name or kk.aliases[dk.name] == true
+                        or dk.aliases[kk.name] == true) or false
+                if same then
+                    local a, b = kk.name, dk.name
+                    if a > b then a, b = b, a end
+                    if never[a .. "\0" .. b] then same = false end
+                end
+                if same then
+                    local aliases = ensure_array(keep.aliases) or {}
+                    local function addAlias(a)
+                        if type(a) ~= "string" or a == "" then return end
+                        local k = a:lower()
+                        if k == kk.name or kk.aliases[k] then return end
+                        kk.aliases[k] = true
+                        aliases[#aliases + 1] = a
+                    end
+                    addAlias(drop.name)
+                    for _idx, a in ipairs(ensure_array(drop.aliases) or {}) do addAlias(a) end
+                    if #aliases > 0 then keep.aliases = aliases end
+                    local additions = {}
+                    if type(drop.description) == "string" and drop.description ~= "" then
+                        if type(keep.description) ~= "string" or keep.description == "" then
+                            keep.description = drop.description
+                        elseif type(drop.source) == "string" and drop.source ~= ""
+                                and drop.source ~= keep.source then
+                            additions[#additions + 1] = { source = drop.source,
+                                text = drop.description, file = drop.file }
+                        end
+                    end
+                    for _idx, b in ipairs(ensure_array(drop.background) or {}) do
+                        additions[#additions + 1] = b
+                    end
+                    if #additions > 0 then
+                        keep.background = XrayParser.mergeBackground(keep.background, additions)
+                    end
+                    keep.role = keep.role or drop.role
+                    keep.source = keep.source or drop.source
+                    keep.file = keep.file or drop.file
+                    table.remove(ledger, j)
+                    table.remove(keys, j)
+                    folded = folded + 1
+                else
+                    j = j + 1
+                end
+            end
+        end
+        i = i + 1
+    end
+    return folded
+end
+
 --- Wake-pass (carry layer 2): any ledger stub whose name/alias matches an
 --- ACTIVE entity folds its carried knowledge into that entity's background —
 --- fill-gaps-only, an existing entry from the same source book wins (same
@@ -2972,8 +3140,9 @@ end
 --- deepen), so an entity entering by any route wakes its history. Mutates
 --- data in place. Pure.
 --- @param data table Parsed X-Ray
+--- @param opts table|nil { never_pairs } for the ledger fold that runs first
 --- @return table woken Array of { name, source } for logging/toasts
-function XrayParser.wakeDormant(data)
+function XrayParser.wakeDormant(data, opts)
     local woken = {}
     if type(data) ~= "table" then return woken end
     local ledger = data[XrayParser.DORMANT_KEY]
@@ -2983,6 +3152,8 @@ function XrayParser.wakeDormant(data)
         end
         return woken
     end
+    -- One entity under two carried names folds before it can wake twice
+    XrayParser.foldLedger(data, opts and opts.never_pairs)
     -- name/alias (lowercased) → active item
     -- Round 26: matching is FAMILY-SCOPED. It used to be a single flat
     -- name→item map over every category, so a dormant CHARACTER woke into a

@@ -1209,8 +1209,10 @@ function ActionCache.getRemovedStubs(document_path)
     local set = {}
     local raw = ActionCache.getUserAliases(document_path)[ActionCache.REMOVED_STUBS_KEY]
     if type(raw) == "table" then
+        -- Names stored before the separator repair keep matching (#90)
+        local repair = require("koassistant_xray_parser").repairName
         for _idx, n in ipairs(raw) do
-            if type(n) == "string" and n ~= "" then set[n:lower()] = true end
+            if type(n) == "string" and n ~= "" then set[repair(n):lower()] = true end
         end
     end
     return set

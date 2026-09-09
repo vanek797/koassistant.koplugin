@@ -1203,6 +1203,26 @@ TestRunner:test("wakeDormant: drift WITHIN a family still bridges", function()
         "carried history landed on the term")
 end)
 
+TestRunner:test("populateDormant folds one entity carried under two names; a re-seed is a no-op (#90, 2026-09-09)", function()
+    local base = { type = "fiction", characters = { { name = "Hero", description = "h" } } }
+    local src_a = { type = "fiction", characters = {
+        { name = "ミラ", aliases = { "ミラ・エル・ソーン" }, description = "young mage" } } }
+    local src_b = { type = "fiction", characters = {
+        { name = "ミラ・エル・ソーン", aliases = { "ミラ" }, description = "now a master" } } }
+    local a1 = XrayMerge.populateDormant(base, nil, src_a, "Vol 3a", "/a", nil, "/target")
+    local a2, r2 = XrayMerge.populateDormant(base, nil, src_b, "Vol 3b", "/b", nil, "/target")
+    TestRunner:assertEqual(a1, 1, "first source adds the stub")
+    TestRunner:assertTrue(a2 + r2 > 0, "second source reports a change (the fold)")
+    local L = base.__dormant
+    TestRunner:assertEqual(#L, 1, "one carried row")
+    TestRunner:assertEqual(L[1].name, "ミラ", "nearest source's name kept")
+    TestRunner:assertEqual(L[1].aliases[1], "ミラ・エル・ソーン", "full name is an alias")
+    TestRunner:assertEqual(L[1].background[1].source, "Vol 3b", "the other volume's description carried as a line")
+    local a3, r3 = XrayMerge.populateDormant(base, nil, src_b, "Vol 3b", "/b", nil, "/target")
+    TestRunner:assertEqual(a3 + r3, 0, "re-seeding the same source changes nothing (dry-run stays quiet)")
+    TestRunner:assertEqual(#base.__dormant, 1, "still one row")
+end)
+
 TestRunner:test("unionLedger: outgoing-only stubs join the incoming ledger (F1, B278)", function()
     local XrayParser = require("koassistant_xray_parser")
     local prev = XrayParser.parse([[{
