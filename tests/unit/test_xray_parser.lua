@@ -806,6 +806,46 @@ TestRunner:test("foldLedger: a chain folds to one across a family bridge; fewer 
     TestRunner:eq(XrayParser.foldLedger(nil), 0, "nil no-op")
 end)
 
+TestRunner:test("foldLedger: with a rank the nearer book's row leads and keeps the earlier slot", function()
+    local d = { type = "fiction", characters = {}, __dormant = {
+        { name = "ミラ", aliases = { "ミラ・エル・ソーン" }, category = "characters", source = "Vol 1", file = "/1",
+          description = "young mage" },
+        { name = "ナオ", category = "characters", source = "Vol 1", file = "/1" },
+        { name = "ミラ・エル・ソーン", aliases = { "ミラ" }, category = "characters", source = "Vol 2", file = "/2",
+          description = "now a master" },
+    } }
+    local rank = { ["/1"] = 1, ["/2"] = 2 }
+    XrayParser.setStubRankResolver(function(stub) return rank[stub.file] end)
+    local folded = XrayParser.foldLedger(d)
+    XrayParser.setStubRankResolver(nil)
+    TestRunner:eq(folded, 1, "one fold")
+    local L = d.__dormant
+    TestRunner:eq(L[1].name, "ミラ・エル・ソーン", "the nearer book's name leads, in the earlier slot")
+    TestRunner:eq(L[1].source, "Vol 2", "its source")
+    TestRunner:eq(L[1].description, "now a master", "its description")
+    TestRunner:eq(L[1].aliases[1], "ミラ", "the short name is an alias")
+    TestRunner:eq(L[1].background[1].source, "Vol 1", "the farther book's description became a line")
+    TestRunner:eq(L[2].name, "ナオ", "the other row keeps its slot")
+end)
+
+TestRunner:test("parse folds the carried list on read: two stored rows show as one, ranked when a resolver is installed", function()
+    local json = [[{"type":"fiction","characters":[{"name":"Hero"}],"__dormant":[
+        {"name":"ミラ","aliases":["ミラ・エル・ソーン"],"category":"characters","source":"Vol 1","file":"/1","description":"young mage"},
+        {"name":"ナオ","category":"characters","source":"Vol 1","file":"/1"},
+        {"name":"ミラ_エル_ソーン","aliases":["ミラ"],"category":"characters","source":"Vol 2","file":"/2","description":"now a master"}]}]]
+    local d = XrayParser.parse(json)
+    TestRunner:eq(#d.__dormant, 2, "one row per person without a resolver")
+    TestRunner:eq(d.__dormant[1].name, "ミラ", "earlier row wins without a resolver")
+    local rank = { ["/1"] = 1, ["/2"] = 2 }
+    XrayParser.setStubRankResolver(function(stub) return rank[stub.file] end)
+    local d2 = XrayParser.parse(json)
+    XrayParser.setStubRankResolver(nil)
+    TestRunner:eq(#d2.__dormant, 2, "one row per person with a resolver")
+    TestRunner:eq(d2.__dormant[1].name, "ミラ・エル・ソーン", "the nearer book's dotted name leads, repaired")
+    TestRunner:eq(d2.__dormant[1].source, "Vol 2", "carried from the nearer book")
+    TestRunner:eq(d2.__dormant[1].background[1].text, "young mage", "the farther book's description is its line")
+end)
+
 TestRunner:test("wakeDormant folds first: one entity under two carried names wakes once", function()
     local d = { type = "fiction",
         characters = { { name = "ミラ", description = "here" } },
@@ -821,6 +861,27 @@ TestRunner:test("wakeDormant folds first: one entity under two carried names wak
     local c = d.characters[1]
     TestRunner:eq(c.aliases[1], "ミラ・エル・ソーン", "full name rides in as an alias")
     TestRunner:eq(#c.background, 2, "both carried lines arrived")
+end)
+
+TestRunner:test("search: a query in the underscore spelling finds the dotted entry, live and carried", function()
+    local d = XrayParser.parse([[{"type":"fiction","characters":[{"name":"カイ・ロ・サン"}],
+        "__dormant":[{"name":"ナオ・ハル・ケイン","category":"characters"}]}]])
+    TestRunner:eq(#XrayParser.searchAll(d, "カイ_ロ_サン", { exact = true }), 1, "live exact")
+    TestRunner:eq(#XrayParser.searchAll(d, "カイ_ロ", { skip_description = true }), 1, "live substring")
+    TestRunner:eq(#XrayParser.searchLedger(d, "ナオ_ハル_ケイン", { exact = true }), 1, "carried exact")
+    local set = {}
+    XrayParser.foldLedgerHandles(d, set)
+    TestRunner:ok(XrayParser.matchExactHandle(set, "ナオ_ハル_ケイン"), "exact handle route")
+end)
+
+TestRunner:test("trimEdgePunctuation: ASCII and CJK stops, quotes and brackets fall off both edges; the dot inside stays", function()
+    TestRunner:eq(XrayParser.trimEdgePunctuation("リオ."), "リオ", "ASCII period")
+    TestRunner:eq(XrayParser.trimEdgePunctuation("リオ。"), "リオ", "CJK full stop")
+    TestRunner:eq(XrayParser.trimEdgePunctuation("「カイ・ロ・サン」、"), "カイ・ロ・サン", "brackets and comma; inner dot kept")
+    TestRunner:eq(XrayParser.trimEdgePunctuation("  Jack  Torrance's, "), "Jack Torrance's", "collapsed, inner apostrophe kept")
+    TestRunner:eq(XrayParser.trimEdgePunctuation("(Jack)"), "Jack", "ASCII brackets")
+    TestRunner:eq(XrayParser.trimEdgePunctuation("…"), "", "only marks becomes empty")
+    TestRunner:eq(XrayParser.trimEdgePunctuation(nil), nil, "nil passes through")
 end)
 
 TestRunner:test("merge: a dotted full-name alias bridges a rename (CJK rename fold)", function()

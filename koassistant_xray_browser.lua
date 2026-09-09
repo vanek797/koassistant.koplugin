@@ -1559,8 +1559,8 @@ function XrayBrowser:showDormantDetail(stub_idx, stub, nav_context)
     if type(stub.source) == "string" and stub.source ~= "" then
         parts[#parts + 1] = T(_("Carried from: %1"), stub.source)
     end
-    parts[#parts + 1] = ""
-    parts[#parts + 1] = _("Not seen in this book yet. It wakes on its own when an update or merge meets it.")
+    -- Content first (device 2026-09-09: the status sentence sat between the
+    -- header and the description and buried it); the status line closes
     if type(stub.description) == "string" and stub.description ~= "" then
         parts[#parts + 1] = ""
         parts[#parts + 1] = stub.description
@@ -1574,6 +1574,8 @@ function XrayBrowser:showDormantDetail(stub_idx, stub, nav_context)
             end
         end
     end
+    parts[#parts + 1] = ""
+    parts[#parts + 1] = _("Not seen in this book yet. It wakes on its own when an update or merge meets it.")
 
     local viewer
     local function afterClose(fn)

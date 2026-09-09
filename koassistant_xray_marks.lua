@@ -248,7 +248,25 @@ local function ensureIndex(plugin, pageno)
   local XrayParser = require("koassistant_xray_parser")
   local user_aliases = ActionCache.getUserAliases(st.file)
   local ents = {}
-  local seen_names = {}
+  local seen_names, seen_terms = {}, {}
+  -- First writer wins by IDENTITY within a family, not by name alone (#90
+  -- device round 2026-09-09): one person carried as the short name and live
+  -- in a group book under the dotted full name became two index entries
+  -- with the same terms, and the B266 containment pass dropped each one's
+  -- hit as lying inside the other's, so neither painted. An incoming entity
+  -- whose name is an earlier entry's handle, or whose handles include an
+  -- earlier entry's name, IS that entry.
+  local function claim(e)
+    local fam = tostring(e.family or e.category_key or "?") .. "\0"
+    local nk = type(e.name) == "string" and (fam .. e.name:lower()) or nil
+    if nk and (seen_names[nk] or seen_terms[nk]) then return false end
+    for _t, t in ipairs(e.terms or {}) do
+      if seen_names[fam .. t.text:lower()] then return false end
+    end
+    if nk then seen_names[nk] = true end
+    for _t, t in ipairs(e.terms or {}) do seen_terms[fam .. t.text:lower()] = true end
+    return true
+  end
   local included, skipped = {}, {}
   local function addFrom(result, is_ahead)
     local data = XrayParser.parse(result)
@@ -257,9 +275,7 @@ local function ensureIndex(plugin, pageno)
     for _idx, e in ipairs(XrayParser.buildMarkEntities(data)) do
       -- First writer wins across sources (main → sections → ahead): the
       -- ahead rung contributes only entities the position truth lacks
-      local nk = type(e.name) == "string" and e.name:lower() or nil
-      if not (nk and seen_names[nk]) then
-        if nk then seen_names[nk] = true end
+      if claim(e) then
         -- Ahead-only entities paint differently (dashes) — the reader can
         -- tell "new, identification only" from an established mark
         if is_ahead then e.ahead = true end
@@ -287,9 +303,7 @@ local function ensureIndex(plugin, pageno)
   -- truth (main + sections), before the peek.
   if main_data then
     for _idx, e in ipairs(XrayParser.buildLedgerMarkEntities(main_data)) do
-      local nk = type(e.name) == "string" and e.name:lower() or nil
-      if not (nk and seen_names[nk]) then
-        if nk then seen_names[nk] = true end
+      if claim(e) then
         ents[#ents + 1] = e
         included[e.category_key] = (included[e.category_key] or 0) + 1
       end
@@ -303,17 +317,13 @@ local function ensureIndex(plugin, pageno)
   -- only while unprotected, every member of a project) — same style
   for _g, g in ipairs(group_list) do
     for _idx, e in ipairs(XrayParser.buildMarkEntities(g.data)) do
-      local nk = type(e.name) == "string" and e.name:lower() or nil
-      if not (nk and seen_names[nk]) then
-        if nk then seen_names[nk] = true end
+      if claim(e) then
         ents[#ents + 1] = e
         included[e.category_key] = (included[e.category_key] or 0) + 1
       end
     end
     for _idx, e in ipairs(XrayParser.buildLedgerMarkEntities(g.data)) do
-      local nk = type(e.name) == "string" and e.name:lower() or nil
-      if not (nk and seen_names[nk]) then
-        if nk then seen_names[nk] = true end
+      if claim(e) then
         ents[#ents + 1] = e
         included[e.category_key] = (included[e.category_key] or 0) + 1
       end
@@ -631,7 +641,11 @@ function XrayMarks._scanTick(plugin, pageno, token, hay)
             for _m, lh in ipairs(hits_by_name[lname] or {}) do
               local ok1, c1 = pcall(ui.document.compareXPointers, ui.document, lh.h.start, ph.h.start)
               local ok2, c2 = pcall(ui.document.compareXPointers, ui.document, ph.h.e, lh.h.e)
-              if ok1 and ok2 and c1 and c2 and c1 >= 0 and c2 >= 0 then
+              -- Strictly inside: an identical span is the same mention,
+              -- not a containment (two entries sharing a term must not
+              -- cancel each other)
+              if ok1 and ok2 and c1 and c2 and c1 >= 0 and c2 >= 0
+                  and (c1 > 0 or c2 > 0) then
                 inside = true
                 break
               end

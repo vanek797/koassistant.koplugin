@@ -11781,6 +11781,12 @@ end
 -- @param override_best table|nil Pre-selected X-Ray result (from selection popup callback)
 local function handleLocalXrayLookup(ui, query, document_path, book_metadata, config, plugin, override_best)
     local logger = require("koassistant_logger")
+    -- The same edge trim the selection intercept applies: a CJK selection
+    -- brings its stop along ("name。"), and the stop found nothing (#90)
+    if type(query) == "string" then
+        local trimmed = require("koassistant_xray_parser").trimEdgePunctuation(query)
+        if trimmed ~= "" then query = trimmed end
+    end
     logger.dbg("KOAssistant: Local X-Ray lookup for: " .. tostring(query))
 
     if not document_path then

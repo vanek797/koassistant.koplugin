@@ -401,6 +401,34 @@ local function repairAliases(name, aliases)
     return out
 end
 
+-- Edge punctuation a selection drags along. CJK text puts no space before
+-- its stops, so a selected name usually arrives as "name。" or "name." and
+-- the lookup then searched for the stop too (#90 device round 2026-09-09).
+-- ASCII %p plus the common CJK / typographic marks; never "・" (part of names).
+local EDGE_MARKS = {
+    "\227\128\130", "\227\128\129", "\227\128\140", "\227\128\141", "\227\128\142", "\227\128\143",
+    "\227\128\144", "\227\128\145", "\239\188\129", "\239\188\159", "\239\188\136", "\239\188\137",
+    "\239\188\140", "\239\188\154", "\239\188\155", "\226\128\166", "\226\128\156", "\226\128\157",
+    "\226\128\152", "\226\128\153", "\226\128\147", "\226\128\148",
+}
+function XrayParser.trimEdgePunctuation(s)
+    if type(s) ~= "string" then return s end
+    s = s:gsub("%s+", " ")
+    s = s:match("^%s*(.-)%s*$") or ""
+    local changed = true
+    while changed and s ~= "" do
+        changed = false
+        local stripped = s:gsub("^%p+", ""):gsub("%p+$", "")
+        if stripped ~= s then s, changed = stripped, true end
+        for _idx, m in ipairs(EDGE_MARKS) do
+            while s:sub(1, #m) == m do s, changed = s:sub(#m + 1), true end
+            while #s >= #m and s:sub(-#m) == m do s, changed = s:sub(1, -#m - 1), true end
+        end
+        s = s:match("^%s*(.-)%s*$") or ""
+    end
+    return s
+end
+
 local function normalizeItem(item, name_field)
     if type(item) == "string" then
         if item == "" then return nil end
@@ -520,6 +548,9 @@ local function normalizeShapes(data)
                 stub.aliases = repairAliases(stub.name, stub.aliases)
             end
         end
+        -- One row per carried entity on every READ (device 2026-09-09: a
+        -- write-time-only fold left the list wrong until something wrote)
+        XrayParser.foldLedger(data)
     end
 end
 
@@ -1775,7 +1806,7 @@ function XrayParser.searchCharacters(data, query)
     local characters = XrayParser.getCharacters(data)
     if not characters or #characters == 0 then return {} end
 
-    local query_lower = XrayParser.normalizeArabic(query:lower())
+    local query_lower = XrayParser.normalizeArabic(repairSeparators(query):lower())
     local results = {}
 
     local normalize = XrayParser.normalizeArabic
@@ -1835,7 +1866,8 @@ function XrayParser.searchAll(data, query, opts)
     if exact then skip_description = true end
 
     local categories = XrayParser.getCategories(data)
-    local query_lower = XrayParser.normalizeArabic(query:lower())
+    -- A pasted "_" spelling finds the dotted entry (#90)
+    local query_lower = XrayParser.normalizeArabic(repairSeparators(query):lower())
     local normalize = XrayParser.normalizeArabic
     -- Arabic: also try ال-stripped query so "النار" finds "نار" and vice versa
     local query_stripped = nil
@@ -1933,7 +1965,7 @@ function XrayParser.searchLedger(data, query, opts)
     local exact = opts and opts.exact
     if exact then skip_description = true end
     local normalize = XrayParser.normalizeArabic
-    local query_lower = normalize(query:lower())
+    local query_lower = normalize(repairSeparators(query):lower())
     local query_stripped = nil
     if XrayParser.containsArabic(query_lower) then
         local s = stripArabicArticle(query_lower)
@@ -1995,7 +2027,7 @@ end
 -- normalize + whitespace collapse + trim (selections and JSON handles both
 -- carry stray spacing).
 local function exactKey(s)
-    s = XrayParser.normalizeArabic(s:lower()):gsub("\194\160", " "):gsub("%s+", " ")
+    s = XrayParser.normalizeArabic(repairSeparators(s):lower()):gsub("\194\160", " "):gsub("%s+", " ")
     return s:match("^%s*(.-)%s*$") or s
 end
 
@@ -3033,14 +3065,32 @@ end
 --- exact name. Identity = one stub's NAME equals the other's name or one of
 --- its aliases (never alias-to-alias: single-character CJK aliases are shared
 --- between people), same category family, never-merge pairs honored. The
---- earlier row keeps its position, name, source and description (seeding
---- appends the nearest source first); the later row's name and aliases join
---- its aliases, its description becomes a carried line under its own source,
---- its background lines union in, its role fills a gap. Chains fold to one.
---- Idempotent. Pure.
+--- row from the NEAREST earlier book wins (the installed rank resolver;
+--- rows accumulate across re-seeds, so position alone says nothing about
+--- nearness) and otherwise the earlier row: it keeps
+--- the position, name, source and description; the other row's name and
+--- aliases join its aliases, its description becomes a carried line under
+--- its own source, its background lines union in, its role fills a gap.
+--- Chains fold to one. Idempotent. Pure.
+--- Runs at PARSE (every read shows one row at once) and at every write
+--- (the fold persists). Nearness comes from the installed resolver.
 --- @param data table Parsed X-Ray (mutated)
 --- @param never_pairs table|nil Array of { name_a, name_b }
 --- @return number folded
+local stub_rank_resolver = nil
+--- Install the nearness rank the fold uses (main.lua at plugin init):
+--- stub -> number|nil, higher = nearer. Every carried stub comes from a
+--- book BEFORE the reader's, so the stub's book index in its ordered group
+--- orders them without knowing the target. nil = unknown (pure callers,
+--- tests, no group): the earlier row wins.
+function XrayParser.setStubRankResolver(fn)
+    stub_rank_resolver = type(fn) == "function" and fn or nil
+end
+local function stubRank(stub)
+    if not stub_rank_resolver then return nil end
+    local ok, r = pcall(stub_rank_resolver, stub)
+    return ok and tonumber(r) or nil
+end
 function XrayParser.foldLedger(data, never_pairs)
     if type(data) ~= "table" then return 0 end
     local ledger = data[XrayParser.DORMANT_KEY]
@@ -3058,49 +3108,105 @@ function XrayParser.foldLedger(data, never_pairs)
             and stub.category or "characters"
         return XrayParser.CATEGORY_FAMILY[cat] or cat
     end
-    local function aliasSet(stub)
-        local set = {}
-        for _idx, a in ipairs(ensure_array(stub.aliases) or {}) do
-            if type(a) == "string" and a ~= "" then set[a:lower()] = true end
-        end
-        return set
-    end
-    -- Keys once per stub (a 300-stub ledger is 45k pair checks; e-ink)
+    -- Linear (this runs on every parse): family-scoped name map, then one
+    -- pass over every stub's aliases finds each alias-equals-a-name link in
+    -- both directions; union-find groups the links (chains included), and
+    -- each group folds into its winner. The ledger table is mutated in
+    -- place: callers hold the reference.
+    local n = #ledger
     local keys = {}
-    for i, stub in ipairs(ledger) do
-        keys[i] = type(stub) == "table" and type(stub.name) == "string" and stub.name ~= ""
-            and { name = stub.name:lower(), aliases = aliasSet(stub), family = family(stub) }
-            or false
+    for i = 1, n do
+        local stub = ledger[i]
+        if type(stub) == "table" and type(stub.name) == "string" and stub.name ~= "" then
+            local aliases = {}
+            for _idx, a in ipairs(ensure_array(stub.aliases) or {}) do
+                if type(a) == "string" and a ~= "" then aliases[#aliases + 1] = a:lower() end
+            end
+            keys[i] = { name = stub.name:lower(), fam = family(stub) .. "\0", aliases = aliases }
+        else
+            keys[i] = false
+        end
     end
+    local parent = {}
+    for i = 1, n do parent[i] = i end
+    local function find(x)
+        while parent[x] ~= x do
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        end
+        return x
+    end
+    local function allowed(i, j)
+        local a, b = keys[i].name, keys[j].name
+        if a > b then a, b = b, a end
+        return not never[a .. "\0" .. b]
+    end
+    local function union(i, j)
+        if find(i) ~= find(j) and allowed(i, j) then
+            local ri, rj = find(i), find(j)
+            if ri < rj then parent[rj] = ri else parent[ri] = rj end
+        end
+    end
+    local by_name = {}
+    for i = 1, n do
+        local k = keys[i]
+        if k then
+            local nk = k.fam .. k.name
+            if by_name[nk] then union(by_name[nk], i) else by_name[nk] = i end
+        end
+    end
+    for j = 1, n do
+        local k = keys[j]
+        if k then
+            for _idx, a in ipairs(k.aliases) do
+                local i = by_name[k.fam .. a]
+                if i and i ~= j then union(i, j) end
+            end
+        end
+    end
+    local groups, order = {}, {}
+    for i = 1, n do
+        if keys[i] then
+            local r = find(i)
+            if not groups[r] then
+                groups[r] = {}
+                order[#order + 1] = r
+            end
+            local g = groups[r]
+            g[#g + 1] = i
+        end
+    end
+    local removed = {}
     local folded = 0
-    local i = 1
-    while i <= #ledger do
-        local keep, kk = ledger[i], keys[i]
-        if kk then
-            local j = i + 1
-            while j <= #ledger do
-                local drop, dk = ledger[j], keys[j]
-                local same = dk and dk.family == kk.family
-                    and (dk.name == kk.name or kk.aliases[dk.name] == true
-                        or dk.aliases[kk.name] == true) or false
-                if same then
-                    local a, b = kk.name, dk.name
-                    if a > b then a, b = b, a end
-                    if never[a .. "\0" .. b] then same = false end
+    for _idx, r in ipairs(order) do
+        local g = groups[r]
+        if #g > 1 then
+            -- Winner: the nearest book's row (highest rank); ties and no
+            -- ranks → the earliest row
+            local win, win_rank = g[1], stubRank(ledger[g[1]])
+            if stub_rank_resolver then
+                for gi = 2, #g do
+                    local rk = stubRank(ledger[g[gi]])
+                    if rk and (not win_rank or rk > win_rank) then win, win_rank = g[gi], rk end
                 end
-                if same then
-                    local aliases = ensure_array(keep.aliases) or {}
-                    local function addAlias(a)
-                        if type(a) ~= "string" or a == "" then return end
-                        local k = a:lower()
-                        if k == kk.name or kk.aliases[k] then return end
-                        kk.aliases[k] = true
-                        aliases[#aliases + 1] = a
-                    end
+            end
+            local keep, kk = ledger[win], keys[win]
+            local aliases = ensure_array(keep.aliases) or {}
+            local seen = { [kk.name] = true }
+            for _a, a in ipairs(aliases) do
+                if type(a) == "string" then seen[a:lower()] = true end
+            end
+            local function addAlias(a)
+                if type(a) ~= "string" or a == "" or seen[a:lower()] then return end
+                seen[a:lower()] = true
+                aliases[#aliases + 1] = a
+            end
+            local additions = {}
+            for _g, gi in ipairs(g) do
+                if gi ~= win then
+                    local drop = ledger[gi]
                     addAlias(drop.name)
-                    for _idx, a in ipairs(ensure_array(drop.aliases) or {}) do addAlias(a) end
-                    if #aliases > 0 then keep.aliases = aliases end
-                    local additions = {}
+                    for _a, a in ipairs(ensure_array(drop.aliases) or {}) do addAlias(a) end
                     if type(drop.description) == "string" and drop.description ~= "" then
                         if type(keep.description) ~= "string" or keep.description == "" then
                             keep.description = drop.description
@@ -3110,24 +3216,30 @@ function XrayParser.foldLedger(data, never_pairs)
                                 text = drop.description, file = drop.file }
                         end
                     end
-                    for _idx, b in ipairs(ensure_array(drop.background) or {}) do
+                    for _b, b in ipairs(ensure_array(drop.background) or {}) do
                         additions[#additions + 1] = b
-                    end
-                    if #additions > 0 then
-                        keep.background = XrayParser.mergeBackground(keep.background, additions)
                     end
                     keep.role = keep.role or drop.role
                     keep.source = keep.source or drop.source
                     keep.file = keep.file or drop.file
-                    table.remove(ledger, j)
-                    table.remove(keys, j)
                     folded = folded + 1
-                else
-                    j = j + 1
                 end
             end
+            if #aliases > 0 then keep.aliases = aliases end
+            if #additions > 0 then
+                keep.background = XrayParser.mergeBackground(keep.background, additions)
+            end
+            -- The winner takes the group's earliest slot; the rest go
+            ledger[g[1]] = keep
+            for gi = 2, #g do removed[g[gi]] = true end
         end
-        i = i + 1
+    end
+    if folded > 0 then
+        local out = {}
+        for i = 1, n do
+            if not removed[i] then out[#out + 1] = ledger[i] end
+        end
+        for i = 1, n do ledger[i] = out[i] end
     end
     return folded
 end

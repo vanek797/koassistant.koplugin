@@ -7221,6 +7221,20 @@ end
 --- when a book is open) owns them; the direction resolver reads the live
 --- DocSettings only while that instance still has a document.
 function AskGPT:_installGroupSeedingHooks()
+  -- Nearness rank for the carried-list fold (#90, 2026-09-09): a stub's
+  -- book index in its ordered group; every carried stub comes from a book
+  -- before the reader's, so a higher index is the nearer book
+  require("koassistant_xray_parser").setStubRankResolver(function(stub)
+    local file = type(stub) == "table" and stub.file
+    if type(file) ~= "string" or file == "" then return nil end
+    local BookGroups = require("koassistant_book_groups")
+    local group = BookGroups.groupsFor(file)[1]
+    if not group or not BookGroups.isOrdered(group) then return nil end
+    for i, p in ipairs(group.books) do
+      if p == file then return i end
+    end
+    return nil
+  end)
   local self_ref = self
   local ActionCache = require("koassistant_action_cache")
   local BookGroups = require("koassistant_book_groups")
@@ -19242,9 +19256,8 @@ function AskGPT:syncHighlightBypass()
       -- Collapse whitespace runs (selections can span lines), trim edge
       -- ASCII punctuation; entity handles are short — skip the parse cost
       -- for long selections outright
-      local sel = hl_self.selected_text.text:gsub("%s+", " ")
-      sel = sel:match("^%s*(.-)%s*$") or ""
-      sel = sel:gsub("^%p+", ""):gsub("%p+$", "")
+      -- (CJK stops included since #90's device round: "name。" is a handle)
+      local sel = require("koassistant_xray_parser").trimEdgePunctuation(hl_self.selected_text.text)
       if #sel > 2 and #sel <= 120 then
         local ActionCache = require("koassistant_action_cache")
         local i_file = self_ref.ui and self_ref.ui.document and self_ref.ui.document.file
