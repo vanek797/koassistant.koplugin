@@ -662,6 +662,44 @@ BookSettings.KEY_DICTIONARY_LANG = "koassistant_book_dictionary_language"
 -- Per-book MAIN AI response language (the "Always respond in X" system-prompt directive that
 -- applies to every action — distinct from the translate/dictionary target languages above).
 BookSettings.KEY_RESPONSE_LANG = "koassistant_book_response_language"
+-- The language the BOOK'S TEXT is in, told to the AI in book-tool sessions so its searches
+-- use the text's language (an English question about an Arabic novel needs Arabic
+-- queries). Values: nil = follow global (features.book_text_language, default "off"),
+-- "off", "metadata" (the document's recorded language, when it has one), a Languages id,
+-- or free text. Nothing is sent when the resolved value is unknown.
+BookSettings.KEY_TEXT_LANG = "koassistant_book_text_language"
+
+--- The book-text language to tell the AI, or nil for none. metadata_language = what the
+-- document records (BookTools:getBookLanguage), used by the "metadata" value.
+function BookSettings.resolveBookTextLanguage(doc_settings, features, metadata_language)
+    doc_settings = BookStore.wrap(doc_settings)
+    local v = doc_settings and doc_settings:readSetting(BookSettings.KEY_TEXT_LANG)
+    if v == nil or v == "" then
+        v = features and features.book_text_language or "off"
+    end
+    if v == "off" then return nil end
+    if v == "metadata" then
+        if type(metadata_language) == "string" and metadata_language ~= "" then
+            return metadata_language
+        end
+        return nil
+    end
+    -- A Languages id IS the English name (the display is the native script, UI only);
+    -- typed text rides as typed. English names reach the model, like every language line.
+    return v
+end
+
+--- Row label for a book-text-language VALUE ("off" / "metadata" / id / text).
+function BookSettings.textLanguageLabel(v, metadata_language)
+    if v == "off" then return _("Off") end
+    if v == "metadata" then
+        if type(metadata_language) == "string" and metadata_language ~= "" then
+            return T(_("From metadata (%1)"), metadata_language)
+        end
+        return _("From metadata (not recorded)")
+    end
+    return require("koassistant_languages").getDisplay(v)
+end
 
 --- Fold per-book translation/dictionary language overrides into a language-resolver config
 -- (the table passed to SystemPrompts.getEffective*Language). Pure: returns the input
@@ -784,6 +822,7 @@ BookSettings.SIDECAR_KEYS = {
     BookSettings.KEY_TRANSLATION_LANG,
     BookSettings.KEY_DICTIONARY_LANG,
     BookSettings.KEY_RESPONSE_LANG,
+    BookSettings.KEY_TEXT_LANG,
     BookSettings.KEY_TOOLS,
     BookSettings.KEY_WEB_SEARCH,
     BookSettings.KEY_HIGHLIGHT_CONTEXT,
@@ -2734,7 +2773,7 @@ function BookSettings.show(opts)
         BookSettings.showQuizConfig))
     addButton(subScreenRow(_("Languages"), groupCount({
         BookSettings.KEY_RESPONSE_LANG, BookSettings.KEY_TRANSLATION_LANG,
-        BookSettings.KEY_DICTIONARY_LANG,
+        BookSettings.KEY_DICTIONARY_LANG, BookSettings.KEY_TEXT_LANG,
     }), BookSettings.showLanguageConfig))
     flushPair()
 
@@ -3767,6 +3806,56 @@ function BookSettings.showLanguageConfig(opts)
         UIManager:show(picker)
     end
 
+    -- Book text language: Follow global / Off / From metadata / each language / Custom…
+    -- (the value the AI's book searches are told the text is in).
+    local metadata_language = ui and ui.doc_props and ui.doc_props.language
+    if metadata_language == "" then metadata_language = nil end
+    local global_text = features.book_text_language or "off"
+    local global_text_label = BookSettings.textLanguageLabel(global_text, metadata_language)
+    local function showTextLangPicker()
+        closeDialog()
+        local key = BookSettings.KEY_TEXT_LANG
+        local dialog_title = is_group and _("Book text language (this group)") or _("Book text language (this book)")
+        local cur = doc_settings:readSetting(key)
+        local picker
+        local function setVal(v)
+            doc_settings:saveSetting(key, v)
+            doc_settings:flush()
+            syncConfig()
+            UIManager:close(picker)
+            BookSettings.showLanguageConfig(opts)
+        end
+        local following = not is_group and BookSettings.followingGroup(doc_settings, key) or nil
+        local function valueLabel(v) return BookSettings.textLanguageLabel(v, metadata_language) end
+        local rows = {
+            {{ text = dot((cur == nil or cur == "") and not following)
+                    .. (is_group and T(_("Not set (books follow global: %1)"), global_text_label)
+                        or T(_("Follow global (%1)"), global_text_label)),
+                callback = function() setVal(nil) end }},
+        }
+        if not is_group then
+            for _idx, r in ipairs(BookSettings.groupFollowRows(doc_settings, book_path, key,
+                    valueLabel, setVal, dot)) do
+                table.insert(rows, r)
+            end
+        end
+        table.insert(rows, {{ text = dot(not following and cur == "off") .. _("Off (say nothing about the language)"),
+            callback = function() setVal("off") end }})
+        table.insert(rows, {{ text = dot(not following and cur == "metadata") .. valueLabel("metadata"),
+            callback = function() setVal("metadata") end }})
+        for _i, id in ipairs(Languages.getAllIds()) do
+            table.insert(rows, {{ text = dot(not following and cur == id) .. Languages.getDisplay(id),
+                callback = function() setVal(id) end }})
+        end
+        table.insert(rows, {{ text = _("Custom…"),
+            callback = function() UIManager:close(picker); editCustom(key, dialog_title) end }})
+        table.insert(rows, {{ text = _("Cancel"), id = "close",
+            callback = function() UIManager:close(picker); BookSettings.showLanguageConfig(opts) end }})
+        picker = ButtonDialog:new{ title = dialog_title, buttons = rows,
+            tap_close_callback = function() BookSettings.showLanguageConfig(opts) end }
+        UIManager:show(picker)
+    end
+
     local function gdisp(v)
         if v == nil or v == "" then return _("primary language") end
         return Languages.getDisplay(v)
@@ -3826,6 +3915,16 @@ function BookSettings.showLanguageConfig(opts)
                 showLangPicker(BookSettings.KEY_DICTIONARY_LANG,
                     scoped(_("Dictionary language (this book)"), _("Dictionary language (this group)")), gdisp(global_dict))
             end }},
+        {{ text = T(_("Book text language: %1"), (function()
+                local cur_x = doc_settings:readSetting(BookSettings.KEY_TEXT_LANG)
+                if cur_x == nil or cur_x == "" then
+                    if is_group then return T(_("Not set (books follow global: %1)"), global_text_label) end
+                    return T(_("Follow global (%1)"), global_text_label)
+                end
+                local own = BookSettings.textLanguageLabel(cur_x, metadata_language)
+                return BookSettings.followGroupLabel(doc_settings, BookSettings.KEY_TEXT_LANG, own) or own
+            end)()),
+            callback = showTextLangPicker }},
         {{ text = _("Close"), id = "close", callback = function()
             closeDialog()
             if on_close then on_close() end

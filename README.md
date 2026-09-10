@@ -2274,11 +2274,12 @@ Overrides for the [chapter-end quiz and the Quiz action](#chapter-quiz) on this 
 
 ### Languages (per book)
 
-Three per-book language overrides, each **Follow global** by default:
+Four per-book language overrides, each **Follow global** by default:
 
 - **AI response language** — the language the AI replies in for **every** action on this book (the "Always respond in X" directive). For example: keep your global responses in English, but set a French novel to get replies in French. The book's language is added to your "understands" list, so the AI still switches if you write in one of your other languages.
 - **Translation language** — target language for the Translate action on this book.
 - **Dictionary language** — definition language for dictionary lookups on this book.
+- **Book text language** — what language the book's text is in, told to the AI in [book-tool](#book-tools) sessions so its searches use that language even when you ask in another. Off / From metadata / a language from the list / Custom (typed, so "German and Latin" works). Follows the global "Tell the AI the Book's Language" setting (off by default) unless set here or in a group.
 
 > AI response language is distinct from translation/dictionary: it changes the AI's *default reply* language for all actions, whereas the other two only affect the Translate and Dictionary actions. All three are also settable globally in [AI Language Settings](#ai-language-settings) / [Translate Settings](#translate-settings) / [Dictionary Settings](#dictionary-settings-reference).
 
@@ -2771,6 +2772,7 @@ These settings control what language the AI responds in.
 - **Your Languages**: Languages you speak/understand. Opens a picker with 47 pre-loaded languages displayed in their native scripts (日本語, Français, Español, etc.). Select multiple languages. These are sent to the AI in the system prompt ("The user understands: ...").
 - **Primary Language**: Pick which of your languages the AI should respond in by default. Defaults to first in your list.
 - **Additional Languages**: Extra languages for translation/dictionary targets without affecting AI response language. These are NOT sent to the AI in the system prompt but appear in translation/dictionary language pickers and the Language button in dictionary/translate views. Use cases: scholarly work (Latin, Sanskrit, Ancient Greek), language learning (translate TO a language you're studying), or occasional use of languages you understand but don't want the AI defaulting to.
+- **Tell the AI the Book's Language**: Off by default. When set to "From the book's metadata", [book-tool](#book-tools) sessions tell the AI what language the book's text is in (when the book records one), so its searches use that language even if you ask in another. Nothing is sent when the book records no language. Override per book or group in [Book Settings](#book-settings) ▸ Languages, where you can also pick or type a language.
 
 **Native script display:** Languages appear in their native scripts in menus and settings (日本語, Français, etc.). System prompts sent to the AI use English names for better language model comprehension. Classical/scholarly languages (Ancient Greek, Biblical Hebrew, Classical Arabic, Latin, Sanskrit) are displayed in English only.
 

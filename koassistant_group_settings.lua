@@ -44,7 +44,7 @@ function GroupSettings.keys()
     return {
         BS.KEY_DOMAIN, BS.KEY_RESEARCH, BS.KEY_BACKGROUND, BS.KEY_SPOILER_FREE, BS.KEY_XRAY_AUTO,
         BS.KEY_XRAY_CATEGORIES, BS.KEY_XRAY_DEPTH,
-        BS.KEY_RESPONSE_LANG, BS.KEY_TRANSLATION_LANG, BS.KEY_DICTIONARY_LANG,
+        BS.KEY_RESPONSE_LANG, BS.KEY_TRANSLATION_LANG, BS.KEY_DICTIONARY_LANG, BS.KEY_TEXT_LANG,
     }
 end
 
@@ -62,6 +62,7 @@ function GroupSettings.keyLabel(key)
         [BS.KEY_RESPONSE_LANG] = _("AI response language"),
         [BS.KEY_TRANSLATION_LANG] = _("Translation language"),
         [BS.KEY_DICTIONARY_LANG] = _("Dictionary language"),
+        [BS.KEY_TEXT_LANG] = _("Book text language"),
     }
     return labels[key] or key
 end
@@ -95,6 +96,7 @@ function GroupSettings.valueLabel(key, v, features, facade)
         or key == BS.KEY_DICTIONARY_LANG then
         return require("koassistant_languages").getDisplay(v)
     end
+    if key == BS.KEY_TEXT_LANG then return BS.textLanguageLabel(v) end
     return tostring(v)
 end
 
@@ -376,7 +378,7 @@ function GroupSettings.show(opts)
     row(T(_("New X-Ray categories: %1"), value(BS.KEY_XRAY_CATEGORIES)), picker(BS.showXrayCategoriesPicker))
     row(T(_("New X-Ray depth: %1"), value(BS.KEY_XRAY_DEPTH)), picker(BS.showXrayDepthPicker))
     local langs = 0
-    for _idx, key in ipairs({ BS.KEY_RESPONSE_LANG, BS.KEY_TRANSLATION_LANG, BS.KEY_DICTIONARY_LANG }) do
+    for _idx, key in ipairs({ BS.KEY_RESPONSE_LANG, BS.KEY_TRANSLATION_LANG, BS.KEY_DICTIONARY_LANG, BS.KEY_TEXT_LANG }) do
         if facade:has(key) then langs = langs + 1 end
     end
     row(langs > 0 and T(_("Languages (%1 set) ▸"), langs) or _("Languages ▸"), picker(BS.showLanguageConfig))

@@ -1388,6 +1388,18 @@ local SettingsSchema = {
                     end,
                     callback = "buildAdditionalLanguagesSubmenu",
                 },
+                {
+                    id = "book_text_language",
+                    type = "dropdown",
+                    text = _("Tell the AI the Book's Language"),
+                    path = "features.book_text_language",
+                    default = "off",
+                    options = {
+                        { value = "off", label = _("Off") },
+                        { value = "metadata", label = _("From the book's metadata") },
+                    },
+                    help_text = _("Off by default: most readers read and chat in one language. When on, book-tool sessions tell the AI what language the book's text is in (from the book's metadata, when recorded) so its searches use that language even if you ask in another. Override per book or group in Book Settings ▸ Languages, where you can also pick or type a language."),
+                },
             },
         },
 

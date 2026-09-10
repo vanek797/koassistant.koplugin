@@ -817,7 +817,7 @@ TestRunner:test("gather: tool notes ride the phase-2 context block as lookup lim
     TestRunner:assertTrue(bundle ~= nil, "bundle present")
     TestRunner:assertTrue(bundle:find("[Lookup limits]", 1, true) ~= nil, "lookup limits trailer present")
     TestRunner:assertTrue(bundle:find("pages 1-1 of 2 only", 1, true) ~= nil, "the range note is listed")
-    TestRunner:assertTrue(bundle:find("Tell the reader this plainly", 1, true) ~= nil, "instruction to relay it")
+    TestRunner:assertTrue(bundle:find("Tell the reader this in one or two plain sentences", 1, true) ~= nil, "instruction to relay it, briefly")
     local notes = BookToolRunner._collectNotes({ { executed = { { call = { name = "toc" },
         result = { notes = { "a", "b" }, queries = { { notes = { "b", "c" } } }, results = { { notes = { "d" } } } } } } } })
     TestRunner:assertEqual(#notes, 4, "distinct notes across result, block and target levels")
@@ -873,6 +873,162 @@ TestRunner:test("gather: gather rounds declare the done tool; instructions injec
         "gather rounds are non-streaming")
     TestRunner:assertTrue(gather_config.system.text:find("GATHER PHASE", 1, true) ~= nil,
         "gather instructions injected")
+end)
+
+TestRunner:test("scope message names the book language and outlines the contents", function()
+    local first_messages
+    local calls = 0
+    local function query_fn(messages, _config, callback)
+        calls = calls + 1
+        if calls == 1 then
+            first_messages = messages
+            callback(true, doneAnswer())
+        else
+            callback(true, "answer")
+        end
+    end
+    local ui = makeUi()
+    ui.doc_props = { language = "de" }
+    ui.toc = { toc = {
+        { title = "Erster Teil", page = 1, depth = 1 },
+        { title = "Kapitel 1", page = 1, depth = 2 },
+        { title = "Zweiter Teil", page = 2, depth = 1 },
+    } }
+    BookToolRunner.run({
+        query_fn = query_fn,
+        messages = { { role = "user", content = "what happens in the garden?" } },
+        config = gatherConfig({ book_text_language = "metadata" }),
+        ui = ui,
+        on_complete = function() end,
+    })
+    local scope_msg
+    for _i, msg in ipairs(first_messages or {}) do
+        if type(msg.content) == "string" and msg.content:find("[Book tool scope]", 1, true) then
+            scope_msg = msg
+        end
+    end
+    TestRunner:assertTrue(scope_msg ~= nil, "scope message sent on round one")
+    TestRunner:assertEqual(scope_msg.is_context, true, "rides as context")
+    TestRunner:assertTrue(scope_msg.content:find("Book text language: de.", 1, true) ~= nil, "language named")
+    TestRunner:assertTrue(scope_msg.content:find("queries in the language of the book text", 1, true) ~= nil, "query-language rule")
+    TestRunner:assertTrue(scope_msg.content:find("Contents outline (3 of 3 entries", 1, true) ~= nil, "outline header")
+    TestRunner:assertTrue(scope_msg.content:find("- Erster Teil > Kapitel 1 (pp. 1-1)", 1, true) ~= nil, "entry with parent path")
+    TestRunner:assertTrue(scope_msg.content:find("- Zweiter Teil (pp. 2-2)", 1, true) ~= nil, "last entry within reach")
+
+    -- Unknown language: the rule still rides, phrased as unknown.
+    local plain = makeUi()
+    first_messages = nil
+    calls = 0
+    BookToolRunner.run({
+        query_fn = query_fn,
+        messages = { { role = "user", content = "hi" } },
+        config = gatherConfig(),
+        ui = plain,
+        on_complete = function() end,
+    })
+    local found = false
+    for _i, msg in ipairs(first_messages or {}) do
+        if type(msg.content) == "string" and msg.content:find("[Book tool scope]", 1, true) then
+            found = true
+            TestRunner:assertEqual(msg.content:find("Book text language:", 1, true), nil, "no language line when unknown")
+            TestRunner:assertTrue(msg.content:find("Write search_book queries in the language the book text is in", 1, true) ~= nil, "rule still rides")
+            TestRunner:assertTrue(msg.content:find("This book has no table of contents.", 1, true) ~= nil, "no-TOC line")
+        end
+    end
+    TestRunner:assertTrue(found, "scope message present")
+end)
+
+TestRunner:test("book text language: off by default, per-book override wins over global", function()
+    local function scopeContent(extra_features, doc_values)
+        local first_messages
+        local calls = 0
+        local function query_fn(messages, _config, callback)
+            calls = calls + 1
+            if calls == 1 then
+                first_messages = messages
+                callback(true, doneAnswer())
+            else
+                callback(true, "answer")
+            end
+        end
+        local ui = makeUi()
+        ui.doc_props = { language = "de" }
+        if doc_values then
+            ui.doc_settings = { readSetting = function(_self, key) return doc_values[key] end }
+        end
+        BookToolRunner.run({
+            query_fn = query_fn,
+            messages = { { role = "user", content = "hi" } },
+            config = gatherConfig(extra_features),
+            ui = ui,
+            on_complete = function() end,
+        })
+        for _i, msg in ipairs(first_messages or {}) do
+            if type(msg.content) == "string" and msg.content:find("[Book tool scope]", 1, true) then
+                return msg.content
+            end
+        end
+    end
+    local default = scopeContent({})
+    TestRunner:assertEqual(default:find("Book text language", 1, true), nil, "global default off: no language line")
+    TestRunner:assertTrue(default:find("Write search_book queries in the language the book text is in", 1, true) ~= nil, "rule rides anyway")
+    local metadata = scopeContent({ book_text_language = "metadata" })
+    TestRunner:assertTrue(metadata:find("Book text language: de.", 1, true) ~= nil, "global from-metadata sends the recorded language")
+    local per_book_off = scopeContent({ book_text_language = "metadata" }, { koassistant_book_text_language = "off" })
+    TestRunner:assertEqual(per_book_off:find("Book text language", 1, true), nil, "per-book off beats global on")
+    local per_book_pick = scopeContent({}, { koassistant_book_text_language = "French" })
+    TestRunner:assertTrue(per_book_pick:find("Book text language: French.", 1, true) ~= nil, "per-book pick beats global off, by its English name")
+    local per_book_typed = scopeContent({}, { koassistant_book_text_language = "German and Latin" })
+    TestRunner:assertTrue(per_book_typed:find("Book text language: German and Latin.", 1, true) ~= nil, "typed text rides as is")
+end)
+
+TestRunner:test("gather: zero lookups leave a note saying the book was not consulted", function()
+    local calls = 0
+    local gen_messages
+    local function query_fn(messages, _config, callback)
+        calls = calls + 1
+        if calls == 1 then
+            callback(true, doneAnswer())
+        else
+            gen_messages = messages
+            callback(true, "From memory.")
+        end
+    end
+    local ui = makeUi()
+    ui.view.state.page = 1  -- reader on page 1 of 2, protection on: one page within reach
+    BookToolRunner.run({
+        query_fn = query_fn,
+        messages = { { role = "user", content = "what does this book say about gardens?" } },
+        config = gatherConfig(),
+        ui = ui,
+        on_complete = function() end,
+    })
+    local note
+    for _i, m in ipairs(gen_messages or {}) do
+        if type(m.content) == "string" and m.content:find("[Book lookup note]", 1, true) then
+            note = m
+        end
+    end
+    TestRunner:assertTrue(note ~= nil, "note injected into phase 2")
+    TestRunner:assertEqual(note.is_context, true, "as context")
+    TestRunner:assertTrue(note.content:find("no lookups were made", 1, true) ~= nil, "says nothing was looked up")
+    TestRunner:assertTrue(note.content:find("Only pages 1-1 of 2 were within reach", 1, true) ~= nil, "names the reach under protection")
+    TestRunner:assertTrue(note.content:find("comes from general knowledge", 1, true) ~= nil, "asks for the disclosure")
+    -- Full reach: the note still says the text was not consulted, without a range clause.
+    calls, gen_messages = 0, nil
+    local full = makeUi()
+    BookToolRunner.run({
+        query_fn = query_fn,
+        messages = { { role = "user", content = "what does this book say about gardens?" } },
+        config = gatherConfig({ spoiler_free_chat = false }),
+        ui = full,
+        on_complete = function() end,
+    })
+    for _i, m in ipairs(gen_messages or {}) do
+        if type(m.content) == "string" and m.content:find("[Book lookup note]", 1, true) then
+            TestRunner:assertEqual(m.content:find("within reach", 1, true), nil, "no range clause at full reach")
+        end
+    end
 end)
 
 -- ============================================================

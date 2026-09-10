@@ -56,7 +56,7 @@ GATHER PHASE: Do not answer the user's question yet. Use the book tools (search_
 local FUNCTION_DECLARATIONS = {
     {
         name = "search_book",
-        description = "Search the readable book text. Pass multiple terms via queries=[...] to batch lookups in one call. Returns per-query blocks with at most 12 hits each (raise with max_hits, up to 40), best score first and at most 2 per page; total_hits is always the exact count and page_summary lists the pages with hits. Anything left out (hits, pages, hidden sections) is stated in notes. Hit IDs are namespaced (e.g. q1:p42:3); call read_around for surrounding context.",
+        description = "Search the readable book text, word by word (no meaning matching: cover synonyms with several queries). Pass multiple terms via queries=[...] to batch lookups in one call. Returns per-query blocks with at most 12 hits each (raise with max_hits, up to 40), best score first and at most 2 per page; total_hits is always the exact count and page_summary lists the pages with hits. Each hit states its match_type: phrase, tokens (every word), substring (the words occur only inside longer words, e.g. anima in animals: weak evidence, ranked below whole-word hits), fuzzy (every word within a typo), or partial (a query of 3+ words with most of its words present; the missing words are listed). Anything left out (hits, pages, hidden sections) is stated in notes. Hit IDs are namespaced (e.g. q1:p42:3); call read_around for surrounding context.",
         parameters = {
             type = "object",
             properties = {
@@ -132,7 +132,7 @@ local FUNCTION_DECLARATIONS = {
     },
     {
         name = "toc",
-        description = "List table-of-contents entries within the readable range: at most 120 per call, in document order, out of possibly many more; total_entries is the exact count of matching entries. On a large book narrow first: max_depth=1 lists only the top level (volumes or parts), title_contains filters by title, and each entry carries its parent path. No snippets by default. Entries left out (cap, hidden sections, past the reader's position) are stated in notes.",
+        description = "List table-of-contents entries within the readable range: at most 120 per call, in document order, out of possibly many more; total_entries is the exact count of matching entries. When the full list exceeds the cap and no max_depth is given, only the levels that fit are listed (depth_shown) so the structure survives; the note says how to go deeper. Narrow with max_depth (1 = volumes or parts) or title_contains; each entry carries its parent path. No snippets by default. Entries left out (cap, hidden sections, past the reader's position) are stated in notes.",
         parameters = {
             type = "object",
             properties = {
@@ -188,28 +188,86 @@ local function copyMessages(messages)
     return copy
 end
 
+-- Contents outline for the scope message: the levels that fit, one line per entry, and
+-- what was left out. Sent once per session so the model's first query can start from the
+-- book's shape instead of a guess.
+local function outlineLines(outline)
+    local lines = {}
+    if type(outline) ~= "table" then return lines end
+    if not outline.has_toc then
+        table.insert(lines, "This book has no table of contents.")
+        return lines
+    end
+    local shown = #(outline.entries or {})
+    local levels = ""
+    if outline.depth_shown and outline.deepest and outline.depth_shown < outline.deepest then
+        levels = string.format(", levels 1-%d of %d", outline.depth_shown, outline.deepest)
+    end
+    table.insert(lines, string.format("Contents outline (%d of %d entries within the readable range%s; call toc for page ranges, deeper levels or a title filter):",
+        shown, outline.total or shown, levels))
+    for _idx, entry in ipairs(outline.entries or {}) do
+        table.insert(lines, string.format("- %s%s (pp. %d-%d%s)",
+            entry.path and (entry.path .. " > ") or "",
+            entry.title or "",
+            entry.start_page or 0,
+            entry.end_page or 0,
+            entry.continues_past_position and ", continues past the reader's position" or ""))
+    end
+    if (outline.omitted or 0) > 0 then
+        table.insert(lines, string.format("... %d more entries at these levels are not listed here.", outline.omitted))
+    end
+    if (outline.past_position or 0) > 0 and outline.reading_scope ~= "full" then
+        table.insert(lines, string.format("%d entries start after the reader's current position and are not listed (spoiler protection).", outline.past_position))
+    end
+    if (outline.hidden or 0) > 0 then
+        table.insert(lines, string.format("%d entries are in sections the reader has hidden (KOReader hidden flows) and are not listed.", outline.hidden))
+    end
+    return lines
+end
+
 local function appendScopeMessage(messages, scope)
     if type(scope) ~= "table" then return end
-    local content
+    local lines = { "[Book tool scope]" }
     if scope.reading_scope == "full" then
-        content = string.format(
-            "[Book tool scope]\nCurrent page: %s of %s\nYou may read the entire document (pages 1-%s).",
-            tostring(scope.current_page or "?"),
-            tostring(scope.total_pages or "?"),
-            tostring(scope.end_page or scope.total_pages or "?"))
+        table.insert(lines, string.format("Current page: %s of %s",
+            tostring(scope.current_page or "?"), tostring(scope.total_pages or "?")))
+        table.insert(lines, string.format("You may read the entire document (pages 1-%s).",
+            tostring(scope.end_page or scope.total_pages or "?")))
     else
-        content = string.format(
-            "[Book tool scope]\nCurrent page: %s of %s\nReadable page range: 1-%s\nDo not request or infer content after page %s.",
-            tostring(scope.current_page or "?"),
-            tostring(scope.total_pages or "?"),
-            tostring(scope.end_page or "?"),
-            tostring(scope.end_page or "?"))
+        table.insert(lines, string.format("Current page: %s of %s",
+            tostring(scope.current_page or "?"), tostring(scope.total_pages or "?")))
+        table.insert(lines, string.format("Readable page range: 1-%s", tostring(scope.end_page or "?")))
+        table.insert(lines, string.format("Do not request or infer content after page %s.", tostring(scope.end_page or "?")))
+    end
+    -- The book's language decides the search language: an English question about a
+    -- German book still needs German queries, and nothing else tells the model that.
+    if scope.language then
+        table.insert(lines, string.format("Book text language: %s. Write search_book queries in the language of the book text, even when the reader writes in another language.",
+            tostring(scope.language)))
+    else
+        table.insert(lines, "Write search_book queries in the language the book text is in, which may differ from the reader's.")
+    end
+    if scope.outline then
+        table.insert(lines, "")
+        for _idx, line in ipairs(outlineLines(scope.outline)) do
+            table.insert(lines, line)
+        end
     end
     table.insert(messages, {
         role = "user",
-        content = content,
+        content = table.concat(lines, "\n"),
         is_context = true,
     })
+end
+
+-- The scope message's language line follows the "Book text language" setting (global,
+-- default off; per book or group: off / from metadata / a chosen or typed language).
+-- Off or unknown sends only the rule to write queries in the text's language.
+local function scopeForMessage(tools, ui, features)
+    local scope = tools:getScope()
+    scope.language = BookSettings.resolveBookTextLanguage(ui and ui.doc_settings, features,
+        tools:getBookLanguage())
+    return scope
 end
 
 -- mode: "tools" (interactive loop turn), "gather" (gather-phase turn), "final"
@@ -424,7 +482,18 @@ local function summarizeToolCall(call, result)
                     table.insert(terms, "...")
                     break
                 end
-                table.insert(terms, string.format("%q(%d)", block.query or "", block.total_hits or 0))
+                -- The pages with hits (first six), so Sources & Lookups shows where the
+                -- model's evidence came from even when it never read around a hit.
+                local pages = {}
+                for p, entry in ipairs(block.page_summary or {}) do
+                    if p > 6 then
+                        table.insert(pages, "...")
+                        break
+                    end
+                    table.insert(pages, tostring(entry.page))
+                end
+                local where = #pages > 0 and (" on pp. " .. table.concat(pages, ", ")) or ""
+                table.insert(terms, string.format("%q(%d%s)", block.query or "", block.total_hits or 0, where))
             end
         end
         local suffix = #terms > 0 and (" [" .. table.concat(terms, ", ") .. "]") or ""
@@ -511,10 +580,15 @@ local function formatToolResultText(name, result)
                             table.insert(lines, string.format("    ... %d more hit(s)", #block.results - 12))
                             break
                         end
-                        table.insert(lines, string.format("    [%s, p%d, %s] %s",
+                        local missing = ""
+                        if type(hit.missing) == "table" and #hit.missing > 0 then
+                            missing = ", missing: " .. table.concat(hit.missing, " ")
+                        end
+                        table.insert(lines, string.format("    [%s, p%d, %s%s] %s",
                             hit.hit_id or "?",
                             hit.page or 0,
                             hit.match_type or "?",
+                            missing,
                             hit.snippet or ""))
                     end
                 end
@@ -612,7 +686,7 @@ end
 BookToolRunner._collectNotes = collectNotes  -- exposed for unit tests
 
 local LOOKUP_LIMITS_HEADER = "[Lookup limits]\nThe book lookups above could not see everything:"
-local LOOKUP_LIMITS_FOOTER = "Tell the reader this plainly in your answer. Do not fill the gap from memory or the web without saying that the book itself was not consulted for it."
+local LOOKUP_LIMITS_FOOTER = "Tell the reader this in one or two plain sentences at the end of your answer (no list, no hit counts unless they matter to the question). Do not fill the gap from memory or the web without saying that the book itself was not consulted for it."
 
 local function lookupLimitsBlock(tool_outputs)
     local notes = collectNotes(tool_outputs)
@@ -900,7 +974,7 @@ function BookToolRunner.run(params)
     local provider = config.provider or config.default_provider
     local reading_scope = resolveReadingScope(config, params.ui)
     local tools = BookTools:new(params.ui, buildToolSettings(features, reading_scope))
-    appendScopeMessage(messages, tools:getScope())
+    appendScopeMessage(messages, scopeForMessage(tools, params.ui, features))
     local trace = {}
     local tool_outputs = {}
     local token_usage = nil
@@ -1013,6 +1087,21 @@ function BookToolRunner.run(params)
                 context_text = "[Book lookup note]\nBook lookups found no relevant passages for this question. Answer from the conversation and general knowledge, and say so when the book text would have been needed."
             end
             if limits then context_text = context_text .. "\n\n" .. limits end
+        else
+            -- No lookups at all (the model called done at once, or the reader skipped
+            -- them). Phase 2 is a normal request that knows nothing about the tools, so
+            -- an answer about the book's content would read as if the text were checked.
+            -- Say what was within reach and ask for the disclosure only when it applies.
+            local scope = tools:getScope()
+            local range = ""
+            if scope.reading_scope ~= "full" and scope.end_page and scope.total_pages
+                and scope.end_page < scope.total_pages then
+                range = string.format(" Only pages 1-%d of %d were within reach (the reader's current position; spoiler protection).",
+                    scope.end_page, scope.total_pages)
+            end
+            context_text = "[Book lookup note]\nThe book text was not consulted for this question: no lookups were made."
+                .. range
+                .. " If your answer describes what this book says, state that it comes from general knowledge and not from the text; a question that does not concern the book's content needs no such note."
         end
         if context_text then
             local insert_at = #gen_messages + 1
@@ -1309,7 +1398,7 @@ function BookToolRunner.gatherForAction(params)
     local tools = BookTools:new(params.ui, buildToolSettings(features, reading_scope))
     local budget = budgetFor(features)
     local messages = { { role = "user", content = params.question or "" } }
-    appendScopeMessage(messages, tools:getScope())
+    appendScopeMessage(messages, scopeForMessage(tools, params.ui, features))
     local trace = {}
     local tool_outputs = {}
     local tool_turns = 0
