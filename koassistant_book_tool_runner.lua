@@ -965,18 +965,55 @@ end
 -- whole_chars, the gather skips its rounds and phase 2 gets the text itself. A search
 -- over a 20-page range hands the model 12 snippets of a text it could simply read.
 -- Returns nil (search as usual) when the text overflows, is empty, or the setting is off.
+-- Size first, text second. Pages are screens, so bytes per page are roughly constant
+-- within a book: three sampled pages spread through the range give an estimate, and a
+-- range that is clearly over budget is skipped without extracting it. (The first
+-- version asked the extractor for the whole range with a size cap; it extracts the
+-- entire range and truncates afterwards, which froze the device on an 18k-page book.)
+-- A range that plausibly fits is then extracted page by page with an early exit, and
+-- that extraction IS the payload, so nothing is done twice beyond the three samples.
+local WHOLE_TEXT_SAMPLE_PAGES = 3
+local WHOLE_TEXT_ESTIMATE_SLACK = 1.5  -- skip when the estimate exceeds this times the budget
+
+local function estimateReadableBytes(tools, end_page, limit)
+    if end_page <= WHOLE_TEXT_SAMPLE_PAGES * 2 then return 0 end  -- too small to bother
+    local sampled, count = 0, 0
+    for i = 1, WHOLE_TEXT_SAMPLE_PAGES do
+        local page = math.floor(end_page * (i - 0.5) / WHOLE_TEXT_SAMPLE_PAGES)
+        page = math.max(1, math.min(end_page, page))
+        local ok, text = pcall(tools.getPageText, tools, page, limit + 1)
+        if ok and type(text) == "string" then
+            sampled = sampled + #text
+            count = count + 1
+        end
+    end
+    if count == 0 then return 0 end
+    return sampled / count * end_page
+end
+
 local function wholeReadableText(tools, features, budget)
     if (features or {}).tool_whole_text == false then return nil end
     local scope = tools:getScope()
     local end_page = tonumber(scope.end_page)
     if not end_page or end_page < 1 then return nil end
-    local ok, result = pcall(function()
-        return tools.extractor:getPageRangeText(1, end_page, { max_chars = budget.whole_chars })
-    end)
-    if not ok or type(result) ~= "table" or result.truncated or type(result.text) ~= "string" then
+    local limit = budget.whole_chars
+    if estimateReadableBytes(tools, end_page, limit) > limit * WHOLE_TEXT_ESTIMATE_SLACK then
         return nil
     end
-    local text = result.text:gsub("^%s+", ""):gsub("%s+$", "")
+    local parts = {}
+    local total = 0
+    for page = 1, end_page do
+        -- limit + 1 so an oversized single page is seen as such (the default per-page
+        -- extraction cap would hide it).
+        local ok, text = pcall(tools.getPageText, tools, page, limit + 1)
+        if not ok then return nil end
+        if type(text) == "string" and text ~= "" then
+            total = total + #text + 2
+            if total > limit then return nil end
+            table.insert(parts, text)
+        end
+    end
+    local text = table.concat(parts, "\n\n"):gsub("^%s+", ""):gsub("%s+$", "")
     if #text == 0 then return nil end
     return {
         text = text,

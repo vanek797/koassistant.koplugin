@@ -1059,6 +1059,48 @@ TestRunner:test("gather: a readable text that fits is sent whole, no rounds", fu
     TestRunner:assertEqual(calls, 2, "text over the budget: a gather round ran, then phase 2")
 end)
 
+TestRunner:test("gather: the whole-text check stops extracting as soon as the budget is exceeded", function()
+    -- A 300-page book of 1,000-character pages: the check must give up after ~65 pages,
+    -- never walk the book (that froze the device on an 18k-page book).
+    local extracted = 0
+    local ui = makeUi()
+    ui.document.info.number_of_pages = 300
+    ui.document.getPageText = function(_self, _page)
+        extracted = extracted + 1
+        return string.rep("x", 1000)
+    end
+    ui.view.state.page = 300
+    local calls = 0
+    BookToolRunner.run({
+        query_fn = function(_m, _c, cb)
+            calls = calls + 1
+            if calls == 1 then cb(true, doneAnswer()) else cb(true, "answer") end
+        end,
+        messages = { { role = "user", content = "hi" } },
+        config = gatherConfig({ tool_whole_text = true, spoiler_free_chat = false }),
+        ui = ui,
+        on_complete = function() end,
+    })
+    TestRunner:assertEqual(calls, 2, "over budget: the rounds ran")
+    TestRunner:assertTrue(extracted <= 3, "three sampled pages decide it, pages extracted: " .. extracted)
+    -- A huge range: the same three samples, never a walk.
+    extracted = 0
+    ui.document.info.number_of_pages = 5000
+    ui.view.state.page = 5000
+    calls = 0
+    BookToolRunner.run({
+        query_fn = function(_m, _c, cb)
+            calls = calls + 1
+            if calls == 1 then cb(true, doneAnswer()) else cb(true, "answer") end
+        end,
+        messages = { { role = "user", content = "hi" } },
+        config = gatherConfig({ tool_whole_text = true, spoiler_free_chat = false }),
+        ui = ui,
+        on_complete = function() end,
+    })
+    TestRunner:assertTrue(extracted <= 3, "a 5,000-page range costs three samples, pages extracted: " .. extracted)
+end)
+
 TestRunner:test("gatherForAction: a readable text that fits is returned whole", function()
     local calls = 0
     local result, info_out
