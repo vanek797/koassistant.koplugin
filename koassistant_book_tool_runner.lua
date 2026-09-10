@@ -3,6 +3,7 @@ local BookSettings = require("koassistant_book_settings")
 local ConfigHelper = require("koassistant_config_helper")
 local DebugUtils = require("koassistant_debug_utils")
 local ModelConstraints = require("model_constraints")
+local ScopeResolver = require("koassistant_scope_resolver")
 local ToolWire = require("koassistant_api.tool_wire")
 local _ = require("koassistant_gettext")
 local T = require("ffi/util").template
@@ -549,7 +550,7 @@ local function truncateSection(text, max_chars)
     if type(text) ~= "string" or max_chars <= 0 or #text <= max_chars then
         return text
     end
-    return text:sub(1, max_chars - 3) .. "..."
+    return ScopeResolver.utf8Head(text, max_chars - 3) .. "..."
 end
 
 -- Gather mode: assemble the phase-2 context bundle from the session's tool results.

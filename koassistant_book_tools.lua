@@ -1,4 +1,5 @@
 local ContextExtractor = require("koassistant_context_extractor")
+local ScopeResolver = require("koassistant_scope_resolver")
 
 local BookTools = {}
 BookTools.__index = BookTools
@@ -34,7 +35,7 @@ local function excerpt(text, max_chars)
     text = squeeze(text)
     max_chars = max_chars or MAX_SNIPPET_CHARS
     if #text <= max_chars then return text end
-    return trim(text:sub(1, max_chars - 3)) .. "..."
+    return trim(ScopeResolver.utf8Head(text, max_chars - 3)) .. "..."
 end
 
 local function normalizeText(text, case_sensitive)
@@ -84,7 +85,8 @@ local function splitSentences(text)
         local current = squeeze(sentence)
         if current ~= "" then
             while #current > MAX_SENTENCE_CHUNK do
-                local cut = current:sub(1, MAX_SENTENCE_CHUNK):match("^(.+)%s+%S*$") or current:sub(1, MAX_SENTENCE_CHUNK)
+                local cut = current:sub(1, MAX_SENTENCE_CHUNK):match("^(.+)%s+%S*$")
+                    or ScopeResolver.utf8Head(current, MAX_SENTENCE_CHUNK)
                 table.insert(sentences, trim(cut))
                 current = trim(current:sub(#cut + 1))
             end

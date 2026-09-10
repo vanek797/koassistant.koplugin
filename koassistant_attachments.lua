@@ -35,39 +35,10 @@ Attachments.BUDGETS = {
     note = 8000,
 }
 
--- UTF-8 safety: don't cut inside a multi-byte sequence. Single bounded
--- backward scan (max 4 bytes — the longest UTF-8 sequence); malformed input
--- passes through unchanged rather than triggering unbounded rescans.
-local function utf8TrimTail(s)
-    local n = #s
-    if n == 0 then return s end
-    if s:byte(n) < 0x80 then return s end -- ASCII tail: clean
-    local i = n
-    while i > 0 and n - i < 4 do
-        local b = s:byte(i)
-        if b >= 0xC0 then
-            -- Found the sequence's lead byte: keep it only if complete
-            local need = b >= 0xF0 and 4 or b >= 0xE0 and 3 or 2
-            if n - i + 1 >= need then return s end
-            return s:sub(1, i - 1)
-        elseif b < 0x80 then
-            return s -- ASCII followed by stray continuation bytes: malformed, keep
-        end
-        i = i - 1
-    end
-    return s -- no lead byte within 4 bytes: malformed, keep
-end
-
-local function utf8TrimHead(s)
-    -- Drop leading continuation bytes (we may have started mid-sequence)
-    local i = 1
-    while i <= #s do
-        local b = s:byte(i)
-        if b < 0x80 or b >= 0xC0 then break end
-        i = i + 1
-    end
-    return s:sub(i)
-end
+-- UTF-8 safety: don't cut inside a multi-byte sequence (the shared boundary trims).
+local ScopeResolver = require("koassistant_scope_resolver")
+local utf8TrimTail = ScopeResolver.utf8TrimTail
+local utf8TrimHead = ScopeResolver.utf8TrimHead
 
 --- Truncate text to a budget. keep = "head" (default) keeps the beginning,
 --- "tail" keeps the end (notebook/chat: recent material matters more).

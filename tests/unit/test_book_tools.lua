@@ -207,4 +207,61 @@ TestRunner:test("getScope reports the reading scope and ceiling", function()
     TestRunner:assertEqual(makeFullTools():getScope().end_page, 4, "full ceiling = last page")
 end)
 
+-- Strict UTF-8 validator (the same rules KOReader's util.fixUtf8 applies).
+local function isValidUtf8(str)
+    local pos, len = 1, #str
+    while pos <= len do
+        if str:find("^[%z\1-\127]", pos) then pos = pos + 1
+        elseif str:find("^[\194-\223][\128-\191]", pos) then pos = pos + 2
+        elseif str:find("^\224[\160-\191][\128-\191]", pos)
+            or str:find("^[\225-\236][\128-\191][\128-\191]", pos)
+            or str:find("^\237[\128-\159][\128-\191]", pos)
+            or str:find("^[\238-\239][\128-\191][\128-\191]", pos) then pos = pos + 3
+        elseif str:find("^\240[\144-\191][\128-\191][\128-\191]", pos)
+            or str:find("^[\241-\243][\128-\191][\128-\191][\128-\191]", pos)
+            or str:find("^\244[\128-\143][\128-\191][\128-\191]", pos) then pos = pos + 4
+        else
+            return false
+        end
+    end
+    return true
+end
+
+-- Multi-byte text: every cut a tool result passes through must land on a character
+-- boundary, or the JSON request ships stray bytes and the provider rejects it.
+local CJK_SENTENCE = "東京の空は青く、遠くに山が見えた。"  -- 3-byte chars, no spaces
+
+TestRunner:test("read_around: a multi-byte page cut at the read budget stays valid UTF-8", function()
+    local big = string.rep(CJK_SENTENCE, 400)  -- ~20K bytes, over MAX_READ_CHARS (8000)
+    local tools = makeToolsWithPages({ big, "second page" }, 2)
+    local result = tools:readAround({ page = 1, before_pages = 0, after_pages = 0 })
+    TestRunner:assertTrue(result.ok, "read ok")
+    TestRunner:assertTrue(#result.text <= 8000, "read budget honored in bytes")
+    TestRunner:assertTrue(isValidUtf8(result.text), "no partial character at either end")
+    TestRunner:assertTrue(result.text:sub(-3) == "...", "excerpt marker kept")
+end)
+
+TestRunner:test("toc: a multi-byte chapter snippet cut at max_snippet_chars stays valid UTF-8", function()
+    local tools = makeToolsWithPages({ string.rep(CJK_SENTENCE, 20), "x" }, 2,
+        { { title = "第一章", page = 1, depth = 1 }, { title = "第二章", page = 2, depth = 1 } })
+    local result = tools:toc({ max_snippet_chars = 100 })
+    TestRunner:assertTrue(result.ok, "toc ok")
+    local snippet = result.entries[1].snippet
+    TestRunner:assertTrue(#snippet <= 100, "snippet budget honored")
+    TestRunner:assertTrue(isValidUtf8(snippet), "snippet has no partial character")
+end)
+
+TestRunner:test("search_book: a multi-byte sentence chunked past MAX_SENTENCE_CHUNK stays valid UTF-8", function()
+    -- One 'sentence' with no terminator and no spaces, longer than the 700-byte chunk.
+    local run = string.rep("東京", 400) .. " tokyo"
+    local tools = makeToolsWithPages({ run, "y" }, 2)
+    local result = tools:searchBook({ query = "tokyo" })
+    TestRunner:assertTrue(result.ok, "search ok")
+    local block = result.queries[1]
+    TestRunner:assertTrue((block.total_hits or 0) >= 1, "ASCII token still found")
+    for _idx, hit in ipairs(block.results or {}) do
+        TestRunner:assertTrue(isValidUtf8(hit.snippet or ""), "snippet " .. _idx .. " valid UTF-8")
+    end
+end)
+
 return TestRunner:summary()

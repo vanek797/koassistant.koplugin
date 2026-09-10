@@ -13,6 +13,7 @@ This module extracts reading context data from KOReader documents:
 local Constants = require("koassistant_constants")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("koassistant_logger")
+local ScopeResolver = require("koassistant_scope_resolver")
 
 local ContextExtractor = {}
 ContextExtractor.__index = ContextExtractor
@@ -498,7 +499,7 @@ function ContextExtractor:getBookText(options)
         local notice = string.format(
             "[Book text covers ~%d%%-%d%%. Earlier content truncated due to extraction limit.]",
             coverage_start, coverage_end)
-        book_text = notice .. "\n\n" .. book_text:sub(-max_chars)
+        book_text = notice .. "\n\n" .. ScopeResolver.utf8Tail(book_text, max_chars)
     end
 
     result.text = book_text
@@ -668,7 +669,7 @@ function ContextExtractor:getBookTextRange(from_progress, to_progress, options)
         local notice = string.format(
             "[New content covers ~%d%%-%d%%. Earlier portion truncated due to extraction limit.]",
             coverage_start, coverage_end)
-        book_text = notice .. "\n\n" .. book_text:sub(-max_chars)
+        book_text = notice .. "\n\n" .. ScopeResolver.utf8Tail(book_text, max_chars)
     end
 
     result.text = book_text
@@ -817,7 +818,7 @@ function ContextExtractor:getFullDocumentText(options)
         local notice = string.format(
             "[Document text covers ~%d%%-%d%%. Earlier content truncated due to extraction limit.]",
             coverage_start, coverage_end)
-        book_text = notice .. "\n\n" .. book_text:sub(-max_chars)
+        book_text = notice .. "\n\n" .. ScopeResolver.utf8Tail(book_text, max_chars)
     end
 
     result.text = book_text
@@ -943,7 +944,7 @@ function ContextExtractor:getPageRangeText(start_page, end_page, options)
         local notice = string.format(
             "[Section text truncated due to extraction limit. Showing last %d characters.]",
             max_chars)
-        book_text = notice .. "\n\n" .. book_text:sub(-max_chars)
+        book_text = notice .. "\n\n" .. ScopeResolver.utf8Tail(book_text, max_chars)
     end
 
     result.text = book_text
