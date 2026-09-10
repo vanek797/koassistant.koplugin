@@ -85,11 +85,12 @@ TestRunner:test("finds exact matches case-insensitively", function()
     TestRunner:assertEqual(result.queries[1].results[1].hit_id, "q1:p1:2", "namespaced hit id")
 end)
 
-TestRunner:test("finds fuzzy matches", function()
+TestRunner:test("a misspelled word finds nothing (no typo tolerance; the model retries a spelling)", function()
     local tools = makeTools()
     local result = tools:searchBook({ query = "lantrn" })
     TestRunner:assertTrue(result.ok, "search ok")
-    TestRunner:assertEqual(result.queries[1].results[1].page, 3, "fuzzy page")
+    TestRunner:assertEqual(result.queries[1].total_hits, 0, "no hit for a typo")
+    TestRunner:assertEqual(tools:searchBook({ query = "lantern" }).queries[1].results[1].page, 3, "the right spelling hits")
 end)
 
 local function hasNote(notes, needle)
@@ -154,7 +155,7 @@ TestRunner:test("non-Latin scripts get word tokens: CJK by substring, Arabic by 
     TestRunner:assertTrue(block.results[1].snippet:find("東京", 1, true) ~= nil, "snippet contains the match")
     TestRunner:assertEqual(hasNote(block.notes, "literal substring"), false, "a CJK clause is a token, not a literal fallback")
     TestRunner:assertEqual(#tools:getSentences(1), 2, "the CJK full stop ends a sentence")
-    -- Two CJK words in one query: both must be in the sentence (tokens rung), no fuzzy.
+    -- Two CJK words in one query: both must be in the sentence (tokens rung).
     local two = tools:searchBook({ query = "山 東京" }).queries[1]
     TestRunner:assertEqual(two.total_hits, 1, "both substrings in the first sentence")
     TestRunner:assertEqual(two.results[1].match_type, "tokens", "tokens rung across CJK words")
@@ -182,7 +183,7 @@ TestRunner:test("tokens keep interior punctuation, drop edge punctuation and spl
     local tools = makeToolsWithPages({ "\"Don't,\" she said\194\160quietly (self-knowledge) — 1,000 times…" }, 1, {})
     local sentences = tools:getSentences(1)
     TestRunner:assertEqual(#sentences, 1, "one sentence")
-    local hits = function(q) return tools:searchBook({ query = q, fuzzy = false }).queries[1].total_hits end
+    local hits = function(q) return tools:searchBook({ query = q }).queries[1].total_hits end
     TestRunner:assertEqual(hits("don't"), 1, "apostrophe inside a word survives")
     TestRunner:assertEqual(hits("self-knowledge"), 1, "hyphenated word is one token")
     TestRunner:assertEqual(hits("knowledge"), 1, "and still matches by substring")
@@ -433,7 +434,7 @@ end)
 TestRunner:test("search: a longer query matches sentences holding most of its words", function()
     local tools = makeTools()
     -- Page 1 has "white rabbit", nothing has "garden white rabbit" together.
-    local result = tools:searchBook({ query = "white rabbit garden", fuzzy = false })
+    local result = tools:searchBook({ query = "white rabbit garden" })
     local block = result.queries[1]
     TestRunner:assertEqual(block.total_hits, 1, "one partial hit")
     TestRunner:assertEqual(block.results[1].match_type, "partial", "partial rung")
@@ -441,20 +442,56 @@ TestRunner:test("search: a longer query matches sentences holding most of its wo
     TestRunner:assertEqual(table.concat(block.results[1].missing, ","), "garden", "missing word listed")
     TestRunner:assertTrue(hasNote(block.notes, "1 of the shown hits contain only some of the query words"), "partial note")
     -- Two-word queries never partial-match: "rabbit garden" is not in one sentence.
-    local two = tools:searchBook({ query = "rabbit garden", fuzzy = false })
+    local two = tools:searchBook({ query = "rabbit garden" })
     TestRunner:assertEqual(two.queries[1].total_hits, 0, "no partial rung below 3 words")
-    -- Full matches rank above partial ones, and fuzzy stays intact alongside.
+    -- Full matches rank above partial ones.
     local ranked = tools:searchBook({ query = "daisy letter lantern" })
     local first = ranked.queries[1].results[1]
     TestRunner:assertEqual(first.match_type, "partial", "no sentence holds all three")
     TestRunner:assertEqual(first.page, 1, "two of three on page 1 beats one of three")
-    local fuzzy = tools:searchBook({ query = "Daisey lantern cellar" })
-    TestRunner:assertEqual(fuzzy.queries[1].results[1].match_type, "tokens", "all words present on page 3")
+    local all = tools:searchBook({ query = "Daisey lantern cellar" })
+    TestRunner:assertEqual(all.queries[1].results[1].match_type, "tokens", "all words present on page 3")
 end)
 
-TestRunner:test("search index: candidate pages give the same hits as the full scan", function()
-    -- A generated book: 60 pages of short sentences over a small vocabulary, so that
-    -- substring, fuzzy and partial cases all occur, plus the demo pages for phrases.
+-- A mock of KOReader's document search (CreDocument:findAllText): every occurrence of the
+-- pattern as a plain substring, case-folded, in page order, at most max_hits hits, each
+-- with `start` in the shape `xpointers` selects (a page number, the PDF shape, or a
+-- string an xpointer mapper turns back into a page). Counts its walks.
+local function addNativeSearch(tools, pages, xpointers)
+    local document = tools.ui.document
+    document.provider = "crengine"  -- the gate; extraction keeps the mock's page path
+    document.walks = {}
+    document.findAllText = function(_self, pattern, case_insensitive, _ctx, max_hits)
+        table.insert(document.walks, pattern)
+        local hits = {}
+        local needle = case_insensitive and pattern:lower() or pattern
+        for page, text in ipairs(pages) do
+            local hay = case_insensitive and text:lower() or text
+            local from = 1
+            while true do
+                local s, e = hay:find(needle, from, true)
+                if not s then break end
+                table.insert(hits, {
+                    start = xpointers and string.format("/body/p[%d].%d", page, s) or page,
+                    matched_text = text:sub(s, e),
+                })
+                if #hits >= max_hits then return hits end
+                from = e + 1
+            end
+        end
+        if #hits == 0 then return nil end  -- KoptInterface returns nil on no hits
+        return hits
+    end
+    if xpointers then
+        document.getPageFromXPointer = function(_self, xp)
+            return tonumber(xp:match("p%[(%d+)%]"))
+        end
+    end
+end
+
+-- A generated book: 60 pages of short sentences over a small vocabulary, so that
+-- substring and partial cases all occur, plus the demo pages for phrases.
+local function generatedPages()
     local vocab = { "rabbit", "rabbits", "garden", "gardener", "lantern", "cellar", "daisy",
         "daisey", "letter", "house", "path", "curved", "alice", "white", "old", "carried",
         "mentioned", "concatenate", "cat", "o'clock", "self-knowledge", "1984" }
@@ -474,21 +511,34 @@ TestRunner:test("search index: candidate pages give the same hits as the full sc
         pages[p] = table.concat(sentences, " ")
     end
     for _idx, demo in ipairs(DEMO_PAGES) do table.insert(pages, demo) end
-    local ui_pages = pages
-    local brute = makeToolsWithPages(ui_pages, #pages, nil, "full")
-    brute.use_index = false
-    local indexed = makeToolsWithPages(ui_pages, #pages, nil, "full")
-    TestRunner:assertEqual(indexed.use_index, true, "index on by default")
+    return pages
+end
+
+local function nativeTools(pages, current_page, scope, settings, xpointers)
+    local ui_settings = { enable_book_text_extraction = true, reading_scope = scope, scan_pages = 0 }
+    for k, v in pairs(settings or {}) do ui_settings[k] = v end
+    local tools = makeToolsWithPages(pages, current_page, nil, scope)
+    tools = BookTools:new(tools.ui, ui_settings)
+    addNativeSearch(tools, pages, xpointers)
+    return tools
+end
+
+TestRunner:test("native search: candidate pages from the document search give the same hits as the scan", function()
+    local pages = generatedPages()
+    local scan = makeToolsWithPages(pages, #pages, nil, "full")
+    TestRunner:assertEqual(scan:useNativeSearch(#pages), false, "a short range scans (no native search on the mock)")
     local queries = {
         "rabbit", "cat", "garden lantern", "white rabbit garden", "daisy letter lantern",
         "Daisey lantern cellar", "rabit garden celar", "self-knowledge", "o'clock cellar",
         "the garden path", "1984 house", "rabbit garden cellar house path",
     }
-    for _q, query in ipairs(queries) do
-        for _f, fuzzy in ipairs({ true, false }) do
-            local a = brute:searchBook({ query = query, fuzzy = fuzzy, max_hits = 40 }).queries[1]
-            local b = indexed:searchBook({ query = query, fuzzy = fuzzy, max_hits = 40 }).queries[1]
-            local label = string.format("%q fuzzy=%s", query, tostring(fuzzy))
+    for _v, xpointers in ipairs({ false, true }) do
+        local native = nativeTools(pages, #pages, "full", nil, xpointers)
+        TestRunner:assertEqual(native:useNativeSearch(#pages), true, "native path on")
+        for _q, query in ipairs(queries) do
+            local a = scan:searchBook({ query = query, max_hits = 40 }).queries[1]
+            local b = native:searchBook({ query = query, max_hits = 40 }).queries[1]
+            local label = string.format("%q xpointers=%s", query, tostring(xpointers))
             TestRunner:assertEqual(b.total_hits, a.total_hits, "total_hits " .. label)
             TestRunner:assertEqual(b.matching_pages, a.matching_pages, "matching_pages " .. label)
             TestRunner:assertEqual(#b.results, #a.results, "shown count " .. label)
@@ -499,16 +549,100 @@ TestRunner:test("search index: candidate pages give the same hits as the full sc
             end
         end
     end
-    -- The index is built once and only up to the ceiling; a later, larger ceiling extends it.
-    local clamped = makeToolsWithPages(ui_pages, 10, nil, "current")
-    clamped:searchBook({ query = "rabbit" })
-    TestRunner:assertEqual(clamped.page_index.built_to, 10, "built to the ceiling only")
-    clamped.ui.view.state.page = 20
-    clamped:searchBook({ query = "rabbit" })
-    TestRunner:assertEqual(clamped.page_index.built_to, 20, "extended when the ceiling grows")
-    -- Case-sensitive queries bypass the index (it is lowercase) and still match.
-    local cs = indexed:searchBook({ query = "Alice", case_sensitive = true, fuzzy = false }).queries[1]
-    TestRunner:assertEqual(cs.total_hits, 1, "case-sensitive hit via the full scan")
+    -- Case-sensitive queries walk case-sensitively and still match.
+    local cs = nativeTools(pages, #pages, "full")
+    TestRunner:assertEqual(cs:searchBook({ query = "Alice", case_sensitive = true }).queries[1].total_hits, 1, "case-sensitive hit")
+    TestRunner:assertEqual(cs:searchBook({ query = "ALICE", case_sensitive = true }).queries[1].total_hits, 0, "case-sensitive miss")
+end)
+
+TestRunner:test("native search: one walk per word, memoized across calls, budgeted per call", function()
+    local pages = generatedPages()
+    local tools = nativeTools(pages, #pages, "full", { native_max_walks = 3 })
+    local walks = tools.ui.document.walks
+    tools:searchBook({ query = "garden lantern" })
+    TestRunner:assertEqual(#walks, 2, "two words, two walks, no phrase walk")
+    TestRunner:assertEqual(walks[1], "lantern", "longest word first")
+    tools:searchBook({ query = "lantern cellar" })
+    TestRunner:assertEqual(#walks, 3, "a memoized word is not walked again")
+    TestRunner:assertEqual(walks[3], "cellar", "only the new word")
+    -- Budget: 3 new walks per call; the fourth word is a wildcard, a fifth query gets an error.
+    local result = tools:searchBook({ queries = { "house path curved alice", "letter" } })
+    TestRunner:assertEqual(#walks, 6, "three new walks, then the budget is spent")
+    local first = result.queries[1]
+    TestRunner:assertTrue(first.total_hits > 0, "the query still runs on the walked words")
+    local second = result.queries[2]
+    TestRunner:assertEqual(second.total_hits, 0, "nothing walked for the second query")
+    TestRunner:assertTrue(tostring(second.error):find("lookup budget", 1, true) ~= nil, "the spent budget is an error block")
+    -- The same words on the next call are free.
+    walks = tools.ui.document.walks
+    local again = tools:searchBook({ query = "letter house" })
+    TestRunner:assertEqual(#walks, 7, "letter walked, house memoized")
+    TestRunner:assertTrue(again.queries[1].error == nil, "runs")
+end)
+
+TestRunner:test("native search: a very common word is a wildcard, all-common queries fall back to the phrase", function()
+    local pages = generatedPages()
+    -- A 3-hit cap: every vocabulary word hits it; "saw" (one demo sentence) does not.
+    local tools = nativeTools(pages, #pages, "full", { native_max_hits = 3 })
+    local scan = makeToolsWithPages(pages, #pages, nil, "full")
+    local block = tools:searchBook({ query = "saw rabbit" }).queries[1]
+    local expected = scan:searchBook({ query = "saw rabbit" }).queries[1]
+    TestRunner:assertEqual(block.total_hits, expected.total_hits, "the rare word carries the search; totals exact")
+    TestRunner:assertEqual(block.total_hits, 1, "the demo sentence")
+    -- Every word common, two words: the exact phrase is the only narrowing.
+    local phrase = tools:searchBook({ query = "rabbit garden" }).queries[1]
+    TestRunner:assertTrue(hasNote(phrase.notes, "Every word of this query is very common"), "phrase-only note")
+    for _idx, hit in ipairs(phrase.results) do
+        TestRunner:assertTrue(hit.match_type == "phrase" or hit.match_type == "substring", "phrase rung only")
+    end
+    -- One common word: its first occurrences, said so.
+    local single = tools:searchBook({ query = "rabbit" }).queries[1]
+    TestRunner:assertTrue(hasNote(single.notes, "Only the first 3 occurrences"), "single capped note")
+    TestRunner:assertTrue(single.total_hits > 0, "still returns the first occurrences")
+    -- Wildcards never reach need on their own: "rabbit garden saw" needs 2 of 3, and the
+    -- two common words would reach it everywhere; only pages holding "saw" count.
+    local mixed = tools:searchBook({ query = "rabbit garden saw" }).queries[1]
+    TestRunner:assertTrue(hasNote(mixed.notes, "2 very common word(s) of the query"), "wildcards stated when they reach need")
+    TestRunner:assertEqual(mixed.total_hits, 1, "the one sentence with saw and rabbit (partial)")
+    TestRunner:assertEqual(mixed.results[1].match_type, "partial", "partial rung")
+    for _idx, hit in ipairs(mixed.results) do
+        TestRunner:assertTrue(pages[hit.page]:lower():find("saw", 1, true) ~= nil, "every hit page holds the rare word")
+    end
+end)
+
+TestRunner:test("native search: hits past the ceiling and in hidden flows are no candidates", function()
+    local pages = generatedPages()
+    local tools = nativeTools(pages, 20, "current")
+    local block = tools:searchBook({ query = "lantern" }).queries[1]
+    for _idx, hit in ipairs(block.results) do
+        TestRunner:assertTrue(hit.page <= 20, "hit within the ceiling")
+    end
+    local scan = makeToolsWithPages(pages, 20, nil, "current")
+    TestRunner:assertEqual(block.total_hits, scan:searchBook({ query = "lantern" }).queries[1].total_hits, "same total as the scan")
+    -- Hidden flows: the walk lands on them, the mapping drops them.
+    local hidden = nativeTools(DEMO_PAGES, 4, "full")
+    local document = hidden.ui.document
+    document.hasHiddenFlows = function() return true end
+    document.getPageFlow = function(_self, page) return page >= 3 and 1 or 0 end
+    local search = hidden:searchBook({ query = "lantern" })
+    TestRunner:assertEqual(search.queries[1].total_hits, 0, "hidden page not a candidate")
+    TestRunner:assertTrue(hasNote(search.notes, "2 of 4 pages are in sections the reader has hidden"), "hidden pages counted")
+    -- Literal (token-less) queries walk the text itself, once.
+    local cjk = nativeTools({ "他走进了花园。", "花园里很安静。" }, 2, "full")
+    local literal = cjk:searchBook({ query = "花园" }).queries[1]
+    TestRunner:assertEqual(literal.total_hits, 2, "literal hits on both pages")
+    TestRunner:assertEqual(#cjk.ui.document.walks, 1, "one walk for a literal query")
+end)
+
+TestRunner:test("executeAsync runs in process without a fork and returns no cancel", function()
+    local tools = makeTools()
+    local got
+    local cancel = tools:executeAsync("search_book", { query = "lantern" }, function(result) got = result end)
+    TestRunner:assertEqual(cancel, nil, "no child, no cancel")
+    TestRunner:assertEqual(got and got.queries[1].results[1].page, 3, "result delivered synchronously")
+    local toc
+    tools:executeAsync("toc", {}, function(result) toc = result end)
+    TestRunner:assertTrue(toc and toc.entry_count ~= nil, "toc delivered synchronously")
 end)
 
 TestRunner:test("whole-word hits outrank hits inside longer words", function()
@@ -517,25 +651,25 @@ TestRunner:test("whole-word hits outrank hits inside longer words", function()
         "Animated talk about animal noises.",
         "Rabbits and the white rabbit garden.",
     }, 3, {}, "full")
-    local block = tools:searchBook({ query = "anima", fuzzy = false }).queries[1]
+    local block = tools:searchBook({ query = "anima" }).queries[1]
     TestRunner:assertEqual(block.total_hits, 3, "one whole-word sentence, two inside longer words")
     TestRunner:assertEqual(block.results[1].match_type, "phrase", "whole word first")
     TestRunner:assertEqual(block.results[1].page, 1, "the anima sentence")
     TestRunner:assertEqual(block.results[2].match_type, "substring", "inside 'animals' ranks below")
     TestRunner:assertEqual(block.results[3].match_type, "substring", "inside 'animated' too")
     -- Multi-word: every word whole → tokens; a word only inside a longer word → substring.
-    local tokens = tools:searchBook({ query = "rabbit garden", fuzzy = false }).queries[1]
+    local tokens = tools:searchBook({ query = "rabbit garden" }).queries[1]
     TestRunner:assertEqual(tokens.results[1].match_type, "phrase", "adjacent whole words are a phrase")
-    local mixed = tools:searchBook({ query = "rabbits garden", fuzzy = false }).queries[1]
+    local mixed = tools:searchBook({ query = "rabbits garden" }).queries[1]
     TestRunner:assertEqual(mixed.results[1].match_type, "tokens", "both whole words, apart")
-    local inside = tools:searchBook({ query = "anima figure", fuzzy = false }).queries[1]
+    local inside = tools:searchBook({ query = "anima figure" }).queries[1]
     TestRunner:assertEqual(inside.results[1].match_type, "tokens", "anima and figure both whole on page 1")
-    local weak = tools:searchBook({ query = "anima noises", fuzzy = false }).queries[1]
+    local weak = tools:searchBook({ query = "anima noises" }).queries[1]
     TestRunner:assertEqual(weak.results[1].match_type, "substring", "anima only inside 'animal' on page 2")
     -- A hyphen or a non-ASCII neighbour still counts as a word boundary.
     local hy = makeToolsWithPages({ "self-knowledge grows. ورائحة البحر" }, 1, {}, "full")
-    TestRunner:assertEqual(hy:searchBook({ query = "knowledge", fuzzy = false }).queries[1].results[1].match_type, "phrase", "after a hyphen")
-    TestRunner:assertEqual(hy:searchBook({ query = "رائحة", fuzzy = false }).queries[1].results[1].match_type, "phrase", "Arabic clitic prefix")
+    TestRunner:assertEqual(hy:searchBook({ query = "knowledge" }).queries[1].results[1].match_type, "phrase", "after a hyphen")
+    TestRunner:assertEqual(hy:searchBook({ query = "رائحة" }).queries[1].results[1].match_type, "phrase", "Arabic clitic prefix")
 end)
 
 TestRunner:test("getBookLanguage reads metadata then typography; getScope carries a contents outline", function()

@@ -47,6 +47,21 @@ local MAX_TOC_PATH_DEPTH = 16
 local PARTIAL_MIN_TOKENS = 3      -- partial coverage needs a query of at least this many words
 local PARTIAL_COVERAGE = 0.6      -- ... and this share of them in the sentence (3 -> 2, 5 -> 3)
 local OUTLINE_MAX_ENTRIES = 40    -- contents outline sent with the tool scope on round one
+-- Candidate pages for a long readable range come from KOReader's own document search
+-- (crengine findAllText, the C++ walk behind the reader's Search dialog): one walk per
+-- query word, no text copied into Lua, then the rungs score only those pages. Short ranges
+-- and page-based documents (PDF/DjVu: their findAllText extracts every page per walk)
+-- keep the page-by-page scan. Plan 9.9.
+local SCAN_PAGES = 400            -- readable range up to this many pages: scan, no walks
+local NATIVE_MAX_HITS = 5000      -- KOReader's own findall cap; a word that hits it is "everywhere"
+local NATIVE_MAX_WALKS = 6        -- new walks per search_book call, longest words first
+-- crengine search flags (koassistant_xray_marks explains the set). A single word needs no
+-- fold: the legacy walk (0x0000) is 3.5x faster than the default folds (0x00FF); on a
+-- 6,759-page book it missed one page per word, a capitalized heading split across text
+-- nodes (0x0001 finds it at 2.5x the cost). A phrase keeps the folds (spaces, hyphens,
+-- apostrophes, text-node boundaries).
+local NATIVE_WORD_FLAGS = 0x0000
+local NATIVE_PHRASE_FLAGS = 0x00FF
 
 -- Notes are the sentences the model actually reads. Every cap, clamp or exclusion a result
 -- applies is stated here in prose: a boolean flag gets skipped, a sentence does not. The
@@ -210,44 +225,6 @@ local function splitSentences(text)
     return sentences
 end
 
-local function levenshteinWithin(a, b, max_distance)
-    if a == b then return true end
-    local la, lb = #a, #b
-    if math.abs(la - lb) > max_distance then return false end
-    if la == 0 or lb == 0 then return math.max(la, lb) <= max_distance end
-
-    local prev = {}
-    local curr = {}
-    for j = 0, lb do prev[j] = j end
-
-    for i = 1, la do
-        curr[0] = i
-        local row_min = curr[0]
-        local ca = a:sub(i, i)
-        for j = 1, lb do
-            local cost = ca == b:sub(j, j) and 0 or 1
-            local deletion = prev[j] + 1
-            local insertion = curr[j - 1] + 1
-            local substitution = prev[j - 1] + cost
-            local value = math.min(deletion, insertion, substitution)
-            curr[j] = value
-            if value < row_min then row_min = value end
-        end
-        if row_min > max_distance then return false end
-        prev, curr = curr, prev
-    end
-
-    return prev[lb] <= max_distance
-end
-
--- Edit-distance allowance for a query word. ASCII only: the distance counts bytes, and a
--- byte edit inside a multi-byte character is not a typo, so non-ASCII words match exactly.
-local function tokenThreshold(token)
-    local len = #token
-    if len <= 3 or token:find("[\128-\255]") then return 0 end
-    return math.max(1, math.floor(len * 0.25))
-end
-
 local function isAsciiWordByte(b)
     return b ~= nil and ((b >= 48 and b <= 57) or (b >= 65 and b <= 90) or (b >= 97 and b <= 122))
 end
@@ -277,27 +254,13 @@ local function allTokensPresent(tokens, haystack)
     return true
 end
 
--- Count the query tokens present in a sentence: as substrings of the normalized text,
--- or (fuzzy on) within edit distance of one of its tokens. Stops as soon as the remaining
--- tokens can no longer reach `need`. Returns the count and the tokens not found.
-local function countTokenMatches(tokens, haystack, sentence_tokens_fn, fuzzy, need)
+-- Count the query tokens present in a sentence as substrings of the normalized text.
+-- Stops as soon as the remaining tokens can no longer reach `need`. Returns the count
+-- and the tokens not found.
+local function countTokenMatches(tokens, haystack, need)
     local matched, missing = 0, {}
-    local sentence_tokens
     for i, query_token in ipairs(tokens) do
-        local found = haystack:find(query_token, 1, true) ~= nil
-        if not found and fuzzy then
-            local threshold = tokenThreshold(query_token)
-            if threshold > 0 then
-                sentence_tokens = sentence_tokens or sentence_tokens_fn()
-                for _, sentence_token in ipairs(sentence_tokens) do
-                    if levenshteinWithin(query_token, sentence_token, threshold) then
-                        found = true
-                        break
-                    end
-                end
-            end
-        end
-        if found then
+        if haystack:find(query_token, 1, true) then
             matched = matched + 1
         else
             table.insert(missing, query_token)
@@ -320,30 +283,24 @@ local function safeCall(fn)
     return nil
 end
 
-local function wordMatches(word, query_tokens, fuzzy, case_sensitive)
+local function wordMatches(word, query_tokens, case_sensitive)
     local cleaned = cleanWord(word, case_sensitive)
     if cleaned == "" then return false end
     for _, token in ipairs(query_tokens or {}) do
         if cleaned == token then
             return true
         end
-        if fuzzy then
-            local threshold = tokenThreshold(token)
-            if threshold > 0 and levenshteinWithin(token, cleaned, threshold) then
-                return true
-            end
-        end
     end
     return false
 end
 
-local function concordanceExcerpt(sentence, query_tokens, fuzzy, case_sensitive)
+local function concordanceExcerpt(sentence, query_tokens, case_sensitive)
     local words = splitWords(sentence)
     if #words == 0 then return "" end
 
     local match_index = nil
     for i, word in ipairs(words) do
-        if wordMatches(word, query_tokens, fuzzy, case_sensitive) then
+        if wordMatches(word, query_tokens, case_sensitive) then
             match_index = i
             break
         end
@@ -410,10 +367,13 @@ function BookTools:new(ui, settings)
     instance.reading_scope = instance.settings.reading_scope or "current"
     instance.extractor = ContextExtractor:new(ui, instance.settings)
     instance.sentence_cache = {}   -- page -> sentences (split once, reused by every query)
-    instance.token_cache = {}      -- "ci"/"cs" -> page -> sentence index -> tokens
     instance.norm_cache = {}       -- "ci"/"cs" -> page -> sentence index -> normalized text
-    instance.page_index = nil      -- built by indexPages on the first indexed query
-    instance.use_index = instance.settings.search_index ~= false  -- false = brute-force scan (parity tests)
+    instance.word_memo = {}        -- "ci:"/"cs:" .. word -> { pages, capped } from native walks
+    instance.walks_this_call = 0
+    -- Test and probe dials (nil = the module constants).
+    instance.scan_pages = tonumber(instance.settings.scan_pages) or SCAN_PAGES
+    instance.native_max_hits = tonumber(instance.settings.native_max_hits) or NATIVE_MAX_HITS
+    instance.native_max_walks = tonumber(instance.settings.native_max_walks) or NATIVE_MAX_WALKS
     instance.last_hits = {}
     return instance
 end
@@ -506,99 +466,156 @@ function BookTools:getNormalizedSentence(page, index, sentence, case_sensitive)
     return normalized
 end
 
-function BookTools:getSentenceTokens(page, index, sentence, case_sensitive)
-    local key = case_sensitive and "cs" or "ci"
-    local by_page = self.token_cache[key]
-    if not by_page then by_page = {}; self.token_cache[key] = by_page end
-    local per_page = by_page[page]
-    if not per_page then per_page = {}; by_page[page] = per_page end
-    local tokens = per_page[index]
-    if not tokens then
-        tokens = tokenize(sentence, case_sensitive)
-        per_page[index] = tokens
-    end
-    return tokens
+--- KOReader's own document search is the candidate finder for a long readable range of a
+-- crengine document (EPUB, FB2, MOBI...): the walk costs the whole DOM regardless of
+-- position, so a short range scans instead. Page-based documents (PDF/DjVu) scan too:
+-- their findAllText has another signature and extracts every page per walk.
+function BookTools:useNativeSearch(ceiling)
+    if self.settings.native_search == false then return false end
+    local document = self.ui and self.ui.document
+    if not document or type(document.findAllText) ~= "function" then return false end
+    if document.provider ~= "crengine" then return false end
+    return ceiling > self.scan_pages
 end
 
--- Page-level inverted index, the candidate filter of docs/tool_based_context_plan.md 9.6
--- step 2: term -> pages holding it as a whole token, built lazily up to the read ceiling
--- with the same tokenizer the rungs use. A query asks the index which pages can hold
--- enough of its words and walks only those pages' sentences; the rungs and totals are
--- unchanged because a query word is [%w']+ and so can only ever match inside one token,
--- and fuzzy/substring matches are found by expanding the word over the vocabulary once.
--- Case-sensitive and token-less queries bypass it.
-function BookTools:indexPages(up_to)
-    local index = self.page_index
-    if not index then
-        index = { postings = {}, vocab = {}, built_to = 0, expansions = {} }
-        self.page_index = index
+--- One native walk: the visible-flow pages of the whole document holding `pattern`
+-- (substring, KOReader's default folds), sorted. capped = the walk stopped at the hit
+-- cap, so the pages are the first occurrences only. nil when the walk failed.
+function BookTools:walkPattern(pattern, case_sensitive, flags)
+    local document = self.ui.document
+    local max_hits = self.native_max_hits
+    local ok, hits = pcall(document.findAllText, document, pattern, not case_sensitive, 0,
+        max_hits, false, flags or NATIVE_PHRASE_FLAGS)
+    if not ok then
+        logger.warn("BookTools: native search failed:", tostring(hits))
+        return nil
     end
-    if up_to <= index.built_to then return index end
-    for page = index.built_to + 1, up_to do
-        local seen = {}
-        for _idx, sentence in ipairs(self:getSentences(page)) do
-            for _t, token in ipairs(tokenize(sentence, false)) do
-                if not seen[token] then
-                    seen[token] = true
-                    local list = index.postings[token]
-                    if not list then
-                        list = {}
-                        index.postings[token] = list
-                        table.insert(index.vocab, token)
-                    end
-                    table.insert(list, page)
-                end
+    hits = type(hits) == "table" and hits or {}
+    local seen, pages = {}, {}
+    for _idx, hit in ipairs(hits) do
+        local page = hit.start
+        if type(page) == "string" then
+            page = safeCall(function() return document:getPageFromXPointer(page) end)
+        end
+        page = tonumber(page)
+        if page and page >= 1 and not seen[page] then
+            seen[page] = true
+            -- Hidden flows are a Lua overlay the DOM walk knows nothing about; the scan
+            -- yields no text for those pages, so they are no candidates either.
+            local flow = 0
+            if document.getPageFlow then
+                flow = safeCall(function() return document:getPageFlow(page) end) or 0
             end
+            if flow == 0 then table.insert(pages, page) end
         end
-    end
-    index.built_to = up_to
-    index.expansions = {}  -- the vocabulary grew; cached expansions are stale
-    return index
-end
-
--- Vocabulary terms a query word can match: those containing it (the substring rung) and,
--- with fuzzy on, those within its edit distance. Memoized per index build.
-function BookTools:expandToken(index, token, fuzzy)
-    local key = (fuzzy and "f:" or "e:") .. token
-    local cached = index.expansions[key]
-    if cached then return cached end
-    local matches = {}
-    local threshold = fuzzy and tokenThreshold(token) or 0
-    local token_len = #token
-    for _idx, term in ipairs(index.vocab) do
-        if term:find(token, 1, true) then
-            table.insert(matches, term)
-        elseif threshold > 0 and math.abs(#term - token_len) <= threshold
-            and levenshteinWithin(token, term, threshold) then
-            table.insert(matches, term)
-        end
-    end
-    index.expansions[key] = matches
-    return matches
-end
-
--- Pages 1..up_to holding at least `need` distinct query words (a superset of the pages
--- with a sentence that does), in page order.
-function BookTools:candidatePages(query_tokens, fuzzy, up_to, need)
-    local index = self:indexPages(up_to)
-    local counts = {}
-    for _idx, token in ipairs(query_tokens) do
-        local pages_seen = {}
-        for _t, term in ipairs(self:expandToken(index, token, fuzzy)) do
-            for _p, page in ipairs(index.postings[term]) do
-                if page <= up_to and not pages_seen[page] then
-                    pages_seen[page] = true
-                    counts[page] = (counts[page] or 0) + 1
-                end
-            end
-        end
-    end
-    local pages = {}
-    for page, count in pairs(counts) do
-        if count >= need then table.insert(pages, page) end
     end
     table.sort(pages)
+    return { pages = pages, capped = #hits >= max_hits }
+end
+
+--- Memoized walk for one query word. The memo rides back from the search child
+-- (searchBookAsync), so the next call walks only new words. Counts against the per-call
+-- walk budget: nil, "budget" when it is spent, nil, "failed" when the walk failed.
+function BookTools:wordPages(word, case_sensitive)
+    local key = (case_sensitive and "cs:" or "ci:") .. word
+    local entry = self.word_memo[key]
+    if entry then return entry end
+    if self.walks_this_call >= self.native_max_walks then return nil, "budget" end
+    self.walks_this_call = self.walks_this_call + 1
+    entry = self:walkPattern(word, case_sensitive, NATIVE_WORD_FLAGS)
+    if not entry then return nil, "failed" end
+    self.word_memo[key] = entry
+    return entry
+end
+
+local function pagesWithin(list, ceiling)
+    local pages = {}
+    for _idx, page in ipairs(list) do
+        if page <= ceiling then table.insert(pages, page) end
+    end
     return pages
+end
+
+--- Candidate pages for one query from native walks: pages (sorted, <= ceiling) holding
+-- at least `need` of the query words, where a word that hit the cap or the walk budget
+-- counts as present everywhere but never carries a page on its own. Returns the pages
+-- and the notes to attach; nil plus an error sentence when nothing could be walked.
+function BookTools:nativeCandidates(query, query_tokens, case_sensitive, ceiling, need)
+    local notes = {}
+    -- Literal (token-less) query: one walk for the text itself.
+    if #query_tokens == 0 then
+        if self.walks_this_call >= self.native_max_walks then
+            return nil, "The lookup budget for this call was spent on earlier queries; ask again with fewer queries."
+        end
+        self.walks_this_call = self.walks_this_call + 1
+        local entry = self:walkPattern(query, case_sensitive)
+        if not entry then return nil, "The book search failed for this query." end
+        if entry.capped then
+            table.insert(notes, string.format("Only the first %d occurrences, from the start of the book, were checked; narrow the query for the rest.", self.native_max_hits))
+        end
+        return pagesWithin(entry.pages, ceiling), notes
+    end
+
+    -- Longest words first: the best rarity guess without a vocabulary, so the walk
+    -- budget goes to the words that narrow the most.
+    local order = {}
+    for i, token in ipairs(query_tokens) do order[i] = token end
+    table.sort(order, function(a, b)
+        if #a == #b then return a < b end
+        return #a > #b
+    end)
+    local counts = {}          -- page -> distinct constraining words present
+    local constraining = 0     -- walked words below the cap
+    local wildcards = 0        -- capped or unwalked words: present everywhere
+    local walked_capped = nil  -- a capped word's own pages (single-word queries)
+    for _idx, token in ipairs(order) do
+        local entry, why = self:wordPages(token, case_sensitive)
+        if not entry then
+            if why == "failed" then return nil, "The book search failed for this query." end
+            wildcards = wildcards + 1
+        elseif entry.capped then
+            wildcards = wildcards + 1
+            walked_capped = walked_capped or entry
+        else
+            constraining = constraining + 1
+            for _p, page in ipairs(entry.pages) do
+                if page <= ceiling then counts[page] = (counts[page] or 0) + 1 end
+            end
+        end
+    end
+
+    if constraining > 0 then
+        local pages = {}
+        for page, count in pairs(counts) do
+            if count + wildcards >= need then table.insert(pages, page) end
+        end
+        table.sort(pages)
+        if wildcards > 0 and wildcards >= need then
+            table.insert(notes, string.format("%d very common word(s) of the query (over %d occurrences) did not narrow the search; only sentences holding at least one of the other words were counted.",
+                wildcards, self.native_max_hits))
+        end
+        return pages, notes
+    end
+
+    if not walked_capped then
+        return nil, "The lookup budget for this call was spent on earlier queries; ask again with fewer queries."
+    end
+    -- Every walked word is very common. One word: its first occurrences are all there
+    -- is. Several: the exact phrase is the only affordable narrowing.
+    local entry = walked_capped
+    if #query_tokens > 1 then
+        if self.walks_this_call >= self.native_max_walks then
+            return nil, "Every word of this query is very common and the lookup budget for this call is spent; ask again with a rarer word."
+        end
+        self.walks_this_call = self.walks_this_call + 1
+        entry = self:walkPattern(query, case_sensitive)
+        if not entry then return nil, "The book search failed for this query." end
+        table.insert(notes, "Every word of this query is very common, so only sentences holding the exact phrase were counted (single words and partial matches were not).")
+    end
+    if entry.capped then
+        table.insert(notes, string.format("Only the first %d occurrences, from the start of the book, were checked; narrow the query for the rest.", self.native_max_hits))
+    end
+    return pagesWithin(entry.pages, ceiling), notes
 end
 
 function BookTools:getScope()
@@ -654,12 +671,12 @@ function BookTools:getRangeText(start_page, end_page, max_chars)
     return result and result.text or ""
 end
 
-function BookTools:scoreSentence(sentence, query, query_tokens, fuzzy, case_sensitive, tokens_fn, normalized_sentence)
+function BookTools:scoreSentence(sentence, query, query_tokens, case_sensitive, normalized_sentence)
     normalized_sentence = normalized_sentence or normalizeText(sentence, case_sensitive)
     local normalized_query = normalizeText(query, case_sensitive)
 
     -- Whole-word hits outrank hits inside longer words ("anima" in "animals"): the
-    -- substring rungs sit just below their whole-word twins, above fuzzy and partial.
+    -- substring rungs sit just below their whole-word twins, above partial.
     if normalized_sentence:find(normalized_query, 1, true) then
         if findBounded(normalized_sentence, normalized_query) then
             return 100 + math.min(#normalized_query, 40), "phrase"
@@ -675,19 +692,14 @@ function BookTools:scoreSentence(sentence, query, query_tokens, fuzzy, case_sens
         end
         return 70 + count, "tokens"
     end
-    -- Below the all-words rungs: count what is there. Fuzzy needs every word within edit
-    -- distance; partial needs PARTIAL_COVERAGE of a PARTIAL_MIN_TOKENS-word query.
-    local partial_ok = count >= PARTIAL_MIN_TOKENS
-    local need = partial_ok and partialNeed(count) or count
-    if not fuzzy and not partial_ok then
+    -- Below the all-words rungs: partial coverage, PARTIAL_COVERAGE of a
+    -- PARTIAL_MIN_TOKENS-word query.
+    if count < PARTIAL_MIN_TOKENS then
         return 0, nil
     end
-    local matched, missing = countTokenMatches(query_tokens, normalized_sentence,
-        tokens_fn or function() return tokenize(sentence, case_sensitive) end, fuzzy, need)
-    if fuzzy and matched >= count then
-        return 45 + count, "fuzzy"
-    end
-    if partial_ok and matched >= need then
+    local need = partialNeed(count)
+    local matched, missing = countTokenMatches(query_tokens, normalized_sentence, need)
+    if matched >= need then
         return 30 + matched, "partial", missing
     end
     return 0, nil
@@ -715,7 +727,7 @@ function BookTools:collectQueries(args)
     return queries
 end
 
-function BookTools:runQuery(query, current_page, fuzzy, case_sensitive, q_index, max_hits)
+function BookTools:runQuery(query, current_page, case_sensitive, q_index, max_hits)
     local query_tokens = tokenize(query, case_sensitive)
     local normalized_query = normalizeText(query, case_sensitive)
     -- No word tokens (CJK and other scripts outside [%w]): match the text literally instead
@@ -736,16 +748,26 @@ function BookTools:runQuery(query, current_page, fuzzy, case_sensitive, q_index,
     local scored = {}
     local page_summary = {}
 
-    -- The pages worth walking: every page for literal or case-sensitive queries, else the
-    -- index's candidates (pages that hold enough distinct query words for any rung).
-    local pages
-    if literal or case_sensitive or self.use_index == false then
-        pages = {}
-        for page = 1, current_page do pages[page] = page end
-    else
+    -- The pages worth reading: every readable page when the range is short (or the
+    -- document has no native search), else the pages the native walks return.
+    local pages, page_notes
+    if self:useNativeSearch(current_page) then
         local count = #query_tokens
         local need = count >= PARTIAL_MIN_TOKENS and partialNeed(count) or count
-        pages = self:candidatePages(query_tokens, fuzzy, current_page, need)
+        pages, page_notes = self:nativeCandidates(query, query_tokens, case_sensitive, current_page, need)
+        if not pages then
+            return {
+                query = query,
+                error = page_notes,
+                results = {},
+                page_summary = {},
+                total_hits = 0,
+                matching_pages = 0,
+            }
+        end
+    else
+        pages = {}
+        for page = 1, current_page do pages[page] = page end
     end
 
     for _page_idx, page in ipairs(pages) do
@@ -762,8 +784,7 @@ function BookTools:runQuery(query, current_page, fuzzy, case_sensitive, q_index,
                     score, match_type = 100 + math.min(#normalized_query, 40), "phrase"
                 end
             else
-                score, match_type, missing = self:scoreSentence(sentence, query, query_tokens, fuzzy, case_sensitive,
-                    function() return self:getSentenceTokens(page, index, sentence, case_sensitive) end,
+                score, match_type, missing = self:scoreSentence(sentence, query, query_tokens, case_sensitive,
                     normalized_sentence)
             end
             if score > 0 then
@@ -778,7 +799,7 @@ function BookTools:runQuery(query, current_page, fuzzy, case_sensitive, q_index,
                     -- The literal position is in the normalized text (case folding can change
                     -- byte lengths), so the literal excerpt comes from that text.
                     snippet = literal and literalExcerpt(normalized_sentence, position, #normalized_query)
-                        or concordanceExcerpt(sentence, query_tokens, fuzzy, case_sensitive),
+                        or concordanceExcerpt(sentence, query_tokens, case_sensitive),
                 }
                 table.insert(scored, hit)
                 self.last_hits[hit_id] = hit
@@ -822,6 +843,7 @@ function BookTools:runQuery(query, current_page, fuzzy, case_sensitive, q_index,
     if literal then
         addNote(block, "This query has no word tokens (for example CJK text), so it was matched as a literal substring.")
     end
+    for _idx, note in ipairs(page_notes or {}) do addNote(block, note) end
     local partial_shown = 0
     for _idx, hit in ipairs(shown) do
         if hit.match_type == "partial" then partial_shown = partial_shown + 1 end
@@ -852,15 +874,15 @@ function BookTools:searchBook(args)
     end
 
     local current_page = self:getReadCeiling()
-    local fuzzy = args.fuzzy ~= false
     local case_sensitive = args.case_sensitive == true
     local max_hits = clamp(args.max_hits or DEFAULT_MAX_HITS, 1, MAX_HITS_CEILING)
     self.last_hits = {}
+    self.walks_this_call = 0
 
     local query_blocks = {}
     local total_hits = 0
     for q_index, query in ipairs(queries) do
-        local block = self:runQuery(query, current_page, fuzzy, case_sensitive, q_index, max_hits)
+        local block = self:runQuery(query, current_page, case_sensitive, q_index, max_hits)
         table.insert(query_blocks, block)
         total_hits = total_hits + (block.total_hits or 0)
     end
@@ -1289,6 +1311,136 @@ function BookTools:toc(args)
         addNote(result, string.format("%d entries are in sections the reader has hidden (KOReader hidden flows) and were not listed.", info.hidden))
     end
     return result
+end
+
+--- search_book off the UI thread: a forked child (KOReader's runInSubProcess, the loop
+-- of BaseHandler.fetchAsync) runs searchBook against its copy of the rendered document
+-- and ships the result table back over the pipe; the parent polls on the UI loop. The
+-- word memo rides back with the result, so the next call walks only new words, and the
+-- child's caches die with it. Without a fork (unit tests, headless probes, a failed
+-- fork) the search runs in process and on_done is called before this returns.
+-- on_done(result) runs once and never after cancel; on_tick(seconds) per poll while the
+-- child runs. Returns the cancel function, or nil when the search ran in process.
+function BookTools:searchBookAsync(args, on_done, on_tick)
+    local ok_util, ffiutil = pcall(require, "ffi/util")
+    local ok_buffer, buffer = pcall(require, "string.buffer")
+    local ok_ffi, ffi = pcall(require, "ffi")
+    local ok_ui, UIManager = pcall(require, "ui/uimanager")
+    if not (ok_util and ok_buffer and ok_ffi and ok_ui and type(ffiutil.runInSubProcess) == "function"
+        and type(buffer) == "table" and type(UIManager) == "table" and type(UIManager.scheduleIn) == "function") then
+        on_done(self:searchBook(args))
+        return nil
+    end
+    pcall(require, "ffi/posix_h")
+
+    local child = function(pid, child_write_fd)
+        if not pid or not child_write_fd then return end
+        local ok, result = pcall(self.searchBook, self, args)
+        if not ok then
+            result = { ok = false, error = "search failed: " .. tostring(result) }
+        end
+        result._word_memo = self.word_memo
+        local encoded_ok, encoded = pcall(buffer.encode, result)
+        if encoded_ok then
+            -- Loop: a pipe write larger than the pipe buffer returns short.
+            local ptr = ffi.cast("const char*", encoded)
+            local total, written = #encoded, 0
+            while written < total do
+                local n = tonumber(ffi.C.write(child_write_fd, ptr + written, total - written))
+                if not n or n < 0 then
+                    if ffi.errno() ~= 4 then break end -- anything but EINTR
+                    n = 0
+                end
+                written = written + n
+            end
+        end
+        ffi.C.close(child_write_fd)
+        pcall(function() ffi.C._exit(0) end)
+    end
+    local ok_fork, pid, read_fd = pcall(ffiutil.runInSubProcess, child, true)
+    if not ok_fork or not pid then
+        logger.dbg("BookTools: search fork unavailable, running in process")
+        on_done(self:searchBook(args))
+        return nil
+    end
+    -- A minute-long search with no taps must not put the device to standby mid-poll.
+    pcall(function() UIManager:preventStandby() end)
+
+    local cancelled = false
+    local chunk_size = 65536
+    local chunk = ffi.new("char[?]", chunk_size)
+    local pointer = ffi.cast("void*", chunk)
+    local parts = {}
+    local started = os.time()
+    local last_tick = 0
+    local tools = self
+
+    local function finish()
+        ffi.C.close(read_fd)
+        pcall(function() UIManager:allowStandby() end)
+        if cancelled then return end
+        local raw = table.concat(parts)
+        local decoded_ok, result = pcall(buffer.decode, raw)
+        if not decoded_ok or type(result) ~= "table" then
+            result = { ok = false, error = "search failed: no result from the search process" }
+        end
+        if type(result._word_memo) == "table" then
+            for key, entry in pairs(result._word_memo) do tools.word_memo[key] = entry end
+        end
+        result._word_memo = nil
+        on_done(result)
+    end
+
+    local function poll()
+        if cancelled then
+            ffi.C.close(read_fd)
+            pcall(function() UIManager:allowStandby() end)
+            return
+        end
+        while true do
+            local available = ffiutil.getNonBlockingReadSize(read_fd) or 0
+            if available > 0 then
+                local bytes = tonumber(ffi.C.read(read_fd, pointer, chunk_size))
+                if bytes and bytes > 0 then parts[#parts + 1] = ffi.string(pointer, bytes)
+                else finish() return end
+            elseif ffiutil.isSubProcessDone(pid) then
+                while true do
+                    local bytes = tonumber(ffi.C.read(read_fd, pointer, chunk_size))
+                    if not bytes or bytes <= 0 then break end
+                    parts[#parts + 1] = ffi.string(pointer, bytes)
+                end
+                finish()
+                return
+            else
+                if on_tick then
+                    local elapsed = os.time() - started
+                    if elapsed ~= last_tick then
+                        last_tick = elapsed
+                        pcall(on_tick, elapsed)
+                    end
+                end
+                UIManager:scheduleIn(0.25, poll)
+                return
+            end
+        end
+    end
+    UIManager:scheduleIn(0.25, poll)
+
+    return function()
+        if cancelled then return end
+        cancelled = true
+        pcall(ffiutil.terminateSubProcess, pid)
+    end
+end
+
+--- execute with search_book off the UI thread. on_done(result) once (synchronously for
+-- toc and read_around); returns the cancel function while a search child runs.
+function BookTools:executeAsync(name, args, on_done, on_tick)
+    if name == "search_book" then
+        return self:searchBookAsync(args, on_done, on_tick)
+    end
+    on_done(self:execute(name, args))
+    return nil
 end
 
 function BookTools:execute(name, args)

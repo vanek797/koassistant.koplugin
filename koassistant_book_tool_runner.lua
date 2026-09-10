@@ -60,7 +60,7 @@ GATHER PHASE: Do not answer the user's question yet. Use the book tools (search_
 local FUNCTION_DECLARATIONS = {
     {
         name = "search_book",
-        description = "Search the readable book text, word by word (no meaning matching: cover synonyms with several queries). Pass multiple terms via queries=[...] to batch lookups in one call. Returns per-query blocks with at most 12 hits each (raise with max_hits, up to 40), best score first and at most 2 per page; total_hits is always the exact count and page_summary lists the pages with hits. Each hit states its match_type: phrase, tokens (every word), substring (the words occur only inside longer words, e.g. anima in animals: weak evidence, ranked below whole-word hits), fuzzy (every word within a typo), or partial (a query of 3+ words with most of its words present; the missing words are listed). Anything left out (hits, pages, hidden sections) is stated in notes. Hit IDs are namespaced (e.g. q1:p42:3); call read_around for surrounding context.",
+        description = "Search the readable book text, word by word (no meaning matching: cover synonyms with several queries). Pass multiple terms via queries=[...] to batch lookups in one call. Returns per-query blocks with at most 12 hits each (raise with max_hits, up to 40), best score first and at most 2 per page; total_hits is always the exact count and page_summary lists the pages with hits. Each hit states its match_type: phrase, tokens (every word), substring (the words occur only inside longer words, e.g. anima in animals: weak evidence, ranked below whole-word hits), or partial (a query of 3+ words with most of its words present; the missing words are listed). Spelling must match (no typo tolerance): retry a name with another spelling if it finds nothing. In a long book each query costs one document search per word (at most 6 new words per call, longest first; a very common word does not narrow the search), so prefer few, specific words. Anything left out (hits, pages, hidden sections, spent budget) is stated in notes. Hit IDs are namespaced (e.g. q1:p42:3); call read_around for surrounding context.",
         parameters = {
             type = "object",
             properties = {
@@ -72,10 +72,6 @@ local FUNCTION_DECLARATIONS = {
                 query = {
                     type = "string",
                     description = "Single phrase, name, event, or detail. Use queries=[...] for multiple terms.",
-                },
-                fuzzy = {
-                    type = "boolean",
-                    description = "Use fuzzy matching for likely typos or approximate names. Defaults to true.",
                 },
                 case_sensitive = {
                     type = "boolean",
@@ -1041,6 +1037,86 @@ local function wholeTextTraceLine(whole)
         whole.end_page, whole.total_pages or whole.end_page, whole.chars)
 end
 
+-- Execute a turn's tool calls in order, then opts.on_done(executed, saw_done). search_book
+-- runs off the UI thread (BookTools.executeAsync); while its child runs the kill sits in
+-- opts.cancel_slot, so the status window's Stop/Skip/Quick keep their semantics, and
+-- opts.on_cancelled stands in for the killed round's callback (it must apply the same
+-- guards). Without a status window an InfoMessage shows the wait; a tap on it cancels.
+-- opts.on_wait(seconds|nil) reports the elapsed search time (nil = the search ended).
+local function runToolCalls(tools, calls, opts)
+    local executed = {}
+    local saw_done = false
+    local index = 0
+    local next_call
+    next_call = function()
+        index = index + 1
+        local call = calls[index]
+        if not call then return opts.on_done(executed, saw_done) end
+        if opts.skip_done and call.name == "done" then
+            saw_done = true
+            return next_call()
+        end
+        if opts.on_call then opts.on_call(call) end
+        local cancelled = false
+        local wait_box = nil
+        local function closeWait()
+            if wait_box then
+                local box = wait_box
+                wait_box = nil
+                box.dismiss_callback = nil  -- fires on any close, programmatic included
+                pcall(function() require("ui/uimanager"):close(box) end)
+            end
+        end
+        local cancel = tools:executeAsync(call.name, call.args or {}, function(result)
+            if cancelled then return end
+            if opts.cancel_slot then opts.cancel_slot.cancel = nil end
+            closeWait()
+            if opts.on_wait then opts.on_wait(nil) end
+            table.insert(executed, { call = call, result = result })
+            if opts.on_result then opts.on_result(call, result) end
+            return next_call()
+        end, function(seconds)
+            if not cancelled and opts.on_wait then opts.on_wait(seconds) end
+        end)
+        if cancel then
+            local function kill()
+                if cancelled then return end
+                cancelled = true
+                pcall(cancel)
+                closeWait()
+                if opts.on_wait then opts.on_wait(nil) end
+                opts.on_cancelled()
+            end
+            if opts.cancel_slot then
+                opts.cancel_slot.cancel = kill
+            end
+            if not opts.has_status then
+                local ok, InfoMessage = pcall(require, "ui/widget/infomessage")
+                if ok and InfoMessage then
+                    local ok2, box = pcall(InfoMessage.new, InfoMessage, {
+                        text = _("Searching the book…\nTap to stop."),
+                        dismiss_callback = function()
+                            wait_box = nil
+                            if opts.cancel_slot and opts.cancel_slot.cancel then
+                                local slot_cancel = opts.cancel_slot.cancel
+                                opts.cancel_slot.cancel = nil
+                                slot_cancel()
+                            else
+                                kill()
+                            end
+                        end,
+                    })
+                    if ok2 and box then
+                        wait_box = box
+                        pcall(function() require("ui/uimanager"):show(box) end)
+                    end
+                end
+            end
+        end
+    end
+    next_call()
+end
+
 function BookToolRunner.run(params)
     params = params or {}
     BookToolRunner._cancelled = false
@@ -1075,6 +1151,7 @@ function BookToolRunner.run(params)
     -- Gather-phase status window (streamed sessions only): one dialog that ticks per
     -- lookup round; closed before phase 2, whose normal stream dialog takes its place.
     local status_handle
+    local search_wait = nil  -- elapsed seconds of the running search child, for the window
     -- Cancel handle for the in-flight non-streaming request while its loading dialog is
     -- suppressed (the status window replaces it). Filled by handleNonStreamingBackground
     -- via config._register_cancel; consumed by the status window's Stop.
@@ -1097,6 +1174,10 @@ function BookToolRunner.run(params)
         local lines = { _("Searching the book…"), counter, "" }
         for _idx, item in ipairs(trace) do
             table.insert(lines, "• " .. item)
+        end
+        if search_wait then
+            table.insert(lines, "")
+            table.insert(lines, T(_("Searching the book text… %1 s"), search_wait))
         end
         status_handle.setText(table.concat(lines, "\n"))
     end
@@ -1280,43 +1361,56 @@ function BookToolRunner.run(params)
 
             tool_turns = tool_turns + 1
 
-            local saw_done = false
-            local executed = {}
-            for _idx, call in ipairs(calls) do
-                if call.name == "done" then
-                    saw_done = true
-                else
-                    tool_calls = tool_calls + 1
-                    local result = tools:execute(call.name, call.args or {})
+            return runToolCalls(tools, calls, {
+                skip_done = true,
+                cancel_slot = cancel_slot,
+                has_status = status_handle ~= nil,
+                on_call = function() tool_calls = tool_calls + 1 end,
+                on_result = function(call, result)
                     table.insert(trace, summarizeToolCall(call, result))
-                    table.insert(executed, { call = call, result = result })
-                end
-            end
-            if #executed > 0 then
-                table.insert(tool_outputs, { executed = executed })
-            end
+                    updateStatus()
+                end,
+                on_wait = function(seconds)
+                    search_wait = seconds
+                    updateStatus()
+                end,
+                on_cancelled = function()
+                    -- Same guards as the round callback above: Skip and Quick set their
+                    -- flags before killing the search and continue on their own.
+                    if completed or BookToolRunner._skip_gather or BookToolRunner._quick_retry_requested then return end
+                    finish(false, nil, _("Request cancelled by user."))
+                end,
+                on_done = function(executed, saw_done)
+                    if completed or BookToolRunner._skip_gather or BookToolRunner._quick_retry_requested then return end
+                    if #executed > 0 then
+                        table.insert(tool_outputs, { executed = executed })
+                    end
 
-            if saw_done then
-                -- done terminates the phase; this turn is never replayed (phase 2 starts
-                -- from the original history), so unanswered echoed calls can't 400.
-                return startGenerate()
-            end
+                    if saw_done then
+                        -- done terminates the phase; this turn is never replayed (phase 2
+                        -- starts from the original history), so unanswered echoed calls
+                        -- can't 400.
+                        return startGenerate()
+                    end
 
-            if #executed > 0 then
-                -- Budget-aware prompt (tools_ux_plan.md §2): the round's last result table
-                -- carries the remaining budget — stringifyResult JSON-encodes the table
-                -- verbatim, so this reaches the model on every provider. The bundle and
-                -- diagnostics formatters read named fields, so it never leaks to the user.
-                local last_result = executed[#executed].result
-                if type(last_result) == "table" then
-                    last_result.lookup_budget = string.format("%d of %d lookups remaining",
-                        math.max(0, budget.calls - tool_calls), budget.calls)
-                end
-                -- Keep the gather conversation going in the provider's native wire shape.
-                ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
-            end
-            updateStatus()
-            return step_gather()
+                    if #executed > 0 then
+                        -- Budget-aware prompt (tools_ux_plan.md §2): the round's last
+                        -- result table carries the remaining budget — stringifyResult
+                        -- JSON-encodes the table verbatim, so this reaches the model on
+                        -- every provider. The bundle and diagnostics formatters read named
+                        -- fields, so it never leaks to the user.
+                        local last_result = executed[#executed].result
+                        if type(last_result) == "table" then
+                            last_result.lookup_budget = string.format("%d of %d lookups remaining",
+                                math.max(0, budget.calls - tool_calls), budget.calls)
+                        end
+                        -- Keep the gather conversation going in the provider's native wire shape.
+                        ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
+                    end
+                    updateStatus()
+                    return step_gather()
+                end,
+            })
         end, params.settings)
     end
 
@@ -1357,30 +1451,34 @@ function BookToolRunner.run(params)
 
             tool_turns = tool_turns + 1
 
-            local executed = {}
-            for _idx, call in ipairs(calls) do
-                -- Execute EVERY call in this turn: each tool_use must get a matching tool_result,
-                -- or strict providers (Anthropic) reject the next request (HTTP 400). MAX_TOOL_CALLS
-                -- caps further TURNS (checked at the top of step()), so a turn may slightly overrun.
-                tool_calls = tool_calls + 1
-                local result = tools:execute(call.name, call.args or {})
-                table.insert(trace, summarizeToolCall(call, result))
-                table.insert(executed, { call = call, result = result })
-            end
-
-            if #executed > 0 then
-                table.insert(tool_outputs, { executed = executed })
-                -- Budget-aware prompt: see the step_gather counterpart above.
-                local last_result = executed[#executed].result
-                if type(last_result) == "table" then
-                    last_result.lookup_budget = string.format("%d of %d lookups remaining",
-                        math.max(0, budget.calls - tool_calls), budget.calls)
-                end
-                -- Serialize the model echo + tool results in the provider's native shape.
-                ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
-            end
-
-            step()
+            -- Execute EVERY call in this turn: each tool_use must get a matching tool_result,
+            -- or strict providers (Anthropic) reject the next request (HTTP 400). MAX_TOOL_CALLS
+            -- caps further TURNS (checked at the top of step()), so a turn may slightly overrun.
+            return runToolCalls(tools, calls, {
+                on_call = function() tool_calls = tool_calls + 1 end,
+                on_result = function(call, result)
+                    table.insert(trace, summarizeToolCall(call, result))
+                end,
+                on_cancelled = function()
+                    if completed then return end
+                    finish(false, nil, _("Request cancelled by user."))
+                end,
+                on_done = function(executed)
+                    if completed then return end
+                    if #executed > 0 then
+                        table.insert(tool_outputs, { executed = executed })
+                        -- Budget-aware prompt: see the step_gather counterpart above.
+                        local last_result = executed[#executed].result
+                        if type(last_result) == "table" then
+                            last_result.lookup_budget = string.format("%d of %d lookups remaining",
+                                math.max(0, budget.calls - tool_calls), budget.calls)
+                        end
+                        -- Serialize the model echo + tool results in the provider's native shape.
+                        ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
+                    end
+                    step()
+                end,
+            })
         end, params.settings)
     end
 
@@ -1500,6 +1598,7 @@ function BookToolRunner.gatherForAction(params)
     local completed = false
     local cancel_slot = {}
     local status_handle
+    local search_wait = nil
 
     local function closeStatus()
         if status_handle then
@@ -1515,6 +1614,10 @@ function BookToolRunner.gatherForAction(params)
         local lines = { _("Searching the book…"), counter, "" }
         for _idx, item in ipairs(trace) do
             table.insert(lines, "• " .. item)
+        end
+        if search_wait then
+            table.insert(lines, "")
+            table.insert(lines, T(_("Searching the book text… %1 s"), search_wait))
         end
         status_handle.setText(table.concat(lines, "\n"))
     end
@@ -1577,37 +1680,47 @@ function BookToolRunner.gatherForAction(params)
             end
 
             tool_turns = tool_turns + 1
-            local saw_done = false
-            local executed = {}
-            for _idx, call in ipairs(calls) do
-                if call.name == "done" then
-                    saw_done = true
-                else
-                    tool_calls = tool_calls + 1
-                    local result = tools:execute(call.name, call.args or {})
+            return runToolCalls(tools, calls, {
+                skip_done = true,
+                cancel_slot = cancel_slot,
+                has_status = status_handle ~= nil,
+                on_call = function() tool_calls = tool_calls + 1 end,
+                on_result = function(call, result)
                     table.insert(trace, summarizeToolCall(call, result))
-                    table.insert(executed, { call = call, result = result })
-                end
-            end
-            if #executed > 0 then
-                table.insert(tool_outputs, { executed = executed })
-            end
+                    updateStatus()
+                end,
+                on_wait = function(seconds)
+                    search_wait = seconds
+                    updateStatus()
+                end,
+                on_cancelled = function()
+                    -- Skip sets its flag before killing the search and delivers itself.
+                    if completed or BookToolRunner._skip_gather then return end
+                    finish(nil, { cancelled = true })
+                end,
+                on_done = function(executed, saw_done)
+                    if completed or BookToolRunner._skip_gather then return end
+                    if #executed > 0 then
+                        table.insert(tool_outputs, { executed = executed })
+                    end
 
-            if saw_done then
-                return deliver()
-            end
+                    if saw_done then
+                        return deliver()
+                    end
 
-            if #executed > 0 then
-                -- Budget-aware prompt: see the step_gather counterpart in run().
-                local last_result = executed[#executed].result
-                if type(last_result) == "table" then
-                    last_result.lookup_budget = string.format("%d of %d lookups remaining",
-                        math.max(0, budget.calls - tool_calls), budget.calls)
-                end
-                ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
-            end
-            updateStatus()
-            return step()
+                    if #executed > 0 then
+                        -- Budget-aware prompt: see the step_gather counterpart in run().
+                        local last_result = executed[#executed].result
+                        if type(last_result) == "table" then
+                            last_result.lookup_budget = string.format("%d of %d lookups remaining",
+                                math.max(0, budget.calls - tool_calls), budget.calls)
+                        end
+                        ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
+                    end
+                    updateStatus()
+                    return step()
+                end,
+            })
         end, params.settings)
     end
 
