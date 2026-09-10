@@ -785,6 +785,44 @@ TestRunner:test("gather: duplicate lookups deduplicate in the bundle", function(
     TestRunner:assertEqual(section_count, 1, "identical sections appear once in the bundle")
 end)
 
+TestRunner:test("gather: tool notes ride the phase-2 context block as lookup limits", function()
+    local calls = 0
+    local gen_messages
+    local function query_fn(messages, _config, callback)
+        calls = calls + 1
+        if calls == 1 then
+            callback(true, searchCallAnswer("Daisy"))
+        elseif calls == 2 then
+            callback(true, doneAnswer())
+        else
+            gen_messages = messages
+            callback(true, "answer")
+        end
+    end
+    local ui = makeUi()
+    ui.view.state.page = 1  -- reader on page 1 of 2, spoiler protection on by default
+    BookToolRunner.run({
+        query_fn = query_fn,
+        messages = { { role = "user", content = "Where is Daisy?" } },
+        config = gatherConfig(),
+        ui = ui,
+        on_complete = function() end,
+    })
+    local bundle
+    for _i, m in ipairs(gen_messages) do
+        if type(m.content) == "string" and m.content:find("Passages retrieved", 1, true) then
+            bundle = m.content
+        end
+    end
+    TestRunner:assertTrue(bundle ~= nil, "bundle present")
+    TestRunner:assertTrue(bundle:find("[Lookup limits]", 1, true) ~= nil, "lookup limits trailer present")
+    TestRunner:assertTrue(bundle:find("pages 1-1 of 2 only", 1, true) ~= nil, "the range note is listed")
+    TestRunner:assertTrue(bundle:find("Tell the reader this plainly", 1, true) ~= nil, "instruction to relay it")
+    local notes = BookToolRunner._collectNotes({ { executed = { { call = { name = "toc" },
+        result = { notes = { "a", "b" }, queries = { { notes = { "b", "c" } } }, results = { { notes = { "d" } } } } } } } })
+    TestRunner:assertEqual(#notes, 4, "distinct notes across result, block and target levels")
+end)
+
 TestRunner:test("gather: prose response in gather phase is accepted as the answer", function()
     local calls = 0
     local final
@@ -951,7 +989,7 @@ TestRunner:test("gather instructions state the total lookup budget", function()
         on_complete = function() end,
     })
     TestRunner:assertTrue(
-        first_config.system.text:find("You may use at most 8 lookups in total.", 1, true) ~= nil,
+        first_config.system.text:find("You may use at most 8 lookups in total, across at most 4 rounds.", 1, true) ~= nil,
         "standard budget stated in the gather instructions")
 
     first_config = nil
@@ -964,7 +1002,7 @@ TestRunner:test("gather instructions state the total lookup budget", function()
         on_complete = function() end,
     })
     TestRunner:assertTrue(
-        first_config.system.text:find("You may use at most 4 lookups in total.", 1, true) ~= nil,
+        first_config.system.text:find("You may use at most 4 lookups in total, across at most 2 rounds.", 1, true) ~= nil,
         "quick budget stated in the gather instructions")
 end)
 

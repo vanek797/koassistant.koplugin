@@ -92,7 +92,14 @@ TestRunner:test("finds fuzzy matches", function()
     TestRunner:assertEqual(result.queries[1].results[1].page, 3, "fuzzy page")
 end)
 
-TestRunner:test("returns all search hits compactly without result cap", function()
+local function hasNote(notes, needle)
+    for _idx, note in ipairs(notes or {}) do
+        if note:find(needle, 1, true) then return true end
+    end
+    return false
+end
+
+TestRunner:test("search caps the hits it shows at 12, keeps exact totals and says so", function()
     local pages = {}
     for page = 1, 15 do
         pages[page] = "Daisy appears on page " .. page .. "."
@@ -103,11 +110,73 @@ TestRunner:test("returns all search hits compactly without result cap", function
     TestRunner:assertEqual(result.total_hits, 15, "total hits")
     TestRunner:assertEqual(result.query_count, 1, "query count")
     local block = result.queries[1]
-    TestRunner:assertEqual(block.total_hits, 15, "block total hits")
-    TestRunner:assertEqual(#block.results, 15, "returned hits")
+    TestRunner:assertEqual(block.total_hits, 15, "block total hits exact")
+    TestRunner:assertEqual(#block.results, 12, "12 hits shown by default")
+    TestRunner:assertEqual(block.shown_hits, 12, "shown_hits")
     TestRunner:assertEqual(block.matching_pages, 15, "matching pages")
-    TestRunner:assertEqual(block.page_summary[15].page, 15, "last summary page")
+    TestRunner:assertEqual(block.page_summary[15].page, 15, "page_summary keeps every page")
     TestRunner:assertEqual(block.results[1].snippet, "Daisy appears on page 1.", "compact snippet")
+    TestRunner:assertTrue(hasNote(block.notes, "Showing 12 of 15 hits"), "cap stated in a note")
+    TestRunner:assertTrue(result.notes == nil, "full scope at the last page: no range note")
+    local raised = tools:searchBook({ query = "Daisy", max_hits = 20 })
+    TestRunner:assertEqual(#raised.queries[1].results, 15, "max_hits raises the cap")
+    TestRunner:assertTrue(raised.queries[1].notes == nil, "nothing left out: no note")
+    local ceiling = tools:searchBook({ query = "Daisy", max_hits = 400 })
+    TestRunner:assertEqual(#ceiling.queries[1].results, 15, "max_hits above the ceiling still works")
+end)
+
+TestRunner:test("search spreads shown hits across pages instead of the first pages only", function()
+    local pages = {}
+    for page = 1, 8 do
+        pages[page] = "Daisy one. Daisy two. Daisy three."
+    end
+    local tools = makeToolsWithPages(pages, 8, {})
+    local block = tools:searchBook({ query = "Daisy" }).queries[1]
+    TestRunner:assertEqual(block.total_hits, 24, "24 hits in total")
+    TestRunner:assertEqual(#block.results, 12, "12 shown")
+    local pages_seen = {}
+    for _idx, hit in ipairs(block.results) do pages_seen[hit.page] = (pages_seen[hit.page] or 0) + 1 end
+    local distinct = 0
+    for _page, count in pairs(pages_seen) do
+        distinct = distinct + 1
+        TestRunner:assertTrue(count <= 2, "at most 2 hits per page")
+    end
+    TestRunner:assertEqual(distinct, 6, "hits come from 6 different pages")
+end)
+
+TestRunner:test("a query without word tokens matches literally instead of failing", function()
+    local tools = makeToolsWithPages({ "東京の空は青く、遠くに山が見えた。", "second page" }, 2, {})
+    local result = tools:searchBook({ query = "東京" })
+    TestRunner:assertTrue(result.ok, "search ok")
+    local block = result.queries[1]
+    TestRunner:assertEqual(block.total_hits, 1, "literal hit found")
+    TestRunner:assertEqual(block.results[1].match_type, "phrase", "phrase match")
+    TestRunner:assertTrue(block.results[1].snippet:find("東京", 1, true) ~= nil, "snippet contains the match")
+    TestRunner:assertTrue(hasNote(block.notes, "literal substring"), "literal matching stated")
+    TestRunner:assertEqual(block.error, nil, "no error")
+end)
+
+TestRunner:test("search under spoiler protection states the readable range", function()
+    local tools = makeTools()  -- current page 3 of 4, scope current
+    local result = tools:searchBook({ query = "spoiler" })
+    TestRunner:assertEqual(result.queries[1].total_hits, 0, "no hit within range")
+    TestRunner:assertTrue(hasNote(result.notes, "pages 1-3 of 4 only"), "range note names the ceiling")
+    TestRunner:assertTrue(hasNote(result.notes, "not evidence"), "range note says zero hits are inconclusive")
+    local full = makeFullTools():searchBook({ query = "spoiler" })
+    TestRunner:assertTrue(full.notes == nil, "full scope carries no range note")
+end)
+
+TestRunner:test("hidden flows are honored and reported on search and toc", function()
+    local tools = makeToolsWithPages(DEMO_PAGES, 4, nil, "full")
+    local document = tools.ui.document
+    document.hasHiddenFlows = function() return true end
+    document.getPageFlow = function(_self, page) return page >= 3 and 1 or 0 end
+    local search = tools:searchBook({ query = "lantern" })
+    TestRunner:assertEqual(search.queries[1].total_hits, 0, "hidden page not searched")
+    TestRunner:assertTrue(hasNote(search.notes, "2 of 4 pages are in sections the reader has hidden"), "hidden pages counted")
+    local toc = tools:toc()
+    TestRunner:assertEqual(toc.entry_count, 1, "only the visible entry listed")
+    TestRunner:assertTrue(hasNote(toc.notes, "2 entries are in sections the reader has hidden"), "hidden entries counted")
 end)
 
 TestRunner:test("search snippets are concordance-sized", function()
@@ -262,6 +331,73 @@ TestRunner:test("search_book: a multi-byte sentence chunked past MAX_SENTENCE_CH
     for _idx, hit in ipairs(block.results or {}) do
         TestRunner:assertTrue(isValidUtf8(hit.snippet or ""), "snippet " .. _idx .. " valid UTF-8")
     end
+end)
+
+local BIG_TOC = {
+    { title = "Volume 1", page = 1, depth = 1 },
+    { title = "Part I", page = 1, depth = 2 },
+    { title = "Archetypes of the Collective Unconscious", page = 1, depth = 3 },
+    { title = "Concerning Rebirth", page = 2, depth = 3 },
+    { title = "Volume 2", page = 3, depth = 1 },
+    { title = "Chapter 1", page = 3, depth = 2 },
+    { title = "Volume 3", page = 4, depth = 1 },
+    { title = "Chapter 1", page = 4, depth = 2 },
+}
+
+TestRunner:test("toc: exact totals, filters and parent paths", function()
+    local tools = makeToolsWithPages(DEMO_PAGES, 4, BIG_TOC, "full")
+    local all = tools:toc()
+    TestRunner:assertEqual(all.entry_count, 8, "all entries")
+    TestRunner:assertEqual(all.total_entries, 8, "total_entries exact")
+    TestRunner:assertEqual(all.truncated, false, "not truncated")
+    TestRunner:assertEqual(all.entries[4].path, "Volume 1 > Part I", "parent path")
+    TestRunner:assertEqual(all.entries[1].path, nil, "top level has no path")
+    local top = tools:toc({ max_depth = 1 })
+    TestRunner:assertEqual(top.entry_count, 3, "max_depth=1 lists the volumes")
+    TestRunner:assertEqual(top.entries[3].title, "Volume 3", "last volume")
+    local rebirth = tools:toc({ title_contains = "rebirth" })
+    TestRunner:assertEqual(rebirth.entry_count, 1, "title filter, case-insensitive")
+    TestRunner:assertEqual(rebirth.entries[1].path, "Volume 1 > Part I", "filtered entry keeps its path")
+    local none = tools:toc({ title_contains = "zzz" })
+    TestRunner:assertEqual(none.entry_count, 0, "no match")
+    TestRunner:assertTrue(hasNote(none.notes, "No entries match"), "no-match note")
+    local capped = tools:toc({ max_entries = 2 })
+    TestRunner:assertEqual(capped.entry_count, 2, "cap honored")
+    TestRunner:assertEqual(capped.total_entries, 8, "total still exact")
+    TestRunner:assertEqual(capped.truncated, true, "truncated flag")
+    TestRunner:assertTrue(hasNote(capped.notes, "Showing entries 1-2 of 8"), "cap stated in a note")
+end)
+
+TestRunner:test("toc under spoiler protection counts the entries past the reader", function()
+    local tools = makeToolsWithPages(DEMO_PAGES, 2, BIG_TOC)  -- reader at page 2 of 4
+    local result = tools:toc()
+    TestRunner:assertEqual(result.entry_count, 4, "entries up to the reader")
+    TestRunner:assertTrue(hasNote(result.notes, "4 entries start after the reader's current position"), "later entries counted")
+    TestRunner:assertEqual(result.entries[1].continues_past_position, true, "Volume 1 continues past the reader")
+    TestRunner:assertEqual(result.entries[3].continues_past_position, nil, "closed entry has no marker")
+end)
+
+TestRunner:test("toc without a table of contents returns no entries and says so", function()
+    local tools = makeToolsWithPages(DEMO_PAGES, 3, {})
+    local result = tools:toc()
+    TestRunner:assertTrue(result.ok, "ok")
+    TestRunner:assertEqual(result.entry_count, 0, "no synthetic entry")
+    TestRunner:assertTrue(hasNote(result.notes, "no table of contents"), "stated")
+end)
+
+TestRunner:test("read_around states a moved target and truncated batches", function()
+    local tools = makeTools()  -- reader at page 3 of 4
+    local moved = tools:readAround({ page = 4, before_pages = 0, after_pages = 0 })
+    TestRunner:assertTrue(moved.ok, "ok")
+    TestRunner:assertEqual(moved.page, 3, "clamped to the reader")
+    TestRunner:assertTrue(hasNote(moved.notes, "Page 4 is past the readable range"), "move stated")
+    TestRunner:assertEqual(moved.chars, #moved.text, "chars describes the returned text")
+    local batch = tools:readAround({ pages = { 1, 2, 3, 1, 2 }, before_pages = 0, after_pages = 0 })
+    TestRunner:assertEqual(batch.target_count, 4, "4 targets read")
+    TestRunner:assertTrue(hasNote(batch.notes, "Read 4 of 5 requested targets"), "batch cap stated")
+    local skipped = tools:readAround({ hit_ids = { "nonsense", "q1:p1:1" }, before_pages = 0, after_pages = 0 })
+    TestRunner:assertEqual(skipped.target_count, 1, "one resolved")
+    TestRunner:assertTrue(hasNote(skipped.notes, "1 target(s) could not be resolved"), "skip stated")
 end)
 
 return TestRunner:summary()

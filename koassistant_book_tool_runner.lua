@@ -33,7 +33,7 @@ local SHOW_TURN_TOKEN_USAGE = true
 
 local TOOL_INSTRUCTIONS = [[
 
-When answering questions about the current book, use the local book tools when you need evidence from the text. Prefer search_book for specific phrases, character names, objects, or events; it returns all matching hit references with short concordance excerpts and page counts. Batch related lookups: pass multiple terms via search_book queries=[...] and multiple targets via read_around hit_ids=[...] / pages=[...] in a single call to avoid extra round trips. Use read_around for surrounding context, and toc for chapter structure.]]
+When answering questions about the current book, use the local book tools when you need evidence from the text. Prefer search_book for specific phrases, character names, objects, or events; it returns all matching hit references with short concordance excerpts and page counts. Batch related lookups: pass multiple terms via search_book queries=[...] and multiple targets via read_around hit_ids=[...] / pages=[...] in a single call to avoid extra round trips. Use read_around for surrounding context, and toc for chapter structure. Every tool result carries a notes field stating what it could not search, list or read; a zero-hit result under such a note is inconclusive, not evidence of absence, and the note belongs in your answer.]]
 
 -- Reading-scope clause appended to the tool instructions. "current" enforces spoiler safety
 -- (the model is also clamped in BookTools); "full" lets it use the whole document.
@@ -42,7 +42,7 @@ local SCOPE_NOTE_FULL = " The tools can read the entire document."
 
 local FINAL_INSTRUCTIONS = [[
 
-Use the gathered local book tool results to answer the user's question.]]
+Use the gathered local book tool results to answer the user's question. If a result notes pages, entries or hits that were not searched or listed, say so in your answer rather than filling the gap from memory.]]
 
 local FINAL_NOTE_CURRENT = " Do not use or reveal any information about events or plot developments beyond the user's current reading position."
 
@@ -51,12 +51,12 @@ local FINAL_NOTE_CURRENT = " Do not use or reveal any information about events o
 -- (streamed, web-search-capable) request with the gathered passages injected.
 local GATHER_INSTRUCTIONS = [[
 
-GATHER PHASE: Do not answer the user's question yet. Use the book tools (search_book, read_around, toc) to collect the passages needed to answer it; batch related lookups in one call. When you have gathered enough evidence — or if the question needs no book lookups — call the done tool. In this phase respond only with tool calls, never with prose.]]
+GATHER PHASE: Do not answer the user's question yet. Use the book tools (search_book, read_around, toc) to collect the passages needed to answer it; batch related lookups in one call. When you have gathered enough evidence — or if the question needs no book lookups — call the done tool. In this phase respond only with tool calls, never with prose. Every tool result carries a notes field stating what it could not search, list or read: read it before deciding you are done.]]
 
 local FUNCTION_DECLARATIONS = {
     {
         name = "search_book",
-        description = "Search the readable book text. Pass multiple terms via queries=[...] to batch lookups in one call. Returns per-query blocks with compact hit metadata and short concordance excerpts; hit IDs are namespaced (e.g. q1:p42:3). Call read_around for surrounding context.",
+        description = "Search the readable book text. Pass multiple terms via queries=[...] to batch lookups in one call. Returns per-query blocks with at most 12 hits each (raise with max_hits, up to 40), best score first and at most 2 per page; total_hits is always the exact count and page_summary lists the pages with hits. Anything left out (hits, pages, hidden sections) is stated in notes. Hit IDs are namespaced (e.g. q1:p42:3); call read_around for surrounding context.",
         parameters = {
             type = "object",
             properties = {
@@ -77,12 +77,16 @@ local FUNCTION_DECLARATIONS = {
                     type = "boolean",
                     description = "Require exact casing. Defaults to false.",
                 },
+                max_hits = {
+                    type = "integer",
+                    description = "Hits returned per query. Defaults to 12, capped at 40.",
+                },
             },
         },
     },
     {
         name = "read_around",
-        description = "Read surrounding text near one or more search hits or page numbers, capped to a small range within the readable range.",
+        description = "Read surrounding text near one or more search hits or page numbers: up to 5 pages and 8000 characters per target, 4 targets per call, within the readable range. Notes state any target that was moved, skipped or cut.",
         parameters = {
             type = "object",
             properties = {
@@ -128,7 +132,7 @@ local FUNCTION_DECLARATIONS = {
     },
     {
         name = "toc",
-        description = "List table-of-contents entries within the readable range. No snippets are included by default.",
+        description = "List table-of-contents entries within the readable range: at most 120 per call, in document order, out of possibly many more; total_entries is the exact count of matching entries. On a large book narrow first: max_depth=1 lists only the top level (volumes or parts), title_contains filters by title, and each entry carries its parent path. No snippets by default. Entries left out (cap, hidden sections, past the reader's position) are stated in notes.",
         parameters = {
             type = "object",
             properties = {
@@ -138,7 +142,15 @@ local FUNCTION_DECLARATIONS = {
                 },
                 max_entries = {
                     type = "integer",
-                    description = "Maximum number of TOC entries. Defaults to 120.",
+                    description = "Maximum number of TOC entries. Defaults to 120 (the ceiling).",
+                },
+                max_depth = {
+                    type = "integer",
+                    description = "Only entries at this depth or shallower (1 = top level).",
+                },
+                title_contains = {
+                    type = "string",
+                    description = "Only entries whose title contains this text (case-insensitive).",
                 },
             },
         },
@@ -252,7 +264,7 @@ local function buildToolConfig(config, mode, reading_scope)
     if mode ~= "final" then
         local budget = budgetFor(tool_config.features)
         instructions = instructions
-            .. string.format(" You may use at most %d lookups in total.", budget.calls)
+            .. string.format(" You may use at most %d lookups in total, across at most %d rounds.", budget.calls, budget.turns)
     end
     tool_config.system = tool_config.system or {}
     tool_config.system.text = (tool_config.system.text or "") .. instructions
@@ -357,7 +369,7 @@ local function liveSpoilerLine(cfg, ui)
     -- general chat — general/library must never reach here, _spoiler_live
     -- stays nil for them): log every ACTUAL injection so a logged round can
     -- separate our line from the model's own spoiler-awareness.
-    require("koassistant_logger").info("KOAssistant: live spoiler line appended — progress:",
+    require("koassistant_logger").dbg("KOAssistant: live spoiler line appended — progress:",
         progress or "none", "book:", book_file or (book_open and "open") or "?")
     if not progress or progress == "" or progress == "0%" then
         return Templates.SPOILER_FREE_NUDGE_NO_PROGRESS
@@ -453,6 +465,14 @@ local function appendTrace(answer, trace)
     return answer .. "\n" .. table.concat(lines, "\n")
 end
 
+-- Notes ride the result table (the JSON the model sees during the rounds); the bundle
+-- prints them too so phase 2 inherits every disclosure.
+local function noteLines(lines, notes, indent)
+    for _idx, note in ipairs(notes or {}) do
+        table.insert(lines, (indent or "  ") .. "note: " .. tostring(note))
+    end
+end
+
 local function formatToolResultText(name, result)
     result = result or {}  -- defensive, mirrors summarizeToolCall (BookTools:execute always returns a table)
     if result.ok == false then
@@ -463,6 +483,7 @@ local function formatToolResultText(name, result)
     if name == "search_book" then
         local query_count = result.query_count or (result.queries and #result.queries) or 0
         local lines = {}
+        noteLines(lines, result.notes)
         if result.queries then
             for q_index, block in ipairs(result.queries) do
                 table.insert(lines, string.format("  [q%d %q] %d hit(s) across %d page(s)",
@@ -470,6 +491,7 @@ local function formatToolResultText(name, result)
                     block.query or "",
                     block.total_hits or 0,
                     block.matching_pages or 0))
+                noteLines(lines, block.notes, "    ")
                 local page_lines = {}
                 if block.page_summary then
                     for i, page in ipairs(block.page_summary) do
@@ -509,8 +531,10 @@ local function formatToolResultText(name, result)
     elseif name == "read_around" then
         if result.results then
             local lines = { string.format("read_around: %d targets", result.target_count or #result.results) }
+            noteLines(lines, result.notes)
             for _idx, item in ipairs(result.results) do
                 local range = item.range or {}
+                noteLines(lines, item.notes)
                 table.insert(lines, string.format("  [%s, pp. %s-%s] %s",
                     item.hit_id or ("p" .. tostring(item.page or "?")),
                     tostring(range.start_page or "?"),
@@ -520,20 +544,25 @@ local function formatToolResultText(name, result)
             return table.concat(lines, "\n")
         else
             local range = result.range or {}
-            return string.format("read_around: pp. %s-%s\n  %s",
+            local lines = { string.format("read_around: pp. %s-%s",
                 tostring(range.start_page or "?"),
-                tostring(range.end_page or "?"),
-                result.text or "")
+                tostring(range.end_page or "?")) }
+            noteLines(lines, result.notes)
+            table.insert(lines, "  " .. (result.text or ""))
+            return table.concat(lines, "\n")
         end
     elseif name == "toc" then
         local lines = {}
+        noteLines(lines, result.notes)
         if result.entries then
             for _idx, entry in ipairs(result.entries) do
                 local snippet = entry.snippet and #entry.snippet > 0 and (": " .. entry.snippet) or ""
-                table.insert(lines, string.format("  %s (pp. %d-%d)%s",
+                table.insert(lines, string.format("  %s%s (pp. %d-%d%s)%s",
+                    entry.path and (entry.path .. " > ") or "",
                     entry.title or "",
                     entry.start_page or 0,
                     entry.end_page or 0,
+                    entry.continues_past_position and ", continues past the reader's position" or "",
                     snippet))
             end
         end
@@ -551,6 +580,49 @@ local function truncateSection(text, max_chars)
         return text
     end
     return ScopeResolver.utf8Head(text, max_chars - 3) .. "..."
+end
+
+-- Every distinct note the session's tool results carried (result, per-query block and
+-- per-target levels), in first-seen order. Phase 2 is a normal request with the original
+-- system prompt, so the notes must ride the context block itself to reach the answer.
+local function collectNotes(tool_outputs)
+    local notes, seen = {}, {}
+    local function take(list)
+        for _idx, note in ipairs(list or {}) do
+            if not seen[note] then
+                seen[note] = true
+                table.insert(notes, note)
+            end
+        end
+    end
+    for _idx, output in ipairs(tool_outputs or {}) do
+        for _jdx, item in ipairs(output.executed or {}) do
+            local result = item.result
+            if type(result) == "table" then
+                take(result.notes)
+                for _kdx, block in ipairs(result.queries or {}) do take(block.notes) end
+                for _kdx, target in ipairs(result.results or {}) do
+                    if type(target) == "table" then take(target.notes) end
+                end
+            end
+        end
+    end
+    return notes
+end
+BookToolRunner._collectNotes = collectNotes  -- exposed for unit tests
+
+local LOOKUP_LIMITS_HEADER = "[Lookup limits]\nThe book lookups above could not see everything:"
+local LOOKUP_LIMITS_FOOTER = "Tell the reader this plainly in your answer. Do not fill the gap from memory or the web without saying that the book itself was not consulted for it."
+
+local function lookupLimitsBlock(tool_outputs)
+    local notes = collectNotes(tool_outputs)
+    if #notes == 0 then return nil end
+    local lines = { LOOKUP_LIMITS_HEADER }
+    for _idx, note in ipairs(notes) do
+        table.insert(lines, "- " .. note)
+    end
+    table.insert(lines, LOOKUP_LIMITS_FOOTER)
+    return table.concat(lines, "\n")
 end
 
 -- Gather mode: assemble the phase-2 context bundle from the session's tool results.
@@ -580,7 +652,8 @@ local function buildGatherBundle(tool_outputs, bundle_chars)
                         table.insert(sections, section)
                         total = total + #section
                     elseif remaining > 500 then
-                        table.insert(sections, truncateSection(section, remaining))
+                        table.insert(sections, truncateSection(section, remaining)
+                            .. "\n(this result was cut here to fit the context bundle)")
                         total = bundle_chars
                     else
                         omitted = omitted + 1
@@ -917,8 +990,10 @@ function BookToolRunner.run(params)
         local gen_messages = copyMessages(params.messages)
         local bundle = buildGatherBundle(tool_outputs, budget.bundle_chars)
         local context_text
+        local limits = lookupLimitsBlock(tool_outputs)
         if bundle and #bundle > 0 then
             context_text = "[Passages retrieved from the book for this question]\n" .. bundle
+            if limits then context_text = context_text .. "\n\n" .. limits end
         elseif tool_calls > 0 then
             -- Lookups ran but returned nothing usable: say so honestly instead of letting
             -- the model imply it read the text (same spirit as {text_fallback_nudge}).
@@ -937,6 +1012,7 @@ function BookToolRunner.run(params)
             else
                 context_text = "[Book lookup note]\nBook lookups found no relevant passages for this question. Answer from the conversation and general knowledge, and say so when the book text would have been needed."
             end
+            if limits then context_text = context_text .. "\n\n" .. limits end
         end
         if context_text then
             local insert_at = #gen_messages + 1
