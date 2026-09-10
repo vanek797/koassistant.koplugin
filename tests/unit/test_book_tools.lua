@@ -724,4 +724,45 @@ TestRunner:test("read_around states a moved target and truncated batches", funct
     TestRunner:assertTrue(hasNote(skipped.notes, "1 target(s) could not be resolved"), "skip stated")
 end)
 
+TestRunner:test("isRoutineNote: caps are routine, unreachable parts of the book are not", function()
+    local routine = {
+        'Showing 12 of 42 hits for "x" (highest scoring first, at most 2 per page); total_hits is the exact count.',
+        "page_summary lists the first 40 of 90 pages with hits.",
+        "3 of the shown hits contain only some of the query words (match_type partial; the missing words are listed). Full matches rank above them.",
+        "This query has no word tokens (for example CJK text), so it was matched as a literal substring.",
+        "2 very common word(s) of the query (over 5000 occurrences) did not narrow the search; only sentences holding at least one of the other words were counted.",
+        "The passage was cut to 8000 characters; ask for fewer pages or a narrower target for the rest.",
+        "Read 4 of 6 requested targets (limit 4 per call); ask again for the rest.",
+        "1 target(s) could not be resolved (unknown hit_id or missing page) and were skipped.",
+        "This book has no table of contents; pages 1-9 are readable.",
+        "No entries match the given title_contains / max_depth filters within the readable range.",
+        "The contents has 400 matching entries, more than the 120-per-call limit, so only levels 1-2 are listed (80 entries); deeper levels need max_depth or title_contains.",
+        "Showing entries 1-120 of 400 matching entries in document order (limit 120 per call). Narrow with max_depth (1 = top level) or title_contains.",
+    }
+    for _idx, note in ipairs(routine) do
+        TestRunner:assertTrue(BookTools.isRoutineNote(note), "routine: " .. note:sub(1, 40))
+    end
+    local material = {
+        "This call covers pages 1-9 of 40 only (the reader's current position). The 31 later pages are out of reach while spoiler protection is on: a missing hit is not evidence that the book lacks it, so say so instead of answering from memory.",
+        "2 of 4 pages are in sections the reader has hidden (KOReader hidden flows) and were not searched.",
+        "Page 12 is past the readable range (the reader is at page 9 of 40); pages 8-9 were read instead.",
+        "Only the first 5000 occurrences, from the start of the book, were checked; narrow the query for the rest.",
+        "Every word of this query is very common, so only sentences holding the exact phrase were counted (single words and partial matches were not).",
+        "5 entries start after the reader's current position (page 9 of 40) and were not listed; spoiler protection keeps them out of reach.",
+        "2 entries are in sections the reader has hidden (KOReader hidden flows) and were not listed.",
+        "The lookup budget for this call was spent on earlier queries; ask again with fewer queries.",
+    }
+    for _idx, note in ipairs(material) do
+        TestRunner:assertTrue(not BookTools.isRoutineNote(note), "material: " .. note:sub(1, 40))
+    end
+    -- The live wording: a real result's routine notes classify as routine.
+    local tools = makeTools()
+    local block = tools:searchBook({ query = "white rabbit garden" }).queries[1]
+    for _idx, note in ipairs(block.notes or {}) do
+        TestRunner:assertTrue(BookTools.isRoutineNote(note), "live partial note is routine")
+    end
+    local range = tools:searchBook({ query = "rabbit" })
+    TestRunner:assertTrue(not BookTools.isRoutineNote(range.notes[1]), "live range note is material")
+end)
+
 return TestRunner:summary()

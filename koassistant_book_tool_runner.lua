@@ -37,7 +37,7 @@ local SHOW_TURN_TOKEN_USAGE = true
 
 local TOOL_INSTRUCTIONS = [[
 
-When answering questions about the current book, use the local book tools when you need evidence from the text. Prefer search_book for specific phrases, character names, objects, or events; it returns all matching hit references with short concordance excerpts and page counts. Batch related lookups: pass multiple terms via search_book queries=[...] and multiple targets via read_around hit_ids=[...] / pages=[...] in a single call to avoid extra round trips. Use read_around for surrounding context, and toc for chapter structure; to find a chapter or essay by its title, call toc with title_contains rather than searching the text for the title. Every tool result carries a notes field stating what it could not search, list or read; a zero-hit result under such a note is inconclusive, not evidence of absence, and the note belongs in your answer.]]
+When answering questions about the current book, use the local book tools when you need evidence from the text. Prefer search_book for specific phrases, character names, objects, or events; it returns all matching hit references with short concordance excerpts and page counts. Batch related lookups: pass multiple terms via search_book queries=[...] and multiple targets via read_around hit_ids=[...] / pages=[...] in a single call to avoid extra round trips. Use read_around for surrounding context, and toc for chapter structure; to find a chapter or essay by its title, call toc with title_contains rather than searching the text for the title. Every tool result carries a notes field stating what it could not search, list or read; a zero-hit result under such a note is inconclusive, not evidence of absence. Mention such a limit in your answer only where it bears on the question; never describe the lookups themselves, their caps or hit counts.]]
 
 -- Reading-scope clause appended to the tool instructions. "current" enforces spoiler safety
 -- (the model is also clamped in BookTools); "full" lets it use the whole document.
@@ -46,7 +46,7 @@ local SCOPE_NOTE_FULL = " The tools can read the entire document."
 
 local FINAL_INSTRUCTIONS = [[
 
-Use the gathered local book tool results to answer the user's question. If a result notes pages, entries or hits that were not searched or listed, say so in your answer rather than filling the gap from memory.]]
+Use the gathered local book tool results to answer the user's question. Do not describe the lookups, their caps, hit counts, partial matches or cut passages. If a part of the book was out of reach for this question, say so in one sentence rather than filling the gap from memory.]]
 
 local FINAL_NOTE_CURRENT = " Do not use or reveal any information about events or plot developments beyond the user's current reading position."
 
@@ -520,7 +520,16 @@ local function summarizeToolCall(call, result)
             return string.format("read_around: pp. %s-%s", tostring(range.start_page or "?"), tostring(range.end_page or "?"))
         end
     elseif name == "toc" then
-        return string.format("toc: %d entries", result.entry_count or 0)
+        local args = type(call.args) == "table" and call.args or {}
+        local filters = {}
+        if type(args.title_contains) == "string" and args.title_contains ~= "" then
+            table.insert(filters, string.format("title contains %q", args.title_contains))
+        end
+        if tonumber(args.max_depth) then
+            table.insert(filters, string.format("depth <= %d", tonumber(args.max_depth)))
+        end
+        return string.format("toc: %d entries%s", result.entry_count or 0,
+            #filters > 0 and (" (" .. table.concat(filters, ", ") .. ")") or "")
     end
     return name
 end
@@ -659,11 +668,14 @@ end
 -- Every distinct note the session's tool results carried (result, per-query block and
 -- per-target levels), in first-seen order. Phase 2 is a normal request with the original
 -- system prompt, so the notes must ride the context block itself to reach the answer.
+-- The notes worth relaying to the reader: parts of the book a lookup could not reach,
+-- and lookups that could not run (error blocks). Routine caps (BookTools.isRoutineNote)
+-- stay in the tool results the model already read.
 local function collectNotes(tool_outputs)
     local notes, seen = {}, {}
     local function take(list)
         for _idx, note in ipairs(list or {}) do
-            if not seen[note] then
+            if type(note) == "string" and not seen[note] and not BookTools.isRoutineNote(note) then
                 seen[note] = true
                 table.insert(notes, note)
             end
@@ -674,7 +686,11 @@ local function collectNotes(tool_outputs)
             local result = item.result
             if type(result) == "table" then
                 take(result.notes)
-                for _kdx, block in ipairs(result.queries or {}) do take(block.notes) end
+                if type(result.error) == "string" then take({ result.error }) end
+                for _kdx, block in ipairs(result.queries or {}) do
+                    take(block.notes)
+                    if type(block.error) == "string" then take({ block.error }) end
+                end
                 for _kdx, target in ipairs(result.results or {}) do
                     if type(target) == "table" then take(target.notes) end
                 end
@@ -684,9 +700,10 @@ local function collectNotes(tool_outputs)
     return notes
 end
 BookToolRunner._collectNotes = collectNotes  -- exposed for unit tests
+BookToolRunner._summarizeToolCall = summarizeToolCall  -- exposed for unit tests
 
-local LOOKUP_LIMITS_HEADER = "[Lookup limits]\nThe book lookups above could not see everything:"
-local LOOKUP_LIMITS_FOOTER = "Tell the reader this in one or two plain sentences at the end of your answer (no list, no hit counts unless they matter to the question). Do not fill the gap from memory or the web without saying that the book itself was not consulted for it."
+local LOOKUP_LIMITS_HEADER = "[Lookup limits]\nParts of the book the lookups above could not reach:"
+local LOOKUP_LIMITS_FOOTER = "Mention this in one plain sentence at the end of your answer only where it could change the answer (a part of the book out of reach, a lookup that could not run); otherwise say nothing about the lookups. Never fill such a gap from memory or the web without saying that the book itself was not consulted for it."
 
 local function lookupLimitsBlock(tool_outputs)
     local notes = collectNotes(tool_outputs)
@@ -698,6 +715,7 @@ local function lookupLimitsBlock(tool_outputs)
     table.insert(lines, LOOKUP_LIMITS_FOOTER)
     return table.concat(lines, "\n")
 end
+BookToolRunner._lookupLimitsBlock = lookupLimitsBlock  -- exposed for unit tests
 
 -- Gather mode: assemble the phase-2 context bundle from the session's tool results.
 -- Chronological; identical formatted sections deduplicate (repeated identical lookups

@@ -71,6 +71,34 @@ local function addNote(result, text)
     table.insert(result.notes, text)
 end
 
+-- Routine notes describe a cap the model already worked with (hits shown of a total, a
+-- cut passage, a partial match): they belong in the tool result, not in the reader's
+-- answer. Every other note names a part of the book the lookup could not reach (the
+-- spoiler ceiling, hidden sections, a moved target, occurrences past the search cap, a
+-- spent budget); the runner's "[Lookup limits]" block relays only those. Patterns are
+-- anchored on the fixed wording below; test_book_tools guards the pairing.
+local ROUTINE_NOTE_PATTERNS = {
+    "^Showing %d+ of %d+ hits",
+    "^page_summary lists the first",
+    " of the shown hits contain only some of the query words",
+    "^This query has no word tokens",
+    " very common word%(s%) of the query",
+    "^The passage was cut to",
+    "^Read %d+ of %d+ requested targets",
+    " could not be resolved %(unknown hit_id",
+    "^This book has no table of contents",
+    "^No entries match the given",
+    "^The contents has %d+ matching entries, more than",
+    "^Showing entries 1%-%d+ of %d+ matching entries",
+}
+
+function BookTools.isRoutineNote(text)
+    for _idx, pattern in ipairs(ROUTINE_NOTE_PATTERNS) do
+        if tostring(text):find(pattern) then return true end
+    end
+    return false
+end
+
 local function clamp(value, min_value, max_value)
     value = tonumber(value) or min_value
     if value < min_value then return min_value end

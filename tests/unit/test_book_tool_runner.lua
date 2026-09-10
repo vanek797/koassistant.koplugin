@@ -821,10 +821,26 @@ TestRunner:test("gather: tool notes ride the phase-2 context block as lookup lim
     TestRunner:assertTrue(bundle ~= nil, "bundle present")
     TestRunner:assertTrue(bundle:find("[Lookup limits]", 1, true) ~= nil, "lookup limits trailer present")
     TestRunner:assertTrue(bundle:find("pages 1-1 of 2 only", 1, true) ~= nil, "the range note is listed")
-    TestRunner:assertTrue(bundle:find("Tell the reader this in one or two plain sentences", 1, true) ~= nil, "instruction to relay it, briefly")
+    TestRunner:assertTrue(bundle:find("only where it could change the answer", 1, true) ~= nil, "instruction to relay it only where it matters")
     local notes = BookToolRunner._collectNotes({ { executed = { { call = { name = "toc" },
-        result = { notes = { "a", "b" }, queries = { { notes = { "b", "c" } } }, results = { { notes = { "d" } } } } } } } })
-    TestRunner:assertEqual(#notes, 4, "distinct notes across result, block and target levels")
+        result = { notes = { "a", "b" }, queries = { { notes = { "b", "c" }, error = "The lookup budget for this call was spent" } }, results = { { notes = { "d" } } } } } } } })
+    TestRunner:assertEqual(#notes, 5, "distinct notes across result, block and target levels, plus a block error")
+    -- Routine caps never reach the reader's answer: no trailer when every note is routine.
+    local routine = BookToolRunner._collectNotes({ { executed = { { call = { name = "search_book" },
+        result = { queries = { { notes = {
+            "Showing 12 of 42 hits for \"x\" (highest scoring first, at most 2 per page); total_hits is the exact count.",
+            "page_summary lists the first 40 of 90 pages with hits.",
+            "3 of the shown hits contain only some of the query words (match_type partial; the missing words are listed). Full matches rank above them.",
+        } } }, results = { { notes = { "The passage was cut to 8000 characters; ask for fewer pages or a narrower target for the rest." } } } } } } } })
+    TestRunner:assertEqual(#routine, 0, "routine notes filtered")
+    TestRunner:assertEqual(BookToolRunner._lookupLimitsBlock({ { executed = { { call = { name = "search_book" },
+        result = { notes = { "Showing 12 of 42 hits for \"x\" (highest scoring first, at most 2 per page); total_hits is the exact count." } } } } } }), nil, "no trailer for routine notes")
+end)
+
+TestRunner:test("summarizeToolCall: a toc line shows the filters that produced it", function()
+    local line = BookToolRunner._summarizeToolCall({ name = "toc", args = { title_contains = "four archetypes", max_depth = 2 } }, { entry_count = 0 })
+    TestRunner:assertEqual(line, 'toc: 0 entries (title contains "four archetypes", depth <= 2)', "filters shown")
+    TestRunner:assertEqual(BookToolRunner._summarizeToolCall({ name = "toc" }, { entry_count = 3 }), "toc: 3 entries", "plain when unfiltered")
 end)
 
 TestRunner:test("gather: prose response in gather phase is accepted as the answer", function()
