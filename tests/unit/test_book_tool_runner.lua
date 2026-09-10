@@ -133,7 +133,7 @@ TestRunner:test("spoiler protection off → tools get full-document reading scop
         query_fn = query_fn,
         messages = { { role = "user", content = "hi" } },
         -- §4.3 flip: opting out now takes an explicit false
-        config = { provider = "gemini", features = { is_book_context = true, spoiler_free_chat = false } },
+        config = { provider = "gemini", features = { is_book_context = true, spoiler_free_chat = false, tool_whole_text = false } },
         ui = makeUi(),
         on_complete = function() end,
     })
@@ -150,7 +150,7 @@ TestRunner:test("nothing set → tools clamp by default (the §4.3 flip)", funct
     BookToolRunner.run({
         query_fn = query_fn,
         messages = { { role = "user", content = "hi" } },
-        config = { provider = "gemini", features = { is_book_context = true } },
+        config = { provider = "gemini", features = { is_book_context = true, tool_whole_text = false } },
         ui = makeUi(),
         on_complete = function() end,
     })
@@ -167,7 +167,7 @@ TestRunner:test("spoiler-free on → tools are clamped to the current page", fun
     BookToolRunner.run({
         query_fn = query_fn,
         messages = { { role = "user", content = "hi" } },
-        config = { provider = "gemini", features = { is_book_context = true, spoiler_free_chat = true } },
+        config = { provider = "gemini", features = { is_book_context = true, spoiler_free_chat = true, tool_whole_text = false } },
         ui = makeUi(),
         on_complete = function() end,
     })
@@ -178,6 +178,7 @@ end)
 TestRunner:test("session spoiler checkbox overrides global for tool scope", function()
     local function scope_msg_for(features)
         local captured
+        features.tool_whole_text = false
         BookToolRunner.run({
             query_fn = function(messages, _c, cb) captured = messages[#messages].content; cb(true, "ok") end,
             messages = { { role = "user", content = "hi" } },
@@ -521,6 +522,9 @@ local function gatherConfig(extra)
         is_book_context = true,
         tool_mode = "gather",
         enable_streaming = false,
+        -- The two-page test book always fits the whole-text budget; the round-based
+        -- tests below opt out so the rounds they exercise still run.
+        tool_whole_text = false,
     }
     for k, v in pairs(extra or {}) do features[k] = v end
     return { provider = "gemini", features = features }
@@ -656,7 +660,7 @@ TestRunner:test("gather: empty bundle note mentions web search when available", 
                 callback(true, "answer")
             end
         end
-        local features = { is_book_context = true, tool_mode = "gather",
+        local features = { is_book_context = true, tool_mode = "gather", tool_whole_text = false,
             enable_streaming = false }
         for k, v in pairs(features_extra or {}) do features[k] = v end
         BookToolRunner.run({
@@ -982,6 +986,102 @@ TestRunner:test("book text language: off by default, per-book override wins over
     TestRunner:assertTrue(per_book_typed:find("Book text language: German and Latin.", 1, true) ~= nil, "typed text rides as is")
 end)
 
+TestRunner:test("gather: a readable text that fits is sent whole, no rounds", function()
+    local calls = 0
+    local seen_messages, seen_config, final
+    local function query_fn(messages, config, callback)
+        calls = calls + 1
+        seen_messages, seen_config = messages, config
+        callback(true, "Answer from the text.")
+    end
+    local ui = makeUi()
+    ui.view.state.page = 1  -- protection on: page 1 of 2 readable
+    BookToolRunner.run({
+        query_fn = query_fn,
+        messages = { { role = "user", content = "who is mentioned in a letter?" } },
+        config = gatherConfig({ tool_whole_text = true }),
+        ui = ui,
+        on_complete = function(_s, answer, _err, _reasoning, provenance)
+            final = { answer = answer, provenance = provenance }
+        end,
+    })
+    TestRunner:assertEqual(calls, 1, "one request: no gather round at all")
+    TestRunner:assertTrue(seen_config.tools == nil, "phase 2 declares no tools")
+    local block
+    for _i, m in ipairs(seen_messages) do
+        if type(m.content) == "string" and m.content:find("[The book's readable text, in full]", 1, true) then
+            block = m
+        end
+    end
+    TestRunner:assertTrue(block ~= nil, "whole-text block injected")
+    TestRunner:assertEqual(block.is_context, true, "as context")
+    TestRunner:assertTrue(block.content:find("Pages 1-1 of 2, up to the reader's current position", 1, true) ~= nil, "range line under protection")
+    TestRunner:assertTrue(block.content:find("Daisy was mentioned in a letter", 1, true) ~= nil, "page 1 text present")
+    TestRunner:assertEqual(block.content:find("garden path", 1, true), nil, "page 2 stays out of reach")
+    TestRunner:assertEqual(final.answer, "Answer from the text.", "answer unchanged")
+    TestRunner:assertTrue(type(final.provenance) == "table" and type(final.provenance.book_tools) == "table", "book provenance present")
+    TestRunner:assertEqual(final.provenance.book_tools.lookups, 0, "zero lookups")
+    TestRunner:assertEqual(final.provenance.book_tools.whole_text, true, "flagged as whole text")
+    TestRunner:assertTrue(final.provenance.book_tools.trace[1]:find("read the readable text in full: pp. 1-1 of 2", 1, true) ~= nil, "trace line")
+
+    -- Full reach: the range line says so and both pages ride.
+    calls = 0
+    BookToolRunner.run({
+        query_fn = query_fn,
+        messages = { { role = "user", content = "hi" } },
+        config = gatherConfig({ tool_whole_text = true, spoiler_free_chat = false }),
+        ui = makeUi(),
+        on_complete = function() end,
+    })
+    for _i, m in ipairs(seen_messages) do
+        if type(m.content) == "string" and m.content:find("[The book's readable text, in full]", 1, true) then
+            TestRunner:assertTrue(m.content:find("Pages 1-2, the whole book.", 1, true) ~= nil, "whole-book range line")
+            TestRunner:assertTrue(m.content:find("garden path", 1, true) ~= nil, "page 2 included")
+        end
+    end
+
+    -- Over budget: the search rounds run as before (quick effort, 32K budget, oversized page).
+    calls = 0
+    local big = makeUi()
+    local filler = string.rep("word ", 7000)  -- 35,000 chars on page 1
+    big.document.getPageText = function(_self, page) return page == 1 and filler or "second page" end
+    local function rounds_fn(messages, _config, callback)
+        calls = calls + 1
+        if calls == 1 then callback(true, doneAnswer()) else callback(true, "answer") end
+    end
+    BookToolRunner.run({
+        query_fn = rounds_fn,
+        messages = { { role = "user", content = "hi" } },
+        config = gatherConfig({ tool_whole_text = true, tool_lookup_effort = "quick", spoiler_free_chat = false }),
+        ui = big,
+        on_complete = function() end,
+    })
+    TestRunner:assertEqual(calls, 2, "text over the budget: a gather round ran, then phase 2")
+end)
+
+TestRunner:test("gatherForAction: a readable text that fits is returned whole", function()
+    local calls = 0
+    local result, info_out
+    BookToolRunner.gatherForAction({
+        question = "Task: Explain",
+        query_fn = function(_m, _c, callback) calls = calls + 1; callback(true, doneAnswer()) end,
+        config = { provider = "gemini", features = { is_book_context = true, spoiler_free_chat = false } },
+        ui = makeUi(),
+        on_complete = function(bundle, info) result, info_out = bundle, info end,
+    })
+    TestRunner:assertEqual(calls, 0, "no gather request")
+    TestRunner:assertTrue(type(result) == "string" and result:find("[The book's readable text, in full]", 1, true) ~= nil, "bundle is the text")
+    TestRunner:assertTrue(result:find("garden path", 1, true) ~= nil, "both pages present")
+    TestRunner:assertEqual(info_out.whole_text, true, "info flags whole text")
+    TestRunner:assertEqual(info_out.tool_calls, 0, "no lookups")
+end)
+
+TestRunner:test("budgets carry the whole-text limit per effort", function()
+    TestRunner:assertEqual(BookToolRunner.budgetFor({ tool_lookup_effort = "quick" }).whole_chars, 32000, "quick")
+    TestRunner:assertEqual(BookToolRunner.budgetFor({}).whole_chars, 64000, "standard")
+    TestRunner:assertEqual(BookToolRunner.budgetFor({ tool_lookup_effort = "thorough" }).whole_chars, 128000, "thorough")
+end)
+
 TestRunner:test("gather: zero lookups leave a note saying the book was not consulted", function()
     local calls = 0
     local gen_messages
@@ -1140,7 +1240,7 @@ TestRunner:test("gather instructions state the total lookup budget", function()
     BookToolRunner.run({
         query_fn = query_fn,
         messages = { { role = "user", content = "hi" } },
-        config = { provider = "gemini", features = { is_book_context = true } },
+        config = { provider = "gemini", features = { is_book_context = true, tool_whole_text = false } },
         ui = makeUi(),
         on_complete = function() end,
     })
@@ -1153,7 +1253,7 @@ TestRunner:test("gather instructions state the total lookup budget", function()
         query_fn = query_fn,
         messages = { { role = "user", content = "hi" } },
         config = { provider = "gemini",
-            features = { is_book_context = true, tool_lookup_effort = "quick" } },
+            features = { is_book_context = true, tool_lookup_effort = "quick", tool_whole_text = false } },
         ui = makeUi(),
         on_complete = function() end,
     })
@@ -1188,7 +1288,7 @@ TestRunner:test("the round's last tool result carries the remaining lookup budge
     BookToolRunner.run({
         query_fn = query_fn,
         messages = { { role = "user", content = "Where is Daisy?" } },
-        config = { provider = "gemini", features = { is_book_context = true } },
+        config = { provider = "gemini", features = { is_book_context = true, tool_whole_text = false } },
         ui = makeUi(),
         on_complete = function() end,
     })
@@ -1228,7 +1328,7 @@ TestRunner:test("quick effort caps the gather loop at 2 turns", function()
         query_fn = query_fn,
         messages = { { role = "user", content = "hi" } },
         config = { provider = "gemini",
-            features = { is_book_context = true, tool_lookup_effort = "quick" } },
+            features = { is_book_context = true, tool_lookup_effort = "quick", tool_whole_text = false } },
         ui = makeUi(),
         on_complete = function(_success, answer, _err, _reasoning, provenance)
             final_answer = answer
@@ -1271,7 +1371,7 @@ TestRunner:test("gatherForAction: search then done returns the bundle and call c
     BookToolRunner.gatherForAction({
         question = "Task: Explain in Context\n\nSelected passage:\nDaisy",
         query_fn = query_fn,
-        config = { provider = "gemini", features = { is_book_context = true } },
+        config = { provider = "gemini", features = { is_book_context = true, tool_whole_text = false } },
         ui = makeUi(),
         on_complete = function(bundle, info) got_bundle, got_info = bundle, info end,
     })
@@ -1296,7 +1396,7 @@ TestRunner:test("gatherForAction: immediate done returns an empty bundle (zero-g
     BookToolRunner.gatherForAction({
         question = "q",
         query_fn = query_fn,
-        config = { provider = "gemini", features = { is_book_context = true } },
+        config = { provider = "gemini", features = { is_book_context = true, tool_whole_text = false } },
         ui = makeUi(),
         on_complete = function(bundle, info) got_bundle, got_info = bundle, info end,
     })
@@ -1312,7 +1412,7 @@ TestRunner:test("gatherForAction: request failure reports error, nil bundle", fu
     BookToolRunner.gatherForAction({
         question = "q",
         query_fn = query_fn,
-        config = { provider = "gemini", features = { is_book_context = true } },
+        config = { provider = "gemini", features = { is_book_context = true, tool_whole_text = false } },
         ui = makeUi(),
         on_complete = function(bundle, info) got_bundle, got_info = bundle, info end,
     })
@@ -1337,7 +1437,7 @@ TestRunner:test("gatherForAction: budget caps the loop and delivers what was gat
         question = "q",
         query_fn = query_fn,
         config = { provider = "gemini",
-            features = { is_book_context = true, tool_lookup_effort = "quick" } },
+            features = { is_book_context = true, tool_lookup_effort = "quick", tool_whole_text = false } },
         ui = makeUi(),
         on_complete = function(bundle, info) got_bundle, got_info = bundle, info end,
     })

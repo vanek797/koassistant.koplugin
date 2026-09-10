@@ -342,7 +342,8 @@ function Constants.buildUsageIndicator(opts)
         elseif n > 1 then
             table.insert(items, string.format("Book search (%d lookups)", n))
         else
-            table.insert(items, "Book search")
+            -- Zero lookups with book provenance = the readable text was sent in full.
+            table.insert(items, "Book text read in full")
         end
     end
     if #items == 0 then return nil end

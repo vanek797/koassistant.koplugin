@@ -6391,7 +6391,10 @@ local function runSmartRetrieval(action, action_id, highlighted_text, ui_instanc
             local n = info and info.tool_calls or 0
             local Notification = require("ui/widget/notification")
             local note
-            if n == 0 then
+            if info and info.whole_text then
+                -- The readable text fit the whole-text budget: sent in full, no lookups.
+                note = _("Read the book text in full")
+            elseif n == 0 then
                 -- Model decided no lookups were needed (zero-gather): the action
                 -- proceeds on AI knowledge with the fallback nudge.
                 note = _("No book lookups needed")

@@ -15,10 +15,12 @@ local BookToolRunner = {}
 -- the phase-2 context bundle (gather only — individual tool caps of 8K/read target and
 -- 180-char snippets bound each call, but nothing else bounds the session total).
 -- "standard" = the former hard constants; unknown/missing values fall back to it.
+-- whole_chars: the whole-text path (wholeReadableText) hands phase 2 the readable text
+-- itself when it is no longer than this, instead of searching it.
 local EFFORT_BUDGETS = {
-    quick    = { turns = 2, calls = 4,  bundle_chars = 32000 },
-    standard = { turns = 4, calls = 8,  bundle_chars = 32000 },
-    thorough = { turns = 6, calls = 16, bundle_chars = 48000 },
+    quick    = { turns = 2, calls = 4,  bundle_chars = 32000, whole_chars = 32000 },
+    standard = { turns = 4, calls = 8,  bundle_chars = 32000, whole_chars = 64000 },
+    thorough = { turns = 6, calls = 16, bundle_chars = 48000, whole_chars = 128000 },
 }
 local function budgetFor(features)
     return EFFORT_BUDGETS[(features or {}).tool_lookup_effort] or EFFORT_BUDGETS.standard
@@ -956,6 +958,50 @@ function BookToolRunner.queryWith(query_fn, messages, cfg, callback, plugin, ui)
     return query_fn(send_messages, cfg, wrapped, plugin and plugin.settings)
 end
 
+-- Whole-text path (docs/tool_based_context_plan.md 9.6 step 0, the "if it fits, put it
+-- in the prompt" rule): when the readable text is no longer than the effort's
+-- whole_chars, the gather skips its rounds and phase 2 gets the text itself. A search
+-- over a 20-page range hands the model 12 snippets of a text it could simply read.
+-- Returns nil (search as usual) when the text overflows, is empty, or the setting is off.
+local function wholeReadableText(tools, features, budget)
+    if (features or {}).tool_whole_text == false then return nil end
+    local scope = tools:getScope()
+    local end_page = tonumber(scope.end_page)
+    if not end_page or end_page < 1 then return nil end
+    local ok, result = pcall(function()
+        return tools.extractor:getPageRangeText(1, end_page, { max_chars = budget.whole_chars })
+    end)
+    if not ok or type(result) ~= "table" or result.truncated or type(result.text) ~= "string" then
+        return nil
+    end
+    local text = result.text:gsub("^%s+", ""):gsub("%s+$", "")
+    if #text == 0 then return nil end
+    return {
+        text = text,
+        chars = #text,
+        end_page = end_page,
+        total_pages = scope.total_pages,
+        reading_scope = scope.reading_scope,
+    }
+end
+
+local function wholeTextRangeLine(whole)
+    if whole.reading_scope ~= "full" and whole.total_pages and whole.end_page < whole.total_pages then
+        return string.format("Pages 1-%d of %d, up to the reader's current position; spoiler protection keeps the later pages out of reach, so say so if the question needs them.",
+            whole.end_page, whole.total_pages)
+    end
+    return string.format("Pages 1-%d, the whole book.", whole.end_page)
+end
+
+local function wholeTextBlock(whole)
+    return "[The book's readable text, in full]\n" .. wholeTextRangeLine(whole) .. "\n\n" .. whole.text
+end
+
+local function wholeTextTraceLine(whole)
+    return string.format("read the readable text in full: pp. 1-%d of %d (%d chars)",
+        whole.end_page, whole.total_pages or whole.end_page, whole.chars)
+end
+
 function BookToolRunner.run(params)
     params = params or {}
     BookToolRunner._cancelled = false
@@ -983,6 +1029,9 @@ function BookToolRunner.run(params)
     local budget = budgetFor(features)
     local completed = false
     local gather_mode = (features.tool_mode or "gather") == "gather"
+    -- Gather only: the interactive loop has no phase 2 to hand the text to.
+    local whole_text = gather_mode and wholeReadableText(tools, features, budget) or nil
+    if whole_text then trace = { wholeTextTraceLine(whole_text) } end
 
     -- Gather-phase status window (streamed sessions only): one dialog that ticks per
     -- lookup round; closed before phase 2, whose normal stream dialog takes its place.
@@ -1032,11 +1081,12 @@ function BookToolRunner.run(params)
         -- "Searched the book" indicator + the "Show Sources" viewer read it from the
         -- saved message, replacing the old note baked into the answer text.
         local provenance = web_search_used
-        if success and tool_calls > 0 then
+        if success and (tool_calls > 0 or whole_text) then
             if type(provenance) ~= "table" then
                 provenance = provenance and { web_search = true } or {}
             end
-            provenance.book_tools = { lookups = tool_calls, trace = trace }
+            provenance.book_tools = { lookups = tool_calls, trace = trace,
+                whole_text = whole_text and true or nil }
         end
         if on_complete then
             on_complete(success, answer, err, reasoning, provenance)
@@ -1065,7 +1115,9 @@ function BookToolRunner.run(params)
         local bundle = buildGatherBundle(tool_outputs, budget.bundle_chars)
         local context_text
         local limits = lookupLimitsBlock(tool_outputs)
-        if bundle and #bundle > 0 then
+        if whole_text then
+            context_text = wholeTextBlock(whole_text)
+        elseif bundle and #bundle > 0 then
             context_text = "[Passages retrieved from the book for this question]\n" .. bundle
             if limits then context_text = context_text .. "\n\n" .. limits end
         elseif tool_calls > 0 then
@@ -1294,6 +1346,9 @@ function BookToolRunner.run(params)
     end
 
     if gather_mode then
+        -- The readable text fits: no rounds, no status window, straight to phase 2 with
+        -- the text as the passages block.
+        if whole_text then return startGenerate() end
         -- Status window only for streamed sessions; with streaming off, the per-round
         -- loading InfoMessages (and phase 2's own) remain the UI, exactly as interactive.
         if features.enable_streaming ~= false then
@@ -1435,6 +1490,13 @@ function BookToolRunner.gatherForAction(params)
     local function deliver()
         finish(buildGatherBundle(tool_outputs, budget.bundle_chars),
             { tool_calls = tool_calls, trace = trace })
+    end
+
+    -- The readable text fits the whole-text budget: the action gets it in full, no rounds.
+    local whole = wholeReadableText(tools, features, budget)
+    if whole then
+        finish(wholeTextBlock(whole), { tool_calls = 0, trace = { wholeTextTraceLine(whole) }, whole_text = true })
+        return nil
     end
 
     local step
