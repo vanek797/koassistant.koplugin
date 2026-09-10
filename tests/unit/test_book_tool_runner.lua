@@ -1040,10 +1040,10 @@ TestRunner:test("gather: a readable text that fits is sent whole, no rounds", fu
         end
     end
 
-    -- Over budget: the search rounds run as before (quick effort, 32K budget, oversized page).
+    -- Over budget: the search rounds run as before (quick effort, 64K budget, oversized page).
     calls = 0
     local big = makeUi()
-    local filler = string.rep("word ", 7000)  -- 35,000 chars on page 1
+    local filler = string.rep("word ", 14000)  -- 70,000 chars on page 1
     big.document.getPageText = function(_self, page) return page == 1 and filler or "second page" end
     local function rounds_fn(messages, _config, callback)
         calls = calls + 1
@@ -1077,7 +1077,7 @@ TestRunner:test("gatherForAction: a readable text that fits is returned whole", 
 end)
 
 TestRunner:test("budgets carry the whole-text limit per effort", function()
-    TestRunner:assertEqual(BookToolRunner.budgetFor({ tool_lookup_effort = "quick" }).whole_chars, 32000, "quick")
+    TestRunner:assertEqual(BookToolRunner.budgetFor({ tool_lookup_effort = "quick" }).whole_chars, 64000, "quick (sending a fitting text is the quickest path, same limit as standard)")
     TestRunner:assertEqual(BookToolRunner.budgetFor({}).whole_chars, 64000, "standard")
     TestRunner:assertEqual(BookToolRunner.budgetFor({ tool_lookup_effort = "thorough" }).whole_chars, 128000, "thorough")
 end)

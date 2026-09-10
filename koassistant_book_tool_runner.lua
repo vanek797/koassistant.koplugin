@@ -17,8 +17,10 @@ local BookToolRunner = {}
 -- "standard" = the former hard constants; unknown/missing values fall back to it.
 -- whole_chars: the whole-text path (wholeReadableText) hands phase 2 the readable text
 -- itself when it is no longer than this, instead of searching it.
+-- Sending a text that fits is the QUICKEST path (one request, no rounds), so quick and
+-- standard share the same limit; only thorough reaches further.
 local EFFORT_BUDGETS = {
-    quick    = { turns = 2, calls = 4,  bundle_chars = 32000, whole_chars = 32000 },
+    quick    = { turns = 2, calls = 4,  bundle_chars = 32000, whole_chars = 64000 },
     standard = { turns = 4, calls = 8,  bundle_chars = 32000, whole_chars = 64000 },
     thorough = { turns = 6, calls = 16, bundle_chars = 48000, whole_chars = 128000 },
 }
@@ -35,7 +37,7 @@ local SHOW_TURN_TOKEN_USAGE = true
 
 local TOOL_INSTRUCTIONS = [[
 
-When answering questions about the current book, use the local book tools when you need evidence from the text. Prefer search_book for specific phrases, character names, objects, or events; it returns all matching hit references with short concordance excerpts and page counts. Batch related lookups: pass multiple terms via search_book queries=[...] and multiple targets via read_around hit_ids=[...] / pages=[...] in a single call to avoid extra round trips. Use read_around for surrounding context, and toc for chapter structure. Every tool result carries a notes field stating what it could not search, list or read; a zero-hit result under such a note is inconclusive, not evidence of absence, and the note belongs in your answer.]]
+When answering questions about the current book, use the local book tools when you need evidence from the text. Prefer search_book for specific phrases, character names, objects, or events; it returns all matching hit references with short concordance excerpts and page counts. Batch related lookups: pass multiple terms via search_book queries=[...] and multiple targets via read_around hit_ids=[...] / pages=[...] in a single call to avoid extra round trips. Use read_around for surrounding context, and toc for chapter structure; to find a chapter or essay by its title, call toc with title_contains rather than searching the text for the title. Every tool result carries a notes field stating what it could not search, list or read; a zero-hit result under such a note is inconclusive, not evidence of absence, and the note belongs in your answer.]]
 
 -- Reading-scope clause appended to the tool instructions. "current" enforces spoiler safety
 -- (the model is also clamped in BookTools); "full" lets it use the whole document.
@@ -53,7 +55,7 @@ local FINAL_NOTE_CURRENT = " Do not use or reveal any information about events o
 -- (streamed, web-search-capable) request with the gathered passages injected.
 local GATHER_INSTRUCTIONS = [[
 
-GATHER PHASE: Do not answer the user's question yet. Use the book tools (search_book, read_around, toc) to collect the passages needed to answer it; batch related lookups in one call. When you have gathered enough evidence — or if the question needs no book lookups — call the done tool. In this phase respond only with tool calls, never with prose. Every tool result carries a notes field stating what it could not search, list or read: read it before deciding you are done.]]
+GATHER PHASE: Do not answer the user's question yet. Use the book tools (search_book, read_around, toc) to collect the passages needed to answer it; batch related lookups in one call. To find a chapter or essay by its title, call toc with title_contains rather than searching the text for the title. When you have gathered enough evidence — or if the question needs no book lookups — call the done tool. In this phase respond only with tool calls, never with prose. Every tool result carries a notes field stating what it could not search, list or read: read it before deciding you are done.]]
 
 local FUNCTION_DECLARATIONS = {
     {

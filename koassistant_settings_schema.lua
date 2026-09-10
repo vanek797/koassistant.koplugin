@@ -3208,7 +3208,7 @@ local SettingsSchema = {
                     id = "tool_whole_text",
                     type = "toggle",
                     text = _("AI Book Tools: Read Short Texts Whole"),
-                    help_text = _("On by default. When the readable text (up to your position while spoiler protection is on) is short enough, the AI gets it in one piece instead of searching it: about 32,000 characters at Quick effort, 64,000 at Standard, 128,000 at Thorough. Off: always search, whatever the length."),
+                    help_text = _("On by default. When the readable text (up to your position while spoiler protection is on) is short enough, the AI gets it in one piece instead of searching it: about 64,000 characters at Quick and Standard effort, 128,000 at Thorough (non-Latin scripts count two to three bytes per character). Off: always search, whatever the length."),
                     path = "features.tool_whole_text",
                     default = true,
                 },
