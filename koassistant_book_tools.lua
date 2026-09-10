@@ -62,6 +62,14 @@ local NATIVE_MAX_WALKS = 6        -- new walks per search_book call, longest wor
 -- apostrophes, text-node boundaries).
 local NATIVE_WORD_FLAGS = 0x0000
 local NATIVE_PHRASE_FLAGS = 0x00FF
+-- Content words vs very common words, decided per book from page counts (no word list, so
+-- any language): a query word on at least half the readable pages (floor: 20 pages, so a
+-- short book excludes nothing) is not required by the tokens and partial rungs and never
+-- counts toward "most of the query words". Partial hits rank by the rarity of the words
+-- they hold (log page-frequency weights), not by page order.
+local COMMON_MIN_PAGES = 20
+local COMMON_SHARE = 0.5
+local PARTIAL_MAX_BONUS = 20
 
 -- Notes are the sentences the model actually reads. Every cap, clamp or exclusion a result
 -- applies is stated here in prose: a boolean flag gets skipped, a sentence does not. The
@@ -83,6 +91,7 @@ local ROUTINE_NOTE_PATTERNS = {
     " of the shown hits contain only some of the query words",
     "^This query has no word tokens",
     " very common word%(s%) of the query",
+    " were not searched for on their own",
     "^The passage was cut to",
     "^Read %d+ of %d+ requested targets",
     " could not be resolved %(unknown hit_id",
@@ -286,16 +295,17 @@ end
 -- Stops as soon as the remaining tokens can no longer reach `need`. Returns the count
 -- and the tokens not found.
 local function countTokenMatches(tokens, haystack, need)
-    local matched, missing = 0, {}
+    local matched, missing, held = 0, {}, {}
     for i, query_token in ipairs(tokens) do
         if haystack:find(query_token, 1, true) then
             matched = matched + 1
+            table.insert(held, query_token)
         else
             table.insert(missing, query_token)
         end
         if matched + (#tokens - i) < need then break end
     end
-    return matched, missing
+    return matched, missing, held
 end
 
 -- Partial coverage: a sentence holding most of a longer query's words still counts,
@@ -303,6 +313,51 @@ end
 -- of the three instead of nothing.
 local function partialNeed(token_count)
     return math.ceil(token_count * PARTIAL_COVERAGE)
+end
+
+local function isCommonWord(pages_with, ceiling)
+    return pages_with >= COMMON_MIN_PAGES and pages_with >= ceiling * COMMON_SHARE
+end
+
+-- Query word statistics for one query over the readable range: which words are content
+-- words, which are very common, and a rarity weight per word. A query of only common
+-- words keeps them all (nothing to prefer). `pages_with` = token -> pages holding it; a
+-- nil count is a word nothing was measured for (walk budget spent): a content word with
+-- the mean weight of the measured ones, listed in `unknown`.
+local function wordStats(query_tokens, pages_with, ceiling)
+    local stats = { content = {}, common = {}, unknown = {}, weight = {}, pages_with = pages_with }
+    local known_sum, known_count = 0, 0
+    for _idx, token in ipairs(query_tokens) do
+        local n = pages_with[token]
+        if n == nil then
+            table.insert(stats.content, token)
+            table.insert(stats.unknown, token)
+        else
+            local weight = math.log((ceiling + 1) / (n + 1))
+            stats.weight[token] = weight
+            if isCommonWord(n, ceiling) then
+                table.insert(stats.common, token)
+            else
+                table.insert(stats.content, token)
+                known_sum, known_count = known_sum + weight, known_count + 1
+            end
+        end
+    end
+    local mean = known_count > 0 and known_sum / known_count or 1
+    for _idx, token in ipairs(stats.unknown) do stats.weight[token] = mean end
+    if #stats.content == 0 then
+        stats.content, stats.common = stats.common, {}
+    end
+    return stats
+end
+
+-- Share of the query's rarity held by the matched words, 0..1.
+local function rarityShare(stats, matched_tokens)
+    local total, held = 0, 0
+    for _idx, token in ipairs(stats.content) do total = total + stats.weight[token] end
+    if total <= 0 then return 1 end
+    for _idx, token in ipairs(matched_tokens) do held = held + (stats.weight[token] or 0) end
+    return held / total
 end
 
 local function safeCall(fn)
@@ -568,7 +623,7 @@ end
 -- at least `need` of the query words, where a word that hit the cap or the walk budget
 -- counts as present everywhere but never carries a page on its own. Returns the pages
 -- and the notes to attach; nil plus an error sentence when nothing could be walked.
-function BookTools:nativeCandidates(query, query_tokens, case_sensitive, ceiling, need)
+function BookTools:nativeCandidates(query, query_tokens, case_sensitive, ceiling)
     local notes = {}
     -- Literal (token-less) query: one walk for the text itself.
     if #query_tokens == 0 then
@@ -592,45 +647,66 @@ function BookTools:nativeCandidates(query, query_tokens, case_sensitive, ceiling
         if #a == #b then return a < b end
         return #a > #b
     end)
-    local counts = {}          -- page -> distinct constraining words present
-    local constraining = 0     -- walked words below the cap
-    local wildcards = 0        -- capped or unwalked words: present everywhere
-    local walked_capped = nil  -- a capped word's own pages (single-word queries)
+    -- Page counts within the ceiling decide content vs common (wordStats). A capped walk
+    -- covers the book's opening only, so its count is estimated from the density there
+    -- (distinct pages over pages covered: "the" 0.98, "man" 0.77, "unconscious" 0.45 on
+    -- a 6,759-page book). An unwalked word (budget spent) has no count: unknown, still
+    -- required by the rungs, never a candidate source.
+    local pages_with = {}
+    local entries = {}
+    local walked_any = nil
     for _idx, token in ipairs(order) do
         local entry, why = self:wordPages(token, case_sensitive)
         if not entry then
             if why == "failed" then return nil, "The book search failed for this query." end
-            wildcards = wildcards + 1
         elseif entry.capped then
-            wildcards = wildcards + 1
-            walked_capped = walked_capped or entry
+            local covered = entry.pages[#entry.pages] or 1
+            pages_with[token] = math.floor(ceiling * #entry.pages / covered)
+            walked_any = walked_any or entry
         else
-            constraining = constraining + 1
+            local n = 0
             for _p, page in ipairs(entry.pages) do
-                if page <= ceiling then counts[page] = (counts[page] or 0) + 1 end
+                if page <= ceiling then n = n + 1 end
+            end
+            pages_with[token] = n
+            entries[token] = entry
+            walked_any = walked_any or entry
+        end
+    end
+    local stats = wordStats(query_tokens, pages_with, ceiling)
+
+    -- Candidates = pages holding enough of the content words that were walked. When no
+    -- content word was (all unknown), the walked common words narrow instead; the rungs
+    -- still require the content words on those pages.
+    local function candidates(tokens)
+        local counts, constraining = {}, 0
+        for _idx, token in ipairs(tokens) do
+            local entry = entries[token]
+            if entry then
+                constraining = constraining + 1
+                for _p, page in ipairs(entry.pages) do
+                    if page <= ceiling then counts[page] = (counts[page] or 0) + 1 end
+                end
             end
         end
-    end
-
-    if constraining > 0 then
+        if constraining == 0 then return nil end
+        local need = constraining >= PARTIAL_MIN_TOKENS and partialNeed(constraining) or constraining
         local pages = {}
-        for page, count in pairs(counts) do
-            if count + wildcards >= need then table.insert(pages, page) end
+        for page, n in pairs(counts) do
+            if n >= need then table.insert(pages, page) end
         end
         table.sort(pages)
-        if wildcards > 0 and wildcards >= need then
-            table.insert(notes, string.format("%d very common word(s) of the query (over %d occurrences) did not narrow the search; only sentences holding at least one of the other words were counted.",
-                wildcards, self.native_max_hits))
-        end
-        return pages, notes
+        return pages
     end
+    local pages = candidates(stats.content) or candidates(stats.common)
+    if pages then return pages, notes, stats end
 
-    if not walked_capped then
+    if not walked_any then
         return nil, "The lookup budget for this call was spent on earlier queries; ask again with fewer queries."
     end
     -- Every walked word is very common. One word: its first occurrences are all there
     -- is. Several: the exact phrase is the only affordable narrowing.
-    local entry = walked_capped
+    local entry = walked_any
     if #query_tokens > 1 then
         if self.walks_this_call >= self.native_max_walks then
             return nil, "Every word of this query is very common and the lookup budget for this call is spent; ask again with a rarer word."
@@ -643,7 +719,7 @@ function BookTools:nativeCandidates(query, query_tokens, case_sensitive, ceiling
     if entry.capped then
         table.insert(notes, string.format("Only the first %d occurrences, from the start of the book, were checked; narrow the query for the rest.", self.native_max_hits))
     end
-    return pagesWithin(entry.pages, ceiling), notes
+    return pagesWithin(entry.pages, ceiling), notes, stats
 end
 
 function BookTools:getScope()
@@ -699,7 +775,8 @@ function BookTools:getRangeText(start_page, end_page, max_chars)
     return result and result.text or ""
 end
 
-function BookTools:scoreSentence(sentence, query, query_tokens, case_sensitive, normalized_sentence)
+-- query_tokens = the query's CONTENT words (wordStats); stats carries the rarity weights.
+function BookTools:scoreSentence(sentence, query, query_tokens, case_sensitive, normalized_sentence, stats)
     normalized_sentence = normalized_sentence or normalizeText(sentence, case_sensitive)
     local normalized_query = normalizeText(query, case_sensitive)
 
@@ -726,11 +803,36 @@ function BookTools:scoreSentence(sentence, query, query_tokens, case_sensitive, 
         return 0, nil
     end
     local need = partialNeed(count)
-    local matched, missing = countTokenMatches(query_tokens, normalized_sentence, need)
+    local matched, missing, held = countTokenMatches(query_tokens, normalized_sentence, need)
     if matched >= need then
-        return 30 + matched, "partial", missing
+        local share = stats and rarityShare(stats, held) or (matched / count)
+        return 30 + math.floor(PARTIAL_MAX_BONUS * share + 0.5), "partial", missing
     end
     return 0, nil
+end
+
+-- Scan path: pages holding each query word (as a substring of the normalized text),
+-- over the pages about to be scored.
+function BookTools:scanWordStats(query_tokens, pages, case_sensitive, ceiling)
+    local pages_with = {}
+    for _idx, token in ipairs(query_tokens) do pages_with[token] = 0 end
+    for _page_idx, page in ipairs(pages) do
+        local pending = {}
+        for _idx, token in ipairs(query_tokens) do pending[token] = true end
+        local remaining = #query_tokens
+        for index, sentence in ipairs(self:getSentences(page)) do
+            local normalized = self:getNormalizedSentence(page, index, sentence, case_sensitive)
+            for token in pairs(pending) do
+                if normalized:find(token, 1, true) then
+                    pending[token] = nil
+                    pages_with[token] = pages_with[token] + 1
+                    remaining = remaining - 1
+                end
+            end
+            if remaining == 0 then break end
+        end
+    end
+    return wordStats(query_tokens, pages_with, ceiling)
 end
 
 function BookTools:collectQueries(args)
@@ -778,11 +880,9 @@ function BookTools:runQuery(query, current_page, case_sensitive, q_index, max_hi
 
     -- The pages worth reading: every readable page when the range is short (or the
     -- document has no native search), else the pages the native walks return.
-    local pages, page_notes
+    local pages, page_notes, stats
     if self:useNativeSearch(current_page) then
-        local count = #query_tokens
-        local need = count >= PARTIAL_MIN_TOKENS and partialNeed(count) or count
-        pages, page_notes = self:nativeCandidates(query, query_tokens, case_sensitive, current_page, need)
+        pages, page_notes, stats = self:nativeCandidates(query, query_tokens, case_sensitive, current_page)
         if not pages then
             return {
                 query = query,
@@ -797,6 +897,10 @@ function BookTools:runQuery(query, current_page, case_sensitive, q_index, max_hi
         pages = {}
         for page = 1, current_page do pages[page] = page end
     end
+    if not literal and not stats then
+        stats = self:scanWordStats(query_tokens, pages, case_sensitive, current_page)
+    end
+    local content_tokens = stats and stats.content or query_tokens
 
     for _page_idx, page in ipairs(pages) do
         local sentences = self:getSentences(page)
@@ -812,8 +916,8 @@ function BookTools:runQuery(query, current_page, case_sensitive, q_index, max_hi
                     score, match_type = 100 + math.min(#normalized_query, 40), "phrase"
                 end
             else
-                score, match_type, missing = self:scoreSentence(sentence, query, query_tokens, case_sensitive,
-                    normalized_sentence)
+                score, match_type, missing = self:scoreSentence(sentence, query, content_tokens, case_sensitive,
+                    normalized_sentence, stats)
             end
             if score > 0 then
                 local hit_id = string.format("q%d:p%d:%d", q_index, page, index)
@@ -827,7 +931,7 @@ function BookTools:runQuery(query, current_page, case_sensitive, q_index, max_hi
                     -- The literal position is in the normalized text (case folding can change
                     -- byte lengths), so the literal excerpt comes from that text.
                     snippet = literal and literalExcerpt(normalized_sentence, position, #normalized_query)
-                        or concordanceExcerpt(sentence, query_tokens, case_sensitive),
+                        or concordanceExcerpt(sentence, content_tokens, case_sensitive),
                 }
                 table.insert(scored, hit)
                 self.last_hits[hit_id] = hit
@@ -872,6 +976,14 @@ function BookTools:runQuery(query, current_page, case_sensitive, q_index, max_hi
         addNote(block, "This query has no word tokens (for example CJK text), so it was matched as a literal substring.")
     end
     for _idx, note in ipairs(page_notes or {}) do addNote(block, note) end
+    if stats and #stats.common > 0 then
+        addNote(block, string.format("%d very common word(s) of the query (%s) occur on most pages and were not required in the matches.",
+            #stats.common, table.concat(stats.common, ", ")))
+    end
+    if stats and #stats.unknown > 0 then
+        addNote(block, string.format("%d word(s) of the query (%s) were not searched for on their own (the call's search budget was spent); they were still required on the pages the other words found.",
+            #stats.unknown, table.concat(stats.unknown, ", ")))
+    end
     local partial_shown = 0
     for _idx, hit in ipairs(shown) do
         if hit.match_type == "partial" then partial_shown = partial_shown + 1 end

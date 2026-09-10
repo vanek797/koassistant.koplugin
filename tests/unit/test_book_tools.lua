@@ -569,7 +569,8 @@ TestRunner:test("native search: one walk per word, memoized across calls, budget
     local result = tools:searchBook({ queries = { "house path curved alice", "letter" } })
     TestRunner:assertEqual(#walks, 6, "three new walks, then the budget is spent")
     local first = result.queries[1]
-    TestRunner:assertTrue(first.total_hits > 0, "the query still runs on the walked words")
+    TestRunner:assertTrue(first.error == nil, "the query still runs on the walked words")
+    TestRunner:assertTrue(hasNote(first.notes, "1 word(s) of the query (path) were not searched for on their own"), "the unwalked word is noted, not dropped")
     local second = result.queries[2]
     TestRunner:assertEqual(second.total_hits, 0, "nothing walked for the second query")
     TestRunner:assertTrue(tostring(second.error):find("lookup budget", 1, true) ~= nil, "the spent budget is an error block")
@@ -599,12 +600,12 @@ TestRunner:test("native search: a very common word is a wildcard, all-common que
     local single = tools:searchBook({ query = "rabbit" }).queries[1]
     TestRunner:assertTrue(hasNote(single.notes, "Only the first 3 occurrences"), "single capped note")
     TestRunner:assertTrue(single.total_hits > 0, "still returns the first occurrences")
-    -- Wildcards never reach need on their own: "rabbit garden saw" needs 2 of 3, and the
-    -- two common words would reach it everywhere; only pages holding "saw" count.
+    -- Common words are not required: "rabbit garden saw" has one content word, "saw", so
+    -- the sentence holding it is a tokens hit and the two common words are only noted.
     local mixed = tools:searchBook({ query = "rabbit garden saw" }).queries[1]
-    TestRunner:assertTrue(hasNote(mixed.notes, "2 very common word(s) of the query"), "wildcards stated when they reach need")
-    TestRunner:assertEqual(mixed.total_hits, 1, "the one sentence with saw and rabbit (partial)")
-    TestRunner:assertEqual(mixed.results[1].match_type, "partial", "partial rung")
+    TestRunner:assertTrue(hasNote(mixed.notes, "2 very common word(s) of the query (rabbit, garden) occur on most pages"), "common words noted")
+    TestRunner:assertEqual(mixed.total_hits, 1, "the one sentence with saw")
+    TestRunner:assertEqual(mixed.results[1].match_type, "tokens", "every content word present")
     for _idx, hit in ipairs(mixed.results) do
         TestRunner:assertTrue(pages[hit.page]:lower():find("saw", 1, true) ~= nil, "every hit page holds the rare word")
     end
@@ -724,13 +725,54 @@ TestRunner:test("read_around states a moved target and truncated batches", funct
     TestRunner:assertTrue(hasNote(skipped.notes, "1 target(s) could not be resolved"), "skip stated")
 end)
 
+TestRunner:test("content words: very common words are not required, partial hits rank by rarity (scan and native)", function()
+    -- 40 pages: "alpha" on every page (common), "beta" and "gamma" on 10 pages each,
+    -- "delta" on 5, "zeta" on 1 (page 30). Nothing else repeats.
+    local pages = {}
+    for p = 1, 40 do
+        local words = { "alpha filler" .. p }
+        if p <= 10 then table.insert(words, "beta") end
+        if p >= 11 and p <= 20 then table.insert(words, "gamma") end
+        if p >= 21 and p <= 25 then table.insert(words, "delta") end
+        pages[p] = table.concat(words, " ") .. "."
+    end
+    pages[5] = "alpha beta gamma delta here."     -- three of four content words, the commoner ones
+    pages[30] = "alpha gamma delta zeta there."   -- three of four, holding the rarest word
+    pages[35] = "alpha beta only."                 -- one content word
+    for _v, native in ipairs({ false, true }) do
+        local tools = native and nativeTools(pages, #pages, "full") or makeToolsWithPages(pages, #pages, nil, "full")
+        local label = native and " (native)" or " (scan)"
+        -- "alpha" is common (40 of 40 pages); a query needs the content words only.
+        local block = tools:searchBook({ query = "beta alpha gamma" }).queries[1]
+        TestRunner:assertTrue(hasNote(block.notes, "1 very common word(s) of the query (alpha)"), "common word noted" .. label)
+        TestRunner:assertEqual(block.total_hits, 1, "beta and gamma together once" .. label)
+        TestRunner:assertEqual(block.results[1].match_type, "tokens", "every content word present is a tokens hit" .. label)
+        TestRunner:assertEqual(block.results[1].page, 5, "page 5" .. label)
+        -- Partial hits: page 30 holds the rarest words and ranks above page 5 despite page order.
+        local partial = tools:searchBook({ query = "beta gamma delta zeta" }).queries[1]
+        TestRunner:assertEqual(partial.total_hits, 2, "two sentences hold 3 of 4" .. label)
+        TestRunner:assertEqual(partial.results[1].page, 30, "the rarer words rank first" .. label)
+        TestRunner:assertEqual(partial.results[1].match_type, "partial", "partial rung" .. label)
+        TestRunner:assertTrue(partial.results[1].score > partial.results[2].score, "rarity decides the score" .. label)
+        TestRunner:assertEqual(table.concat(partial.results[1].missing, ","), "beta", "missing lists content words" .. label)
+        -- A query of only common words keeps them (nothing to prefer).
+        local common = tools:searchBook({ query = "alpha" }).queries[1]
+        TestRunner:assertEqual(common.total_hits, 40, "a lone common word still searches" .. label)
+        TestRunner:assertTrue(not hasNote(common.notes, "very common word(s) of the query"), "no exclusion note when nothing was excluded" .. label)
+    end
+    -- Below the floor nothing is common: the 4-page demo book requires every word.
+    local small = makeTools():searchBook({ query = "the rabbit" }).queries[1]
+    TestRunner:assertEqual(small.results[1].match_type, "tokens", "no common words in a short book")
+end)
+
 TestRunner:test("isRoutineNote: caps are routine, unreachable parts of the book are not", function()
     local routine = {
         'Showing 12 of 42 hits for "x" (highest scoring first, at most 2 per page); total_hits is the exact count.',
         "page_summary lists the first 40 of 90 pages with hits.",
         "3 of the shown hits contain only some of the query words (match_type partial; the missing words are listed). Full matches rank above them.",
         "This query has no word tokens (for example CJK text), so it was matched as a literal substring.",
-        "2 very common word(s) of the query (over 5000 occurrences) did not narrow the search; only sentences holding at least one of the other words were counted.",
+        "2 very common word(s) of the query (is, the) occur on most pages and were not required in the matches.",
+        "1 word(s) of the query (alice) were not searched for on their own (the call's search budget was spent); they were still required on the pages the other words found.",
         "The passage was cut to 8000 characters; ask for fewer pages or a narrower target for the rest.",
         "Read 4 of 6 requested targets (limit 4 per call); ask again for the rest.",
         "1 target(s) could not be resolved (unknown hit_id or missing page) and were skipped.",
