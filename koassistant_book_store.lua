@@ -144,9 +144,58 @@ end
 local Store = {}
 Store.__index = Store
 
+-- ── Follow-group markers (G1, docs/group_hub_plan.md §2.1) ──────────────────
+-- A per-book plugin key may hold, instead of a value, the marker
+-- { follow_group = "<group id>" }: the book follows that group's value for the
+-- key. readSetting DEREFERENCES the marker (every resolver sees the group's
+-- value with no sweep), readRaw returns it (the UI's provenance), and any
+-- write or delete REPLACES it — which is exactly "latest set wins".
+BookStore.MARKER_FIELD = "follow_group"
+
+function BookStore.marker(group_id)
+    return { [BookStore.MARKER_FIELD] = group_id }
+end
+
+function BookStore.isMarker(v)
+    return type(v) == "table" and type(v[BookStore.MARKER_FIELD]) == "string"
+end
+
+--- The group's value for a key (nil = the group does not set it, or is gone).
+--- Seam for tests; the default reads the groups store.
+BookStore._group_value_fn = nil
+local function groupValue(group_id, key)
+    local fn = BookStore._group_value_fn
+    if not fn then
+        fn = require("koassistant_book_groups").getSetting
+    end
+    return fn(group_id, key)
+end
+
+--- Fired when a book's own write or delete replaces a follow-group marker
+--- (main.lua shows the "no longer follows" toast). Suppressed while the
+--- group apply itself rewrites markers.
+BookStore.on_marker_replaced = nil
+BookStore.suppress_marker_hook = false
+local function markerReplaced(path, key, old, new)
+    if BookStore.suppress_marker_hook or not BookStore.isMarker(old) then return end
+    if BookStore.isMarker(new) and new[BookStore.MARKER_FIELD] == old[BookStore.MARKER_FIELD] then return end
+    if type(BookStore.on_marker_replaced) == "function" then
+        pcall(BookStore.on_marker_replaced, path, key, old[BookStore.MARKER_FIELD])
+    end
+end
+
+function Store:readRaw(key)
+    return self.data[key]
+end
+
 function Store:readSetting(key, default)
     local v = self.data[key]
     if v == nil then return default end
+    if BookStore.isMarker(v) then
+        local gv = groupValue(v[BookStore.MARKER_FIELD], key)
+        if gv == nil then return default end
+        return gv
+    end
     return v
 end
 
@@ -159,17 +208,21 @@ end
 --- crash-safety is worth more than a batched flush. flush() is then a no-op.
 function Store:saveSetting(key, value)
     if self.data[key] == value and type(value) ~= "table" then return self end
+    local old = self.data[key]
     self.data[key] = value
     self.dirty = true
     self:flush()
+    markerReplaced(self.path, key, old, value)
     return self
 end
 
 function Store:delSetting(key)
     if self.data[key] == nil then return self end
+    local old = self.data[key]
     self.data[key] = nil
     self.dirty = true
     self:flush()
+    markerReplaced(self.path, key, old, nil)
     return self
 end
 
@@ -341,6 +394,17 @@ function Facade:readSetting(key, default)
         return default
     end
     return self._raw:readSetting(key, default)
+end
+
+--- The stored value itself: a follow-group marker stays a marker (readSetting
+--- dereferences it). KOReader keys pass through.
+function Facade:readRaw(key)
+    if BookStore.isPluginKey(key) then
+        local st = self:_store()
+        if st then return st:readRaw(key) end
+        return nil
+    end
+    return self._raw:readSetting(key)
 end
 
 function Facade:has(key)

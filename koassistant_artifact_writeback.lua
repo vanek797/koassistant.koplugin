@@ -342,7 +342,7 @@ function WriteBack.parseXrayAnswer(answer, base, transform, never_pairs)
     -- matching dormant stubs — every write-back route passes through here, so
     -- an entity entering by ANY route (merge, incremental update, deepen)
     -- wakes its carried history
-    local woken = XrayParser.wakeDormant(parsed)
+    local woken = XrayParser.wakeDormant(parsed, { never_pairs = never_pairs })
     if #woken > 0 then
         logger.dbg("KOAssistant WriteBack: woke", #woken, "dormant entit(y/ies)")
     end

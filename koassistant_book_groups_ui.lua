@@ -2,9 +2,18 @@
 Book groups manager UI (xray_ecosystem_plan.md item 46, ref #90).
 
 Small ButtonDialog stack over koassistant_book_groups.lua:
-- showManager: all groups → per-group screen; create.
-- showGroup: ordered member list (tap a book for move/remove), add books via
-  the existing multi-select BookPicker, rename, delete.
+- showManager: since G0 round 2 the GROUPS LIST page (koassistant_group_page.lua
+  showList) whose rows call the create flows this file exports (newGroupFlow,
+  newGroupFromFolderFlow, newGroupWithBookFlow, seriesRowFor); the old
+  ButtonDialog manager is retired.
+- showGroup: since G0 (2026-09-06, docs/group_hub_plan.md) the GROUP HUB —
+  koassistant_group_page.lua, a full-screen Menu in the Book Hub's shape —
+  whose rows call the flows this file exports (addBooksFlow, addFolderFlow,
+  foldFlow, renameFlow, deleteFlow, showMoveDialog) and whose hamburger opens
+  showGroupDialog, the group's management popup (also the Groups list's hold;
+  G0 round 4). The old ButtonDialog screen is retired; every flow still ends
+  with GroupsUI.showGroup, which refreshes the hub in place, or with the
+  caller's own `opts.after` refresh (the list).
 - showBookRow: the Book Settings entry — this book's memberships, join/create.
 
 Entry points: main menu row (settings schema "book_groups"), Book Settings
@@ -148,6 +157,14 @@ local function createWithKind(name, after)
     end)
 end
 
+--- Any KOReader collection exists (the collection rows' gate). The
+--- collection helpers live in koassistant_book_picker.lua since round 7 —
+--- the picker browses collections as a source, the flows below reuse its
+--- pickCollection / collectionBooks.
+function GroupsUI.hasCollections()
+    return require("koassistant_book_picker").hasCollections()
+end
+
 -- P5 item 7 (Q5 gripe): series metadata → group. Detection reads the CHEAP
 -- local chain only (sidecar doc_props, coverbrowser cache, custom metadata —
 -- KOReader's own BookInfo:getDocProps with no_open_document); the scan behind
@@ -287,47 +304,14 @@ local function offerSeriesScan(group_id, seed_path, sp, opts)
             })
         end,
     }}
-    local coll_ok, ReadCollection = pcall(require, "readcollection")
-    local coll_names = {}
-    if coll_ok and type(ReadCollection.coll) == "table" then
-        for name in pairs(ReadCollection.coll) do coll_names[#coll_names + 1] = name end
-        table.sort(coll_names)
-    end
-    if #coll_names > 0 then
+    if GroupsUI.hasCollections() then
         rows[#rows + 1] = {{
             text = _("Look in a collection…"),
             callback = function()
                 UIManager:close(dialog)
-                local coll_dialog
-                local coll_rows = {}
-                for _idx, name in ipairs(coll_names) do
-                    local captured = name
-                    local label = captured == ReadCollection.default_collection_name
-                        and _("Favorites") or captured
-                    local n = 0
-                    for _f in pairs(ReadCollection.coll[captured] or {}) do n = n + 1 end
-                    coll_rows[#coll_rows + 1] = {{
-                        text = label .. " (" .. n .. ")",
-                        align = "left",
-                        callback = function()
-                            UIManager:close(coll_dialog)
-                            local paths = {}
-                            for f in pairs(ReadCollection.coll[captured] or {}) do
-                                paths[#paths + 1] = f
-                            end
-                            runSeriesScan(group_id, seed_path, sp, paths, label, opts)
-                        end,
-                    }}
-                end
-                coll_rows[#coll_rows + 1] = {{ text = _("Cancel"), callback = function()
-                    UIManager:close(coll_dialog)
-                    done()
-                end }}
-                coll_dialog = ButtonDialog:new{
-                    title = _("Which collection?"),
-                    buttons = coll_rows,
-                }
-                UIManager:show(coll_dialog)
+                require("koassistant_book_picker").pickCollection(function(_name, label, paths)
+                    runSeriesScan(group_id, seed_path, sp, paths, label, opts)
+                end, done)
             end,
         }}
     end
@@ -434,11 +418,13 @@ function GroupsUI.showMoveDialog(group_id, path, opts)
     local i = group and BookGroups.positionOf(group, path)
     if not i then return end
     local n = #group.books
-    local title = BookGroups.displayTitle(path, opts.ui)
+    -- One line's worth: ButtonDialog titles wrap, and a long book title used
+    -- to push the buttons down the screen (G0 round 4)
+    local title = BookGroups.shortName(BookGroups.displayTitle(path, opts.ui))
     local book_dialog
+    -- G0: showGroup refreshes the hub underneath in place
     local function refreshBoth()
         UIManager:close(book_dialog)
-        if GroupsUI._group_dialog then UIManager:close(GroupsUI._group_dialog) end
         GroupsUI.showGroup(group_id, opts)
         GroupsUI.showMoveDialog(group_id, path, opts)
     end
@@ -473,7 +459,6 @@ function GroupsUI.showMoveDialog(group_id, path, opts)
                     ok_always_enabled = true,
                     callback = function(spin)
                         BookGroups.moveBookTo(group_id, path, spin.value)
-                        if GroupsUI._group_dialog then UIManager:close(GroupsUI._group_dialog) end
                         GroupsUI.showGroup(group_id, opts)
                         GroupsUI.showMoveDialog(group_id, path, opts)
                     end,
@@ -487,7 +472,7 @@ function GroupsUI.showMoveDialog(group_id, path, opts)
             {{ text = _("Open this book"), enabled = BookGroups.fileExists(path),
                 callback = function()
                     UIManager:close(book_dialog)
-                    if GroupsUI._group_dialog then UIManager:close(GroupsUI._group_dialog) end
+                    -- The hub underneath is swept at book open (main.lua)
                     local ReaderUI = require("apps/reader/readerui")
                     if ReaderUI.instance and ReaderUI.instance.document
                         and ReaderUI.instance.document.file == path then
@@ -500,7 +485,6 @@ function GroupsUI.showMoveDialog(group_id, path, opts)
             {{ text = _("Remove from group"), callback = function()
                 UIManager:close(book_dialog)
                 BookGroups.removeBook(group_id, path)
-                if GroupsUI._group_dialog then UIManager:close(GroupsUI._group_dialog) end
                 GroupsUI.showGroup(group_id, opts)
             end }},
             {{ text = _("Done"), callback = function()
@@ -512,423 +496,536 @@ function GroupsUI.showMoveDialog(group_id, path, opts)
     UIManager:show(book_dialog)
 end
 
---- Per-group screen. opts: { plugin, ui, on_close }
-function GroupsUI.showGroup(group_id, opts)
+--- The group's management popup (G0 rounds 4+5, maintainer): the member move
+--- dialog's shape AND width — narrow (shrink_unneeded_width), one button per
+--- row, so the list behind stays readable while a group is moved. Title = the
+--- name on one line. Rows: ↑/↓ when opened from the Groups list (opts.arrows),
+--- "Kind: X…" → showKindDialog stacked on top, Rename…, Delete group…, Done.
+--- No position line, no "Move to position…" (a list of groups is short). A
+--- change re-shows the popup ANCHORED at its own top-left (opts.at). Reached
+--- by HOLD on a Groups list row and by the hub's title-bar hamburger.
+--- opts: { plugin, ui, after (the host's refresh; nil = the hub's), on_close,
+---   arrows, at (internal: the top-left to re-show at) }
+function GroupsUI.showGroupDialog(group_id, opts)
     opts = opts or {}
-    require("koassistant_logger").dbg("KOAssistant Groups: open group", group_id)
     local ButtonDialog = require("ui/widget/buttondialog")
+    local Geom = require("ui/geometry")
     local BookGroups = groups()
     local group = BookGroups.byId(group_id)
-    if not group then
-        if opts.on_close then opts.on_close() end
-        return
-    end
+    if not group then return end
+    local name = BookGroups.shortName(displayName(group))
     local dialog
-    local function reopen()
+    local function refresh()
+        if opts.after then opts.after() else GroupsUI.showGroup(group_id, opts) end
+    end
+    local function reshow()
+        local d = dialog.movable and dialog.movable.dimen
+        local at = d and { x = d.x, y = d.y } or opts.at
         UIManager:close(dialog)
-        GroupsUI.showGroup(group_id, opts)
+        refresh()
+        local again = {}
+        for k, v in pairs(opts) do again[k] = v end
+        again.at = at
+        GroupsUI.showGroupDialog(group_id, again)
     end
-    GroupsUI._group_dialog = nil -- set below once constructed
+    local function flow(fn)
+        return function()
+            UIManager:close(dialog)
+            fn()
+        end
+    end
     local rows = {}
-    for i, path in ipairs(group.books) do
-        local captured = path
-        local title = BookGroups.displayTitle(captured, opts.ui)
-        if not BookGroups.fileExists(captured) then
-            title = title .. " " .. _("(missing)")
-        end
-        rows[#rows + 1] = {{
-            text = i .. ". " .. title,
-            align = "left",
-            callback = function()
-                GroupsUI.showMoveDialog(group_id, captured, opts)
-            end,
-        }}
-    end
-    if #group.books == 0 then
-        rows[#rows + 1] = {{ text = _("No books yet — add some below."), enabled = false }}
-    end
-    -- Round 27 (device: "that whole group management window is a hot mess,
-    -- such a long window, and why is the ordered series button randomly in the
-    -- middle"): the book list is one row per book (it has to be — each row is
-    -- a tap target), so the ACTIONS are what makes the window long. The
-    -- ordered-series switch leads them, then the rest pair up two to a row.
-    -- Round 30: the round-27 "Ordered series" checkbox became a three-way KIND,
-    -- laid out as three buttons on the ONE row the checkbox used to occupy
-    -- (maintainer). No extra dialog: the selected kind is marked here and the
-    -- sentence under the group title changes with it, so the consequence of
-    -- each choice is visible in place rather than behind a popup.
-    local kind = BookGroups.kindOf(group)
-    local kind_row = {}
-    for _idx, k in ipairs({ BookGroups.KIND_SERIES, BookGroups.KIND_PROJECT,
-            BookGroups.KIND_PLAIN }) do
-        local captured = k
-        kind_row[#kind_row + 1] = {
-            text = (captured == kind and "● " or "○ ") .. GroupsUI.kindLabel(captured),
-            callback = function()
-                if captured ~= kind then BookGroups.setKind(group_id, captured) end
-                reopen()
-            end,
+    if opts.arrows then
+        local i, n = BookGroups.groupIndex(group_id)
+        rows[#rows + 1] = {
+            { text = "\u{2191}", enabled = i ~= nil and i > 1, callback = function()
+                BookGroups.moveGroup(group_id, -1)
+                reshow()
+            end },
+            { text = "\u{2193}", enabled = i ~= nil and i < n, callback = function()
+                BookGroups.moveGroup(group_id, 1)
+                reshow()
+            end },
         }
     end
-    rows[#rows + 1] = kind_row
-    local actions = {}
-    -- Round 29: the picker hands back a SET (hash keyed by path), so a plain
-    -- pairs() loop added books in ARBITRARY order — for a 30-volume folder the
-    -- reading order came out scrambled, which is the one thing a series group
-    -- must get right. Adds now go in natural filename order (vol 2 before vol
-    -- 10) and always APPEND, never splice: a hand-tuned order survives, and
-    -- one move fixes a stray.
-    -- Shared tail for every add path: name an unnamed group after its first
-    -- book (kenken QoL #90 — CJK typing is painful in KOReader), report, reopen.
-    local function addedDone(added)
-        local g = BookGroups.byId(group_id)
-        if g and (g.name == "?" or g.name == "") and g.books[1] then
-            BookGroups.rename(group_id, BookGroups.displayTitle(g.books[1], opts.ui))
-        end
-        if added and added > 0 then
-            UIManager:show(require("ui/widget/notification"):new{
-                text = T(_("Added %1 book(s)."), added),
+    rows[#rows + 1] = {{ text = T(_("Kind: %1…"), GroupsUI.kindLabel(BookGroups.kindOf(group))),
+        callback = function()
+            -- Stacked: this popup stays underneath and re-reads its row when
+            -- the kind popup closes (Done or tap-outside)
+            GroupsUI.showKindDialog(group_id, opts, reshow)
+        end }}
+    rows[#rows + 1] = {{ text = _("Group settings…"),
+        callback = flow(function()
+            require("koassistant_group_settings").show({
+                group_id = group_id, plugin = opts.plugin, ui = opts.ui,
+                on_close = refresh,
             })
-        end
-        GroupsUI.showGroup(group_id, opts)
-    end
-    local function addSelected(selected_files)
-        local BookPicker = require("koassistant_book_picker")
-        local added = 0
-        for _idx, path in ipairs(BookPicker.orderedSelection(selected_files)) do
-            if BookGroups.addBook(group_id, path) then added = added + 1 end
-        end
-        addedDone(added)
-    end
-    actions[#actions + 1] = {
-        text = _("Add books…"),
-        callback = function()
-            UIManager:close(dialog)
-            local BookPicker = require("koassistant_book_picker")
-            BookPicker:show({
-                on_confirm = function(selected_files) addSelected(selected_files) end,
-                on_close = function() GroupsUI.showGroup(group_id, opts) end,
-            })
-        end,
-    }
-    -- Kenken (#90): "designate a folder as a group" without ticking every box.
-    -- Round 29 second pass (maintainer: adding a library SCAN folder shows no
-    -- list, why does this?): because a scan folder stores the FOLDER PATH and
-    -- re-resolves it per request, while a group stores MEMBER PATHS and must
-    -- enumerate. So enumerate silently: chooser → one confirm naming the count
-    -- → done. No list. The confirm stays because this appends to a possibly
-    -- hand-ordered group and a mis-tapped folder could add hundreds of books;
-    -- curated picking is what "Add books…" above is for.
-    -- Snapshot only: the group does not follow the folder afterwards (live
-    -- binding is a separate, opt-in idea).
-    actions[#actions + 1] = {
-        text = _("Add all books in a folder…"),
-        callback = function()
-            UIManager:close(dialog)
-            local PathChooser = require("ui/widget/pathchooser")
-            local Device = require("device")
-            local DataStorage = require("datastorage")
-            local picked = false
-            UIManager:show(PathChooser:new{
-                title = _("Select Folder"),
-                path = G_reader_settings:readSetting("home_dir")
-                    or Device.home_dir or DataStorage:getDataDir(),
-                select_directory = true,
-                select_file = false,
-                onConfirm = function(folder)
-                    picked = true
-                    local BookPicker = require("koassistant_book_picker")
-                    local paths, err = BookPicker.listFolderBooks(folder)
-                    if not paths or #paths == 0 then
-                        UIManager:show(require("ui/widget/infomessage"):new{
-                            text = err or T(_("No books found in:\n%1"), folder),
-                            timeout = 3,
-                        })
-                        GroupsUI.showGroup(group_id, opts)
-                        return
-                    end
-                    -- Three ways out, because "all of them" is the common case
-                    -- but not the only one: add everything, open the picker with
-                    -- everything already ticked so a few can be dropped, or back
-                    -- out. The picker arm is why BookPicker keeps `select_all`.
-                    local ButtonDialog = require("ui/widget/buttondialog")
-                    local ask
-                    ask = ButtonDialog:new{
-                        title = T(_("Add %1 book(s) from \"%2\" to this group, in filename order?"),
-                            #paths, folder:match("([^/]+)/?$") or folder),
-                        buttons = {
-                            {{ text = T(_("Add all (%1)"), #paths), callback = function()
-                                UIManager:close(ask)
-                                local added = 0
-                                for _idx, path in ipairs(paths) do
-                                    if BookGroups.addBook(group_id, path) then added = added + 1 end
-                                end
-                                addedDone(added)
-                            end }},
-                            {{ text = _("Choose which…"), callback = function()
-                                UIManager:close(ask)
-                                BookPicker:show({
-                                    initial_source = folder,
-                                    select_all = true,
-                                    on_confirm = function(selected_files) addSelected(selected_files) end,
-                                    on_close = function() GroupsUI.showGroup(group_id, opts) end,
-                                })
-                            end }},
-                            {{ text = _("Cancel"), callback = function()
-                                UIManager:close(ask)
-                                GroupsUI.showGroup(group_id, opts)
-                            end }},
-                        },
-                    }
-                    UIManager:show(ask)
-                end,
-                close_callback = function()
-                    if not picked then GroupsUI.showGroup(group_id, opts) end
-                end,
-            })
-        end,
-    }
-    -- Item 48(a): the group as launch surface — library chat/actions with the
-    -- members pre-selected (reading order kept; saved chats stamped with the group)
-    if #group.books > 0 and opts.plugin and opts.plugin.openLibraryDialogForGroup then
-        actions[#actions + 1] = {
-            text = _("Library chat…"),
-            callback = function()
-                UIManager:close(dialog)
-                opts.plugin:openLibraryDialogForGroup(group_id)
-            end,
-        }
-    end
-    -- A2/A3: the fold surface the kind picker promises, right on the group
-    -- screen — series chain or project fan-in, via the cross-book picker (ONE
-    -- flow owns consent, skip-done accounting and the confirms). Plain groups
-    -- share nothing by design: no row (sharesKnowledge is the gate).
-    if #group.books > 1 and opts.plugin and opts.plugin._startCrossBookXrayFlow
-        and BookGroups.sharesKnowledge(group) then
-        actions[#actions + 1] = {
-            text = kind == BookGroups.KIND_PROJECT
-                and _("Fold X-Rays into one book…") or _("Merge series X-Rays…"),
-            callback = function()
-                UIManager:close(dialog)
-                if kind == BookGroups.KIND_PROJECT then
-                    showFoldTargetPicker(group_id, opts)
-                    return
-                end
-                -- Series: the chain runs oldest → newest, so launch the picker
-                -- from the LAST member with an X-Ray — its "Fold in earlier
-                -- books" row then covers the whole series
-                local ActionCache = require("koassistant_action_cache")
-                local XrayParser = require("koassistant_xray_parser")
-                local target
-                for _idx, p in ipairs(group.books) do
-                    local ok, e = pcall(ActionCache.getXrayCache, p)
-                    if ok and e and e.result and XrayParser.isJSON(e.result) then
-                        target = p
-                    end
-                end
-                if not target then
-                    UIManager:show(require("ui/widget/infomessage"):new{
-                        text = _("No book in this group has an X-Ray yet. Create one first."),
-                        timeout = 4,
-                    })
-                    GroupsUI.showGroup(group_id, opts)
-                    return
-                end
-                opts.plugin:_startCrossBookXrayFlow(target)
-            end,
-        }
-    end
-    actions[#actions + 1] = {
-        text = _("Rename…"),
-        callback = function()
-            UIManager:close(dialog)
-            -- Prefill skips the "?" placeholder — nothing worth editing in it
-            promptName(_("Rename group"), group.name ~= "?" and group.name or "",
-                function(name)
-                    BookGroups.rename(group_id, name)
-                    GroupsUI.showGroup(group_id, opts)
-                end, function() GroupsUI.showGroup(group_id, opts) end)
-        end,
-    }
-    actions[#actions + 1] = {
-        text = _("Delete group…"),
-        callback = function()
-            local confirm
-            confirm = ButtonDialog:new{
-                title = T(_("Delete the group \"%1\"?\nBooks and their artifacts are not touched — only the grouping is removed."), displayName(group)),
-                buttons = {
-                    {{ text = _("Delete"), callback = function()
-                        UIManager:close(confirm)
-                        UIManager:close(dialog)
-                        BookGroups.remove(group_id)
-                        if opts.on_close then opts.on_close() end
-                    end }},
-                    {{ text = _("Cancel"), callback = function()
-                        UIManager:close(confirm)
-                    end }},
-                },
-            }
-            UIManager:show(confirm)
-        end,
-    }
-    for i = 1, #actions, 2 do
-        local pair = { actions[i] }
-        if actions[i + 1] then pair[2] = actions[i + 1] end
-        rows[#rows + 1] = pair
-    end
-    rows[#rows + 1] = {{
-        text = _("Back"),
-        callback = function()
-            UIManager:close(dialog)
-            if opts.on_close then opts.on_close() end
-        end,
-    }}
+        end) }}
+    rows[#rows + 1] = {{ text = _("Rename…"),
+        callback = flow(function() GroupsUI.renameFlow(group_id, opts) end) }}
+    rows[#rows + 1] = {{ text = _("Delete group…"),
+        callback = flow(function() GroupsUI.deleteFlow(group_id, opts) end) }}
+    rows[#rows + 1] = {{ text = _("Done"), callback = function() UIManager:close(dialog) end }}
+    local at = opts.at
     dialog = ButtonDialog:new{
-        title = T(_("Group: %1"), displayName(group))
-            .. "\n" .. GroupsUI.kindDescription(kind),
+        title = name,
         buttons = rows,
+        shrink_unneeded_width = true,
+        anchor = at and function() return Geom:new{ x = at.x, y = at.y, w = 0, h = 0 }, true end or nil,
     }
-    -- The move dialog closes/reopens this list under itself (kenken QoL)
-    GroupsUI._group_dialog = dialog
     UIManager:show(dialog)
 end
 
---- Top-level manager. opts: { plugin, ui, on_close }
-function GroupsUI.showManager(opts)
+--- The kind radio (round 5): the name and the CURRENT kind's description as
+--- the title, the three kinds on one row (●/○), Done. A tap sets the kind at
+--- once and re-shows this popup anchored at its own top-left, so the
+--- description re-reads in place and a longer sentence grows downward
+--- instead of re-centering the window. Default width (the row needs it; the
+--- management popup underneath is what stays narrow). on_done runs when the
+--- popup closes by Done or by a tap outside — the host popup re-reads its
+--- "Kind: X…" row there.
+function GroupsUI.showKindDialog(group_id, opts, on_done, at)
     opts = opts or {}
     local ButtonDialog = require("ui/widget/buttondialog")
+    local Geom = require("ui/geometry")
     local BookGroups = groups()
+    local group = BookGroups.byId(group_id)
+    if not group then return end
+    local kind = BookGroups.kindOf(group)
+    local name = BookGroups.shortName(displayName(group))
     local dialog
-    local rows = {}
-    for _idx, group in ipairs(BookGroups.all()) do
-        local captured = group
-        rows[#rows + 1] = {{
-            text = T(_("%1 (%2 books)"), displayName(captured), #captured.books),
-            align = "left",
+    local radio = {}
+    for _idx, k in ipairs({ BookGroups.KIND_SERIES, BookGroups.KIND_PROJECT,
+            BookGroups.KIND_PLAIN }) do
+        local captured = k
+        radio[#radio + 1] = {
+            text = (captured == kind and "\u{25CF} " or "\u{25CB} ") .. GroupsUI.kindLabel(captured),
             callback = function()
+                if captured == kind then return end
+                local d = dialog.movable and dialog.movable.dimen
+                local pos = d and { x = d.x, y = d.y } or at
                 UIManager:close(dialog)
-                GroupsUI.showGroup(captured.id, {
-                    plugin = opts.plugin, ui = opts.ui,
-                    on_close = function() GroupsUI.showManager(opts) end,
-                })
+                BookGroups.setKind(group_id, captured)
+                if opts.after then opts.after() else GroupsUI.showGroup(group_id, opts) end
+                GroupsUI.showKindDialog(group_id, opts, on_done, pos)
             end,
-        }}
+        }
     end
-    if #rows == 0 then
-        rows[#rows + 1] = {{
-            text = _("No groups yet. A group is an ordered set of books — a series, an author, a project."),
-            enabled = false,
-        }}
+    dialog = ButtonDialog:new{
+        title = name .. "\n" .. GroupsUI.kindDescription(kind),
+        buttons = {
+            radio,
+            {{ text = _("Done"), callback = function()
+                UIManager:close(dialog)
+                if on_done then on_done() end
+            end }},
+        },
+        tap_close_callback = on_done,
+        anchor = at and function() return Geom:new{ x = at.x, y = at.y, w = 0, h = 0 }, true end or nil,
+    }
+    UIManager:show(dialog)
+end
+
+--- The group flows (G0, 2026-09-06 — docs/group_hub_plan.md): the old
+--- per-group ButtonDialog's actions, factored out so the Group Hub's rows run
+--- the SAME code. Each ends where the old dialog's did — with
+--- `GroupsUI.showGroup(group_id, opts)`, which now refreshes the hub in place
+--- (or hands control back through opts.on_close once the group is gone).
+--- opts: { plugin, ui, on_close } as showGroup receives them. G0 round 3:
+--- rename / kind / delete also run from the Groups LIST's hold dialog, where
+--- no hub is open — those callers pass `opts.after` (the list's refresh) and
+--- the flow ends there instead.
+
+-- Round 29: the picker hands back a SET (hash keyed by path), so a plain
+-- pairs() loop added books in ARBITRARY order — for a 30-volume folder the
+-- reading order came out scrambled, which is the one thing a series group
+-- must get right. Adds now go in natural filename order (vol 2 before vol
+-- 10) and always APPEND, never splice: a hand-tuned order survives, and
+-- one move fixes a stray.
+-- Shared tail for every add path: name an unnamed group after its first
+-- book (kenken QoL #90 — CJK typing is painful in KOReader), report, reopen.
+-- `added` = the paths that joined (G1: the join ask needs them, not a count)
+local function addedDone(group_id, opts, added)
+    local BookGroups = groups()
+    local g = BookGroups.byId(group_id)
+    if g and (g.name == "?" or g.name == "") and g.books[1] then
+        BookGroups.rename(group_id, BookGroups.displayTitle(g.books[1], opts.ui))
     end
-    rows[#rows + 1] = {{
-        text = _("New group…"),
-        callback = function()
-            UIManager:close(dialog)
-            promptName(_("New group"), nil, function(name)
+    if added and #added > 0 then
+        UIManager:show(require("ui/widget/notification"):new{
+            text = T(_("Added %1 book(s)."), #added),
+        })
+    end
+    GroupsUI.showGroup(group_id, opts)
+    -- G1 (Q-A, "ask on add"): a group that sets values asks once per batch
+    if added and #added > 0 then
+        require("koassistant_group_settings").offerJoin(group_id, added,
+            { plugin = opts.plugin, ui = opts.ui },
+            function() GroupsUI.showGroup(group_id, opts) end)
+    end
+end
+local function addSelected(group_id, opts, selected_files)
+    local BookPicker = require("koassistant_book_picker")
+    local BookGroups = groups()
+    local added = {}
+    for _idx, path in ipairs(BookPicker.orderedSelection(selected_files)) do
+        if BookGroups.addBook(group_id, path) then added[#added + 1] = path end
+    end
+    addedDone(group_id, opts, added)
+end
+
+function GroupsUI.addBooksFlow(group_id, opts)
+    local BookPicker = require("koassistant_book_picker")
+    BookPicker:show({
+        on_confirm = function(selected_files) addSelected(group_id, opts, selected_files) end,
+        on_close = function() GroupsUI.showGroup(group_id, opts) end,
+    })
+end
+
+-- Kenken (#90): "designate a folder as a group" without ticking every box.
+-- Round 29 second pass (maintainer: adding a library SCAN folder shows no
+-- list, why does this?): because a scan folder stores the FOLDER PATH and
+-- re-resolves it per request, while a group stores MEMBER PATHS and must
+-- enumerate. So enumerate silently: chooser → one confirm naming the count
+-- → done. No list. The confirm stays because this appends to a possibly
+-- hand-ordered group and a mis-tapped folder could add hundreds of books;
+-- curated picking is what "Add books…" above is for.
+-- Snapshot only: the group does not follow the folder afterwards (live
+-- binding is a separate, opt-in idea).
+function GroupsUI.addFolderFlow(group_id, opts)
+    local BookGroups = groups()
+    local PathChooser = require("ui/widget/pathchooser")
+    local Device = require("device")
+    local DataStorage = require("datastorage")
+    local picked = false
+    UIManager:show(PathChooser:new{
+        title = _("Select Folder"),
+        path = G_reader_settings:readSetting("home_dir")
+            or Device.home_dir or DataStorage:getDataDir(),
+        select_directory = true,
+        select_file = false,
+        onConfirm = function(folder)
+            picked = true
+            local BookPicker = require("koassistant_book_picker")
+            local paths, err = BookPicker.listFolderBooks(folder)
+            if not paths or #paths == 0 then
+                UIManager:show(require("ui/widget/infomessage"):new{
+                    text = err or T(_("No books found in:\n%1"), folder),
+                    timeout = 3,
+                })
+                GroupsUI.showGroup(group_id, opts)
+                return
+            end
+            -- Three ways out, because "all of them" is the common case
+            -- but not the only one: add everything, open the picker with
+            -- everything already ticked so a few can be dropped, or back
+            -- out. The picker arm is why BookPicker keeps `select_all`.
+            local ButtonDialog = require("ui/widget/buttondialog")
+            local ask
+            ask = ButtonDialog:new{
+                title = T(_("Add %1 book(s) from \"%2\" to this group, in filename order?"),
+                    #paths, folder:match("([^/]+)/?$") or folder),
+                buttons = {
+                    {{ text = T(_("Add all (%1)"), #paths), callback = function()
+                        UIManager:close(ask)
+                        local added = {}
+                        for _idx, path in ipairs(paths) do
+                            if BookGroups.addBook(group_id, path) then added[#added + 1] = path end
+                        end
+                        addedDone(group_id, opts, added)
+                    end }},
+                    {{ text = _("Choose which…"), callback = function()
+                        UIManager:close(ask)
+                        BookPicker:show({
+                            initial_source = folder,
+                            select_all = true,
+                            on_confirm = function(selected_files) addSelected(group_id, opts, selected_files) end,
+                            on_close = function() GroupsUI.showGroup(group_id, opts) end,
+                        })
+                    end }},
+                    {{ text = _("Cancel"), callback = function()
+                        UIManager:close(ask)
+                        GroupsUI.showGroup(group_id, opts)
+                    end }},
+                },
+            }
+            UIManager:show(ask)
+        end,
+        close_callback = function()
+            if not picked then GroupsUI.showGroup(group_id, opts) end
+        end,
+    })
+end
+
+-- Round 6: a collection as the source — the folder flow's shape, in the
+-- COLLECTION's order; round 7: "Choose which…" opens the picker on the
+-- collection source with everything ticked, like the folder arm
+function GroupsUI.addCollectionFlow(group_id, opts)
+    local BookGroups = groups()
+    local BookPicker = require("koassistant_book_picker")
+    BookPicker.pickCollection(function(name, label, paths)
+        if #paths == 0 then
+            UIManager:show(require("ui/widget/infomessage"):new{
+                text = T(_("No books in the collection \"%1\"."), label),
+                timeout = 3,
+            })
+            GroupsUI.showGroup(group_id, opts)
+            return
+        end
+        local ButtonDialog = require("ui/widget/buttondialog")
+        local ask
+        ask = ButtonDialog:new{
+            title = T(_("Add %1 book(s) from the collection \"%2\" to this group, in the collection's order?"),
+                #paths, label),
+            buttons = {
+                {{ text = T(_("Add all (%1)"), #paths), callback = function()
+                    UIManager:close(ask)
+                    local added = {}
+                    for _idx, path in ipairs(paths) do
+                        if BookGroups.addBook(group_id, path) then added[#added + 1] = path end
+                    end
+                    addedDone(group_id, opts, added)
+                end }},
+                {{ text = _("Choose which…"), callback = function()
+                    UIManager:close(ask)
+                    BookPicker:show({
+                        initial_source = BookPicker.COLLECTION_PREFIX .. name,
+                        select_all = true,
+                        on_confirm = function(selected_files) addSelected(group_id, opts, selected_files) end,
+                        on_close = function() GroupsUI.showGroup(group_id, opts) end,
+                    })
+                end }},
+                {{ text = _("Cancel"), callback = function()
+                    UIManager:close(ask)
+                    GroupsUI.showGroup(group_id, opts)
+                end }},
+            },
+        }
+        UIManager:show(ask)
+    end, function() GroupsUI.showGroup(group_id, opts) end)
+end
+
+-- A2/A3: the fold surface the kind picker promises — series chain or project
+-- fan-in, via the cross-book picker (ONE flow owns consent, skip-done
+-- accounting and the confirms). Callers gate on sharesKnowledge.
+function GroupsUI.foldFlow(group_id, opts)
+    local BookGroups = groups()
+    local group = BookGroups.byId(group_id)
+    if not group or not (opts.plugin and opts.plugin._startCrossBookXrayFlow) then return end
+    if BookGroups.kindOf(group) == BookGroups.KIND_PROJECT then
+        showFoldTargetPicker(group_id, opts)
+        return
+    end
+    -- Series: the chain runs oldest → newest, so launch the picker
+    -- from the LAST member with an X-Ray — its "Fold in earlier
+    -- books" row then covers the whole series
+    local ActionCache = require("koassistant_action_cache")
+    local XrayParser = require("koassistant_xray_parser")
+    local target
+    for _idx, p in ipairs(group.books) do
+        local ok, e = pcall(ActionCache.getXrayCache, p)
+        if ok and e and e.result and XrayParser.isJSON(e.result) then
+            target = p
+        end
+    end
+    if not target then
+        UIManager:show(require("ui/widget/infomessage"):new{
+            text = _("No book in this group has an X-Ray yet. Create one first."),
+            timeout = 4,
+        })
+        GroupsUI.showGroup(group_id, opts)
+        return
+    end
+    opts.plugin:_startCrossBookXrayFlow(target)
+end
+
+-- Where a flow lands: the hub's in-place refresh, or the caller's own
+-- refresh (the Groups list) when it passed one
+local function flowDone(group_id, opts)
+    if opts and opts.after then opts.after() return end
+    GroupsUI.showGroup(group_id, opts)
+end
+
+function GroupsUI.renameFlow(group_id, opts)
+    local BookGroups = groups()
+    local group = BookGroups.byId(group_id)
+    if not group then return end
+    -- Prefill skips the "?" placeholder — nothing worth editing in it
+    promptName(_("Rename group"), group.name ~= "?" and group.name or "",
+        function(name)
+            BookGroups.rename(group_id, name)
+            flowDone(group_id, opts)
+        end, function() flowDone(group_id, opts) end)
+end
+
+function GroupsUI.deleteFlow(group_id, opts)
+    local ButtonDialog = require("ui/widget/buttondialog")
+    local BookGroups = groups()
+    local group = BookGroups.byId(group_id)
+    if not group then return end
+    local confirm
+    confirm = ButtonDialog:new{
+        title = T(_("Delete the group \"%1\"?\nBooks and their artifacts are not touched. Only the grouping is removed."), displayName(group)),
+        buttons = {
+            {{ text = _("Delete"), callback = function()
+                UIManager:close(confirm)
+                BookGroups.remove(group_id)
+                -- The hub finds the group gone and hands control back
+                -- (on_close); the list just refreshes
+                flowDone(group_id, opts)
+            end }},
+            {{ text = _("Cancel"), callback = function()
+                UIManager:close(confirm)
+            end }},
+        },
+    }
+    UIManager:show(confirm)
+end
+
+--- Per-group screen = the Group Hub (G0, 2026-09-06): every entry point and
+--- every flow's reopen lands here. opts: { plugin, ui, on_close, front } —
+--- front = a fresh page on top (entry points); without it an open hub for
+--- this group just refreshes in place (the reopen pattern the flows keep).
+function GroupsUI.showGroup(group_id, opts)
+    opts = opts or {}
+    require("koassistant_group_page").show({
+        group_id = group_id, plugin = opts.plugin, ui = opts.ui,
+        on_close = opts.on_close, front = opts.front,
+    })
+end
+
+--- The create flows (G0 round 2, 2026-09-06): the old Groups ButtonDialog's
+--- actions, factored out so the Groups list page's rows run the SAME code.
+--- Each ends where the old dialog's did — with `GroupsUI.showManager(opts)`
+--- (now the list's in-place refresh) or with the new group's hub on top.
+--- opts: { plugin, ui, on_close }.
+
+function GroupsUI.newGroupFlow(opts)
+    promptName(_("New group"), nil, function(name)
+        createWithKind(name, function(group)
+            GroupsUI.showGroup(group.id, {
+                plugin = opts.plugin, ui = opts.ui,
+                on_close = function() GroupsUI.showManager(opts) end,
+            })
+        end)
+    end, function() GroupsUI.showManager(opts) end)
+end
+
+-- Kenken (#90) round 29 second pass: a folder becomes a group in one go —
+-- chooser → name prompt (folder name prefilled, count in the description)
+-- → create → every book joins in filename order (snapshot: the group does
+-- not follow the folder afterwards); curation is what the hub's rows are for.
+function GroupsUI.newGroupFromFolderFlow(opts)
+    local PathChooser = require("ui/widget/pathchooser")
+    local Device = require("device")
+    local DataStorage = require("datastorage")
+    local picked = false
+    UIManager:show(PathChooser:new{
+        title = _("Select Folder"),
+        path = G_reader_settings:readSetting("home_dir")
+            or Device.home_dir or DataStorage:getDataDir(),
+        select_directory = true,
+        select_file = false,
+        onConfirm = function(folder)
+            picked = true
+            local BookPicker = require("koassistant_book_picker")
+            local paths, err = BookPicker.listFolderBooks(folder)
+            if not paths or #paths == 0 then
+                UIManager:show(require("ui/widget/infomessage"):new{
+                    text = err or T(_("No books found in:\n%1"), folder),
+                    timeout = 3,
+                })
+                GroupsUI.showManager(opts)
+                return
+            end
+            promptName(_("New group"), folder:match("([^/]+)/?$") or "",
+                function(name)
+                    createWithKind(name, function(group)
+                        local added = 0
+                        for _idx, p in ipairs(paths) do
+                            if groups().addBook(group.id, p) then added = added + 1 end
+                        end
+                        UIManager:show(require("ui/widget/notification"):new{
+                            text = T(_("Added %1 book(s), in filename order."), added),
+                        })
+                        GroupsUI.showGroup(group.id, {
+                            plugin = opts.plugin, ui = opts.ui,
+                            on_close = function() GroupsUI.showManager(opts) end,
+                        })
+                    end)
+                end, function() GroupsUI.showManager(opts) end,
+                { description = T(_("%1 book(s) from the folder will be added, in filename order."), #paths) })
+        end,
+        close_callback = function()
+            if not picked then GroupsUI.showManager(opts) end
+        end,
+    })
+end
+
+-- Round 6: the folder flow's shape over a collection — name prefilled with
+-- the collection's, all its books join in the collection's order
+function GroupsUI.newGroupFromCollectionFlow(opts)
+    require("koassistant_book_picker").pickCollection(function(_name, label, paths)
+        if #paths == 0 then
+            UIManager:show(require("ui/widget/infomessage"):new{
+                text = T(_("No books in the collection \"%1\"."), label),
+                timeout = 3,
+            })
+            GroupsUI.showManager(opts)
+            return
+        end
+        promptName(_("New group"), label,
+            function(name)
                 createWithKind(name, function(group)
+                    local added = 0
+                    for _idx, p in ipairs(paths) do
+                        if groups().addBook(group.id, p) then added = added + 1 end
+                    end
+                    UIManager:show(require("ui/widget/notification"):new{
+                        text = T(_("Added %1 book(s), in the collection's order."), added),
+                    })
                     GroupsUI.showGroup(group.id, {
                         plugin = opts.plugin, ui = opts.ui,
                         on_close = function() GroupsUI.showManager(opts) end,
                     })
                 end)
             end, function() GroupsUI.showManager(opts) end,
-            { allow_empty = true,
-              description = _("You can leave this empty: the group takes the name of the first book you add.") })
-        end,
-    }}
-    -- P5 (maintainer gripe, Q5): folder → group in one flow — pick the folder,
-    -- name the group (folder name prefilled), every book in it joins on create.
-    -- Snapshot like "Add all books in a folder…" (the group does not follow the
-    -- folder afterwards); curation is what the group screen's rows are for.
-    rows[#rows + 1] = {{
-        text = _("New group from folder…"),
-        callback = function()
-            UIManager:close(dialog)
-            local PathChooser = require("ui/widget/pathchooser")
-            local Device = require("device")
-            local DataStorage = require("datastorage")
-            local picked = false
-            UIManager:show(PathChooser:new{
-                title = _("Select Folder"),
-                path = G_reader_settings:readSetting("home_dir")
-                    or Device.home_dir or DataStorage:getDataDir(),
-                select_directory = true,
-                select_file = false,
-                onConfirm = function(folder)
-                    picked = true
-                    local BookPicker = require("koassistant_book_picker")
-                    local paths, err = BookPicker.listFolderBooks(folder)
-                    if not paths or #paths == 0 then
-                        UIManager:show(require("ui/widget/infomessage"):new{
-                            text = err or T(_("No books found in:\n%1"), folder),
-                            timeout = 3,
-                        })
-                        GroupsUI.showManager(opts)
-                        return
-                    end
-                    promptName(_("New group"), folder:match("([^/]+)/?$") or "",
-                        function(name)
-                            createWithKind(name, function(group)
-                                local added = 0
-                                for _idx, p in ipairs(paths) do
-                                    if groups().addBook(group.id, p) then added = added + 1 end
-                                end
-                                UIManager:show(require("ui/widget/notification"):new{
-                                    text = T(_("Added %1 book(s), in filename order."), added),
-                                })
-                                GroupsUI.showGroup(group.id, {
-                                    plugin = opts.plugin, ui = opts.ui,
-                                    on_close = function() GroupsUI.showManager(opts) end,
-                                })
-                            end)
-                        end, function() GroupsUI.showManager(opts) end,
-                        { description = T(_("%1 book(s) from the folder will be added, in filename order."), #paths) })
-                end,
-                close_callback = function()
-                    if not picked then GroupsUI.showManager(opts) end
-                end,
+            { description = T(_("%1 book(s) from the collection will be added, in its order."), #paths) })
+    end, function() GroupsUI.showManager(opts) end)
+end
+
+-- Main-menu parity with Book Settings (kenken round 5): seed a group from
+-- the OPEN book — title prefilled, book added on create
+function GroupsUI.newGroupWithBookFlow(path, opts)
+    local BookGroups = groups()
+    promptName(_("New group"), BookGroups.displayTitle(path, opts.ui), function(name)
+        createWithKind(name, function(group)
+            groups().addBook(group.id, path)
+            GroupsUI.showGroup(group.id, {
+                plugin = opts.plugin, ui = opts.ui,
+                on_close = function() GroupsUI.showManager(opts) end,
             })
-        end,
-    }}
-    -- Main-menu parity with Book Settings (kenken round 5): seed a group from
-    -- the OPEN book right here — title prefilled, book added on create
-    local open_file = opts.ui and opts.ui.document and opts.ui.document.file
-    if open_file then
-        rows[#rows + 1] = {{
-            text = _("New group with this book…"),
-            callback = function()
-                UIManager:close(dialog)
-                promptName(_("New group"), BookGroups.displayTitle(open_file, opts.ui), function(name)
-                    createWithKind(name, function(group)
-                        groups().addBook(group.id, open_file)
-                        GroupsUI.showGroup(group.id, {
-                            plugin = opts.plugin, ui = opts.ui,
-                            on_close = function() GroupsUI.showManager(opts) end,
-                        })
-                    end)
-                end, function() GroupsUI.showManager(opts) end)
-            end,
-        }}
-        -- P5 item 7: the open book's series tag, one tap to a group named
-        -- after it (then the find-the-rest scan)
-        local series_row = seriesSuggestRow(open_file,
-            function() UIManager:close(dialog) end,
-            { plugin = opts.plugin, ui = opts.ui,
-              on_close = function() GroupsUI.showManager(opts) end })
-        if series_row then rows[#rows + 1] = { series_row } end
-    end
-    rows[#rows + 1] = {{
-        text = _("Close"),
-        callback = function()
-            UIManager:close(dialog)
-            if opts.on_close then opts.on_close() end
-        end,
-    }}
-    dialog = ButtonDialog:new{
-        title = _("Groups"),
-        buttons = rows,
-    }
-    UIManager:show(dialog)
+        end)
+    end, function() GroupsUI.showManager(opts) end)
+end
+
+--- The series-suggestion row for a book, as { text, callback } or nil
+--- (P5 item 7), for a page that stays open underneath the flow.
+function GroupsUI.seriesRowFor(path, opts)
+    return seriesSuggestRow(path, function() end,
+        { plugin = opts.plugin, ui = opts.ui,
+          on_close = function() GroupsUI.showManager(opts) end })
+end
+
+--- Top-level manager = the Groups list page (G0 round 2): every entry point
+--- and every create flow's reopen lands here. opts: { plugin, ui, on_close,
+--- front } — front = a fresh page on top; without it an open list just
+--- refreshes in place.
+function GroupsUI.showManager(opts)
+    opts = opts or {}
+    require("koassistant_group_page").showList({
+        plugin = opts.plugin, ui = opts.ui, on_close = opts.on_close, front = opts.front,
+    })
 end
 
 --- Book Settings entry for one book. opts: { plugin, ui, on_close }
@@ -956,7 +1053,7 @@ function GroupsUI.showBookRow(path, opts)
             callback = function()
                 UIManager:close(dialog)
                 GroupsUI.showGroup(captured.id, {
-                    plugin = opts.plugin, ui = opts.ui,
+                    plugin = opts.plugin, ui = opts.ui, front = true,
                     on_close = reopen,
                 })
             end,
@@ -977,6 +1074,9 @@ function GroupsUI.showBookRow(path, opts)
             callback = function()
                 BookGroups.addBook(captured.id, path)
                 reopen()
+                -- G1 (Q-A): a group that sets values asks before the book follows them
+                require("koassistant_group_settings").offerJoin(captured.id, { path },
+                    { plugin = opts.plugin, ui = opts.ui }, reopen)
             end,
         }}
     end

@@ -113,4 +113,52 @@ function SafeDocSettings.overlayCustomProps(raw_props, document_path)
     return raw_props
 end
 
+-- Props derived for books whose sidecar carries no doc_props (never opened
+-- in the reader): path -> props table, or false when even the metadata-only
+-- open found nothing. Session-scoped by design: once the reader opens the
+-- book, the sidecar's doc_props win before this memo is consulted.
+local derived_props = {}
+
+--- Effective props for any book, opened or not. The custom-metadata overlay
+--- first; when the sidecar has no doc_props (KOReader only writes them at
+--- reader open, so a never-opened book has none), KOReader's own
+--- BookInfo:getDocProps chain fills in: cover browser cache, custom metadata
+--- file, then a metadata-only document open. opts.no_open skips that last,
+--- e-ink-costly step (bulk lists such as the book picker). Derived hits are
+--- memoized per path for the session; misses only when the open was allowed.
+--- @param raw_props table|nil doc_props as read from DocSettings
+--- @param document_path string|nil the book (nil = overlay only)
+--- @param ui table|nil ReaderUI/FileManager instance (its cover browser cache is used when present)
+--- @param opts table|nil { no_open = boolean }
+--- @return table|nil props, nil only when nothing at all could be read
+function SafeDocSettings.effectiveProps(raw_props, document_path, ui, opts)
+    local props = SafeDocSettings.overlayCustomProps(raw_props, document_path)
+    local function named(t)
+        return type(t) == "table" and ((t.title and t.title ~= "") or t.authors) and true or false
+    end
+    if named(props) or not document_path then return props end
+    local memo = derived_props[document_path]
+    if memo then return memo end
+    if memo == false then return props end
+    local no_open = opts and opts.no_open or false
+    local ok_bi, BookInfo = pcall(require, "apps/filemanager/filemanagerbookinfo")
+    if not ok_bi or type(BookInfo) ~= "table" or type(BookInfo.getDocProps) ~= "function" then
+        return props
+    end
+    local ok_lfs, lfs = pcall(require, "libs/libkoreader-lfs")
+    if ok_lfs and lfs and lfs.attributes(document_path, "mode") ~= "file" then
+        return props
+    end
+    -- getDocProps only touches self.ui (the cover browser cache), so a bare
+    -- shim serves callers with no instance in hand
+    local bookinfo = ui and ui.bookinfo or setmetatable({ ui = ui or {} }, { __index = BookInfo })
+    local ok, derived = pcall(bookinfo.getDocProps, bookinfo, document_path, nil, no_open)
+    if ok and named(derived) then
+        derived_props[document_path] = derived
+        return derived
+    end
+    if not no_open then derived_props[document_path] = false end
+    return props
+end
+
 return SafeDocSettings

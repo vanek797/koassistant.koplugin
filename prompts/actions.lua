@@ -1258,6 +1258,29 @@ Actions.XRAY_CATEGORY_ORDER = XRAY_CATEGORY_ORDER
 --- Normalize a stored category selection (see local normalizeXrayCategories).
 Actions.normalizeXrayCategories = normalizeXrayCategories
 
+--- The category groups a new X-Ray tracks when neither the book nor the
+--- global default picked any: Reference (every static entry, no timeline).
+--- Decided 2026-09-07 on the bench (docs/xray_depth_axis_plan.md): the
+--- timeline is the single heaviest block and Recap covers it; places and
+--- terms cost a fraction and feed every lookup surface.
+Actions.XRAY_DEFAULT_CATEGORIES = "people,places,ideas,terms"
+
+--- Is a stored categories value an explicit "everything" pick: the "full"
+--- sentinel, or a csv naming every group? (normalizeXrayCategories folds
+--- both to nil, which now also covers junk and unset.)
+--- @param value any
+--- @return boolean
+function Actions.isFullXrayCategories(value)
+    if value == "full" then return true end
+    if type(value) ~= "string" then return false end
+    local set = {}
+    for id in value:gmatch("[^,%s]+") do set[id] = true end
+    for _idx, id in ipairs(XRAY_CATEGORY_ORDER) do
+        if not set[id] then return false end
+    end
+    return true
+end
+
 --- Build a category-filtered X-Ray create prompt.
 --- @param selection string canonical csv from normalizeXrayCategories
 --- @param which string "partial" (to reading position) | "complete" (whole document)

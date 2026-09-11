@@ -77,6 +77,22 @@ TestRunner:test("220-char cap on a boundary with ellipsis", function()
     assert(out:sub(-3) == "…", "ellipsis")
 end)
 
+TestRunner:suite("firstSentence - boundaries that used to render the whole entry (2026-09-07)")
+TestRunner:test("non-breaking space after the period still ends the sentence", function()
+    TestRunner:eq(fs("He is the captain.\194\160He betrays the crew later."), "He is the captain.",
+        "NBSP normalized before the scan")
+end)
+TestRunner:test("a lowercase name after an ordinary word does not hold the sentence open", function()
+    TestRunner:eq(fs("The house was built in 1892. van Gogh later owned it."), "The house was built in 1892.",
+        "digits before the period are not an abbreviation")
+    TestRunner:eq(fs("She left the village. de Vries stayed behind."), "She left the village.",
+        "a long ordinary word before the period is not an abbreviation")
+end)
+TestRunner:test("a short abbreviation before a lowercase word still holds", function()
+    TestRunner:eq(fs("They argued Smith vs. the board for years. Nobody won."),
+        "They argued Smith vs. the board for years.", "vs. stays inside the sentence")
+end)
+
 TestRunner:suite("firstSentence - CJK (ref #90)")
 TestRunner:test("full-width stop ends the sentence without a space", function()
     TestRunner:eq(fs("彼は町の医者だ。妻と二人で暮らす。"), "彼は町の医者だ。")

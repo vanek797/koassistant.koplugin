@@ -69,6 +69,55 @@ function ScopeResolver.utf8Last(str, n)
     return str:sub(offsets[count - n + 1]), true
 end
 
+--- Drop a partial trailing UTF-8 sequence left by a byte cut. Malformed input (no
+--- lead byte in reach, stray continuation bytes after ASCII) passes through unchanged
+--- rather than triggering unbounded rescans.
+function ScopeResolver.utf8TrimTail(s)
+    local n = #s
+    if n == 0 then return s end
+    if s:byte(n) < 0x80 then return s end -- ASCII tail: clean
+    local i = n
+    while i > 0 and n - i < 4 do
+        local b = s:byte(i)
+        if b >= 0xC0 then
+            -- Found the sequence's lead byte: keep it only if complete
+            local need = b >= 0xF0 and 4 or b >= 0xE0 and 3 or 2
+            if n - i + 1 >= need then return s end
+            return s:sub(1, i - 1)
+        elseif b < 0x80 then
+            return s -- ASCII followed by stray continuation bytes: malformed, keep
+        end
+        i = i - 1
+    end
+    return s -- no lead byte within 4 bytes: malformed, keep
+end
+
+--- Drop leading continuation bytes left by a byte cut that started mid-sequence.
+function ScopeResolver.utf8TrimHead(s)
+    local i = 1
+    while i <= #s do
+        local b = s:byte(i)
+        if b < 0x80 or b >= 0xC0 then break end
+        i = i + 1
+    end
+    return s:sub(i)
+end
+
+--- THE byte-budget cuts. Every `text:sub(1, n)` / `text:sub(-n)` on document text that
+--- reaches a request goes through these: a cut that lands inside a multi-byte character
+--- leaves stray bytes, KOReader's json encoder ships them verbatim, and the provider
+--- rejects the whole request as invalid JSON. Budgets stay in BYTES (the caps are byte
+--- caps); only the boundary snaps back to a whole character.
+function ScopeResolver.utf8Head(str, max_bytes)
+    if #str <= max_bytes then return str end
+    return ScopeResolver.utf8TrimTail(str:sub(1, max_bytes))
+end
+
+function ScopeResolver.utf8Tail(str, max_bytes)
+    if #str <= max_bytes then return str end
+    return ScopeResolver.utf8TrimHead(str:sub(-max_bytes))
+end
+
 --- Real paragraph window: take the last/first n newline-separated segments around
 -- the selection. The segment adjacent to the selection is the remainder of the
 -- paragraph containing it, so n=1 means "just the containing paragraph". Sides

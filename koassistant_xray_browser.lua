@@ -98,6 +98,29 @@ local function fitMandatory(name, secondary, opts)
     return best or (table.concat(chars, "", 1, min_chars) .. ELLIPSIS)
 end
 
+--- Fit a carried row's SOURCE TITLE beside its name with the carried list's
+--- measured options. Every list that puts a source title in the right column
+--- goes through this: a raw title longer than the row (long CJK book titles
+--- are the norm, #90) drove the Menu's text width negative and crashed
+--- TextWidget:makeLine, so the title is never passed through unfitted.
+--- @param name string The row's subject
+--- @param source string|nil The source title (empty or nil → "")
+--- @param reserved string|nil Right-column text kept whole next to the title
+---   (category tag, "(alias)"); it is charged against the name's side
+--- @return string fitted source title, "" when there is none
+function XrayBrowser.fitSourceTitle(name, source, reserved)
+    if type(source) ~= "string" or source == "" then return "" end
+    local Font = require("ui/font")
+    local Size = require("ui/size")
+    return fitMandatory((name or "") .. (reserved or ""), source, {
+        content_width = Screen:getWidth() - 2 * (Size.padding.fullscreen or 0),
+        text_face = Font:getFace("smallinfofont", 18),
+        mandatory_face = Font:getFace("infont", 14),
+        padding = Screen:scaleBySize(10),
+        min_chars = 4,
+    })
+end
+
 --- Show a floating "Back to X-Ray" button overlay.
 --- Appears after a mention row / fallback launch closes the browser and
 --- enters the native search session (launchSearchSession).
@@ -1476,23 +1499,12 @@ function XrayBrowser:_buildDormantItems()
     -- carried entity's NAME — the thing you are reading the list for — got
     -- elided. Same measured fitter as the category lists now; the category tag
     -- is protected as the minimum, since it survives being the only thing left.
-    local Font = require("ui/font")
-    local Size = require("ui/size")
-    local fit_opts = {
-        content_width = Screen:getWidth() - 2 * (Size.padding.fullscreen or 0),
-        text_face = Font:getFace("smallinfofont", 18),
-        mandatory_face = Font:getFace("infont", 14),
-        padding = Screen:scaleBySize(10),
-        min_chars = 4,
-    }
     for i, r in ipairs(rows) do
         local captured_i, captured, display_i = r.idx, r.stub, i
         local short_cat = CHAPTER_CATEGORY_SHORT[captured.category]
-        local src = (type(captured.source) == "string" and captured.source) or ""
         -- The source title is what overflows, so fit THAT and keep the tag whole
         local tag = short_cat and (short_cat .. " · ") or ""
-        local fitted_src = src ~= "" and fitMandatory(
-            (captured.name or "") .. tag, src, fit_opts) or ""
+        local fitted_src = XrayBrowser.fitSourceTitle(captured.name, captured.source, tag)
         table.insert(items, {
             text = captured.name,
             mandatory = tag .. fitted_src,
@@ -1559,8 +1571,8 @@ function XrayBrowser:showDormantDetail(stub_idx, stub, nav_context)
     if type(stub.source) == "string" and stub.source ~= "" then
         parts[#parts + 1] = T(_("Carried from: %1"), stub.source)
     end
-    parts[#parts + 1] = ""
-    parts[#parts + 1] = _("Not seen in this book yet. It wakes on its own when an update or merge meets it.")
+    -- Content first (device 2026-09-09: the status sentence sat between the
+    -- header and the description and buried it); the status line closes
     if type(stub.description) == "string" and stub.description ~= "" then
         parts[#parts + 1] = ""
         parts[#parts + 1] = stub.description
@@ -1574,6 +1586,8 @@ function XrayBrowser:showDormantDetail(stub_idx, stub, nav_context)
             end
         end
     end
+    parts[#parts + 1] = ""
+    parts[#parts + 1] = _("Not seen in this book yet. It wakes on its own when an update or merge meets it.")
 
     local viewer
     local function afterClose(fn)
@@ -2306,6 +2320,31 @@ function XrayBrowser:showItemDetail(item, category_key, title, source, nav_conte
         detail_text = _("As of") .. " " .. self.metadata.progress .. "\n\n" .. detail_text
         chat_text = _("As of") .. " " .. self.metadata.progress .. "\n\n" .. chat_text
     end
+    -- G2 (group hub plan, 2026-09-06): what the other books of the group say
+    -- about this entry, as far as the chain reaches (earlier books; later
+    -- books only once every book before them is read or unprotected) —
+    -- under protection nothing about later books shows, not even that one
+    -- exists. The same walk the lookups run on a miss, on a hit. Display
+    -- only: "Chat about this" keeps sending this book's own entry.
+    if not self.scope and not self.metadata.checkpoint and owner_file then
+        local handles = { self.location.item_name }
+        for _idx, a in ipairs(type(item.aliases) == "table" and item.aliases or {}) do
+            if type(a) == "string" and a ~= "" then handles[#handles + 1] = a end
+        end
+        local ok_also, also = pcall(require("koassistant_action_cache").alsoInGroup,
+            owner_file, handles, category_key)
+        if ok_also and type(also) == "table" and #also > 0 then
+            local XrayCard = require("koassistant_xray_card")
+            local lines = { "", _("In other books of the group:") }
+            for _idx, b in ipairs(also) do
+                local first = XrayCard.firstSentence(XrayCard.itemText(b.item))
+                local label = b.direction == "later"
+                    and T(_("%1 (later in the series)"), b.title) or b.title
+                lines[#lines + 1] = first ~= "" and T(_("%1: %2"), label, first) or label
+            end
+            detail_text = detail_text .. "\n" .. table.concat(lines, "\n")
+        end
+    end
     local item_highlights = {}
     -- Populated by the connections block below; the More… popup is built
     -- BEFORE it, and its callbacks run after, so the closure sees the filled list
@@ -2491,6 +2530,10 @@ function XrayBrowser:showItemDetail(item, category_key, title, source, nav_conte
                 local jump_location = self_ref.location
                 plugin_ref:_showGroupMembersPopup(group_file, "xray", {
                     location = jump_location,
+                    -- G2 round 2: rows open the member's entry as the
+                    -- read-only entry view over this page; the switch lives
+                    -- inside it (before_open + return_to serve that switch)
+                    entry_view = true,
                     -- Q16: the other X-Ray's up-arrow at root returns here
                     return_to = { book_file = group_file, title = self_ref.metadata.title,
                         location = jump_location },
@@ -6143,10 +6186,11 @@ function XrayBrowser:showSearchResults(query, skip_cross_search)
         local dormant_rows = self:_dormantRows()
         for _idx, sh in ipairs(stub_hits) do
             local captured = sh
-            local mand = captured.source_title or ""
-            if captured.match_field == "alias" then
-                mand = mand ~= "" and (mand .. " (" .. _("alias") .. ")")
-                    or ("(" .. _("alias") .. ")")
+            local alias_tag = captured.match_field == "alias" and ("(" .. _("alias") .. ")") or ""
+            local mand = XrayBrowser.fitSourceTitle(captured.stub.name, captured.source_title,
+                alias_tag ~= "" and (" " .. alias_tag) or nil)
+            if alias_tag ~= "" then
+                mand = mand ~= "" and (mand .. " " .. alias_tag) or alias_tag
             end
             table.insert(items, {
                 text = captured.stub.name,
@@ -6360,7 +6404,7 @@ function XrayBrowser:showFullView()
         group_open = (self.metadata.plugin and self.metadata.plugin._inBookGroup
             and self.metadata.plugin:_inBookGroup(self.metadata.book_file))
             and function()
-                self.metadata.plugin:_showGroupMembersPopup(self.metadata.book_file, "artifacts")
+                self.metadata.plugin:openGroupHubFor(self.metadata.book_file)
             end or nil,
         on_launch_chat = self.metadata.plugin and self.metadata.plugin._buildLaunchChatCallback
             and self.metadata.plugin:_buildLaunchChatCallback(self.metadata.book_file, self.metadata.title, self.metadata.book_author, markdown, _("X-Ray")) or nil,

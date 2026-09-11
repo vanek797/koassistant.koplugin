@@ -750,6 +750,84 @@ TestRunner:test("isIncomplete is false for whole responses and non-strings", fun
     TestRunner:assertFalse(ResponseParser.isIncomplete({}), "table")
 end)
 
+-- Abnormal stop reasons (parity audit F059/F276, 2026-09-07): a stop the
+-- provider names (Gemini SAFETY/RECITATION, OpenAI content_filter, Anthropic
+-- refusal) is named to the reader instead of "Unexpected response format" (no
+-- text) or a silently shortened answer (partial text).
+TestRunner:suite("Abnormal stop reasons")
+
+TestRunner:test("gemini SAFETY with no parts names the reason", function()
+    local response = { candidates = { { content = { role = "model" }, finishReason = "SAFETY" } } }
+    local success, result = ResponseParser:parseResponse(response, "gemini")
+    TestRunner:assertFalse(success, "failure")
+    TestRunner:assertContains(result, "SAFETY", "reason named")
+    TestRunner:assertContains(result, "Content Filter", "points at the setting")
+end)
+
+TestRunner:test("gemini RECITATION with partial text appends the stop notice", function()
+    local response = { candidates = { {
+        content = { parts = { { text = "It begins" } } }, finishReason = "RECITATION" } } }
+    local success, result = ResponseParser:parseResponse(response, "gemini")
+    TestRunner:assertTrue(success, "partial text kept")
+    TestRunner:assertEqual(result:sub(1, 9), "It begins", "text intact")
+    TestRunner:assertContains(result, "RECITATION", "reason named")
+    TestRunner:assertTrue(ResponseParser.isIncomplete(result), "never cached as whole")
+end)
+
+TestRunner:test("gemini prompt block (promptFeedback, no candidates) names the block", function()
+    local response = { promptFeedback = { blockReason = "PROHIBITED_CONTENT" } }
+    local success, result = ResponseParser:parseResponse(response, "gemini")
+    TestRunner:assertFalse(success, "failure")
+    TestRunner:assertContains(result, "PROHIBITED_CONTENT", "block reason named")
+end)
+
+TestRunner:test("gemini STOP and MAX_TOKENS stay as before", function()
+    local ok1, r1 = ResponseParser:parseResponse({ candidates = { {
+        content = { parts = { { text = "fine" } } }, finishReason = "STOP" } } }, "gemini")
+    TestRunner:assertTrue(ok1 and r1 == "fine", "STOP untouched")
+    local ok2, r2 = ResponseParser:parseResponse({ candidates = { {
+        content = { parts = { { text = "cut" } } }, finishReason = "MAX_TOKENS" } } }, "gemini")
+    TestRunner:assertTrue(ok2, "MAX_TOKENS still succeeds")
+    TestRunner:assertContains(r2, "truncated", "truncation notice, not a stop notice")
+    TestRunner:assertEqual(r2:find(ResponseParser.STOP_PREFIX, 1, true), nil, "no stop notice")
+end)
+
+TestRunner:test("openai content_filter: notice on partial text, error on none", function()
+    local ok1, r1 = ResponseParser:parseResponse({ choices = { {
+        message = { content = "Part of it" }, finish_reason = "content_filter" } } }, "openai")
+    TestRunner:assertTrue(ok1, "partial kept")
+    TestRunner:assertContains(r1, "content_filter", "reason named")
+    local ok2, r2 = ResponseParser:parseResponse({ choices = { {
+        message = { content = "" }, finish_reason = "content_filter" } } }, "openai")
+    TestRunner:assertFalse(ok2, "no text = failure")
+    TestRunner:assertContains(r2, "content_filter", "reason named in the error")
+    local ok3, r3 = ResponseParser:parseResponse({ choices = { {
+        message = { content = "done" }, finish_reason = "stop" } } }, "openai")
+    TestRunner:assertTrue(ok3 and r3 == "done", "stop untouched")
+end)
+
+TestRunner:test("anthropic refusal: notice on partial text, error on none", function()
+    local ok1, r1 = ResponseParser:parseResponse({ content = { { type = "text", text = "I" } },
+        stop_reason = "refusal" }, "anthropic")
+    TestRunner:assertTrue(ok1, "partial kept")
+    TestRunner:assertContains(r1, "refusal", "reason named")
+    local ok2, r2 = ResponseParser:parseResponse({ content = {}, stop_reason = "refusal" }, "anthropic")
+    TestRunner:assertFalse(ok2, "no text = failure")
+    TestRunner:assertContains(r2, "refusal", "reason named in the error")
+    local ok3, r3 = ResponseParser:parseResponse({ content = { { type = "text", text = "ok" } },
+        stop_reason = "end_turn" }, "anthropic")
+    TestRunner:assertTrue(ok3 and r3 == "ok", "end_turn untouched")
+end)
+
+TestRunner:test("abnormalStop: normal reasons and non-strings are nil", function()
+    for _idx, r in ipairs({ "stop", "length", "tool_calls", "end_turn", "max_tokens", "STOP", "MAX_TOKENS", "" }) do
+        TestRunner:assertEqual(ResponseParser.abnormalStop(r), nil, "normal: " .. r)
+    end
+    TestRunner:assertEqual(ResponseParser.abnormalStop(nil), nil, "nil")
+    TestRunner:assertEqual(ResponseParser.abnormalStop(function() end), nil, "json null sentinel")
+    TestRunner:assertEqual(ResponseParser.abnormalStop("SAFETY"), "SAFETY", "abnormal passes through")
+end)
+
 -- Summary
 local success = TestRunner:summary()
 return success

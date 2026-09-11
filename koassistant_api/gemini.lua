@@ -58,6 +58,20 @@ function GeminiHandler:buildRequestBody(message_history, config)
         contents = {},
     }
 
+    -- Google's default content filter blocks answers about violent or sexual
+    -- passages in books (finishReason SAFETY, no parts). Relaxed = the four
+    -- adjustable categories off for this plugin's requests; "google" sends
+    -- nothing. Settings > Advanced > Provider Settings > Gemini Content Filter,
+    -- mirrored in the Gemini model menu (parity audit F060, 2026-09-07).
+    if not (config.features and config.features.gemini_safety == "google") then
+        request_body.safetySettings = {
+            { category = "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold = "BLOCK_NONE" },
+            { category = "HARM_CATEGORY_HATE_SPEECH", threshold = "BLOCK_NONE" },
+            { category = "HARM_CATEGORY_HARASSMENT", threshold = "BLOCK_NONE" },
+            { category = "HARM_CATEGORY_DANGEROUS_CONTENT", threshold = "BLOCK_NONE" },
+        }
+    end
+
     -- Add system instruction from unified config (Gemini's native approach)
     if config.system and config.system.text and config.system.text ~= "" then
         request_body.system_instruction = {

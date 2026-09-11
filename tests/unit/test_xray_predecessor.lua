@@ -458,6 +458,70 @@ TestRunner:test("S7: the confirmed reveal opens one X-Rayed later book per confi
     ActionCache.setLookupChainResolver(nil)
 end)
 
+TestRunner:suite("G2 — group hub: held-back set, the chain walk on a HIT (group_hub_plan.md)")
+
+TestRunner:test("heldBackLaterFiles: the X-Rayed later books the chain holds back, as a set", function()
+    local open = {}
+    ActionCache.setLookupChainResolver(function(file) return open[file] == true end)
+    local held = ActionCache.heldBackLaterFiles(VOL1)
+    TestRunner:eq(held[VOL2] ~= nil, true, "vol 2 held back from unread vol 1")
+    TestRunner:eq(held[VOL3] ~= nil, true, "vol 3 held back too")
+    TestRunner:eq(held[VOL1], nil, "never the book itself")
+    open[VOL1] = true
+    held = ActionCache.heldBackLaterFiles(VOL1)
+    TestRunner:eq(held[VOL2], nil, "vol 1 read: vol 2 reachable")
+    TestRunner:eq(held[VOL3] ~= nil, true, "vol 3 still behind unread vol 2")
+    open[VOL2] = true
+    TestRunner:eq(next(ActionCache.heldBackLaterFiles(VOL1)), nil, "both read: nothing held back")
+    TestRunner:eq(next(ActionCache.heldBackLaterFiles(VOL3)), nil, "the last volume holds nothing back")
+end)
+
+TestRunner:test("alsoInGroup: active entries in the allowed books only; stubs never; later books as the chain allows", function()
+    local open = {}
+    ActionCache.setLookupChainResolver(function(file) return open[file] == true end)
+    local also = ActionCache.alsoInGroup(VOL3, { "Petra Lund" }, "characters")
+    TestRunner:eq(#also, 1, "earlier book's entry found from vol 3")
+    TestRunner:eq(also[1].file, VOL2)
+    TestRunner:eq(also[1].direction, "earlier")
+    TestRunner:eq(also[1].item.name, "Petra Lund")
+    TestRunner:eq(#ActionCache.alsoInGroup(VOL3, { "Wick" }, "characters"), 0, "a carried stub is not an entry")
+    TestRunner:eq(#ActionCache.alsoInGroup(VOL3, { "Mira Voss" }, "characters"), 0, "only in this book")
+    TestRunner:eq(#ActionCache.alsoInGroup(VOL1, { "Petra Lund" }, "characters"), 0,
+        "unread vol 1: the later book's entry is hidden, existence included")
+    open[VOL1] = true
+    also = ActionCache.alsoInGroup(VOL1, { "Petra Lund" }, "characters")
+    TestRunner:eq(#also, 1, "vol 1 read: vol 2 answers")
+    TestRunner:eq(also[1].direction, "later")
+    TestRunner:eq(#ActionCache.alsoInGroup(VOL1, { "Mira Voss" }, "characters"), 0, "vol 3 still behind unread vol 2")
+    open[VOL2] = true
+    TestRunner:eq(#ActionCache.alsoInGroup(VOL1, { "Mira Voss" }, "characters"), 1, "both read: vol 3 answers")
+    TestRunner:eq(#ActionCache.alsoInGroup(VOL1, {}, "characters"), 0, "no handles, no walk")
+end)
+
+TestRunner:test("card: a live hit carries also_in as far as the chain reaches", function()
+    local open = {}
+    ActionCache.setLookupChainResolver(function(file) return open[file] == true end)
+    -- vol 1 now also knows the orchard girl, so the same name is active in two volumes
+    local vol1_two = '{"characters":[{"name":"Zara Flint","description":"Dives for bells and never says who pays."},'
+        .. '{"name":"Mira Voss","description":"A girl seen once at the orchard gate."}]}'
+    assert(ActionCache.set(VOL1, "xray", vol1_two, 0.5, { model = "m", used_book_text = true }))
+    assert(ActionCache.setXrayCache(VOL1, vol1_two, 0.5, { model = "m", used_book_text = true }))
+    local hit = XrayCard.resolve(VOL3, "Mira Voss", { position = 0.5 })
+    TestRunner:eq(hit and hit.source, "live", "vol 3's own entry")
+    TestRunner:eq(hit.also_in and #hit.also_in, 1, "the earlier book's entry rides")
+    TestRunner:eq(hit.also_in[1].file, VOL1)
+    TestRunner:eq(hit.also_in[1].direction, "earlier")
+    hit = XrayCard.resolve(VOL1, "Mira Voss", { position = 0.5 })
+    TestRunner:eq(hit and hit.source, "live", "vol 1's own entry")
+    TestRunner:eq(hit.also_in, nil, "unread vol 1: nothing about later books, not even that one exists")
+    open[VOL1] = true
+    open[VOL2] = true
+    hit = XrayCard.resolve(VOL1, "Mira Voss", { position = 0.5 })
+    TestRunner:eq(hit.also_in and #hit.also_in, 1, "both read: the later book's entry rides")
+    TestRunner:eq(hit.also_in[1].file, VOL3)
+    TestRunner:eq(hit.also_in[1].direction, "later")
+end)
+
 -- ---------------------------------------------------------------- cleanup
 BookGroups.remove(group.id)
 os.execute(string.format("rm -rf %q", TMP_ROOT))

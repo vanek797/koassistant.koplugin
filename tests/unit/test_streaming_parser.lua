@@ -383,6 +383,28 @@ TestRunner:test("skips a quoted object and finds the real trailing one", functio
     TestRunner:assertEqual(buf:sub(1, pos - 1):find("in general%.") ~= nil, true, "split after the prose")
 end)
 
+TestRunner:suite("Abnormal stop reasons on the wire")
+
+TestRunner:test("abnormalStopReason reads every provider shape, ignores normal stops", function()
+    local h = StreamHandler:new{}
+    TestRunner:assertEqual(h:abnormalStopReason({ choices = { { finish_reason = "content_filter", delta = {} } } }),
+        "content_filter", "openai")
+    TestRunner:assertEqual(h:abnormalStopReason({ choices = { { finish_reason = "stop", delta = {} } } }),
+        nil, "openai stop")
+    TestRunner:assertEqual(h:abnormalStopReason({ type = "message_delta", delta = { stop_reason = "refusal" } }),
+        "refusal", "anthropic")
+    TestRunner:assertEqual(h:abnormalStopReason({ type = "message_delta", delta = { stop_reason = "end_turn" } }),
+        nil, "anthropic end_turn")
+    TestRunner:assertEqual(h:abnormalStopReason({ candidates = { { finishReason = "SAFETY", content = {} } } }),
+        "SAFETY", "gemini")
+    TestRunner:assertEqual(h:abnormalStopReason({ candidates = { { finishReason = "STOP" } } }),
+        nil, "gemini STOP")
+    TestRunner:assertEqual(h:abnormalStopReason({ promptFeedback = { blockReason = "SAFETY" } }),
+        "prompt blocked: SAFETY", "gemini prompt block")
+    TestRunner:assertEqual(h:abnormalStopReason({ choices = { { delta = { content = "x" } } } }),
+        nil, "content chunk")
+end)
+
 -- Summary
 local success = TestRunner:summary()
 return success

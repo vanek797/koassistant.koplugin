@@ -1666,8 +1666,14 @@ local function getAllPrompts(configuration, plugin)
     -- Determine context
     local context = config and getPromptContext(config) or "highlight"
 
-    -- Check if a book is currently open (for filtering requires_open_book actions)
+    -- Check if a book is currently open (for filtering requires_open_book actions).
+    -- "Open" means THIS dialog's book: a closed book's dialog launched beside
+    -- another open book (a group hub's Book Hub) is the not-open kind
     local has_open_book = plugin and plugin.ui and plugin.ui.document ~= nil
+    if has_open_book and config and config.features and config.features.is_book_context then
+        local target = config.features.book_metadata and config.features.book_metadata.file
+        if target and target ~= plugin.ui.document.file then has_open_book = false end
+    end
 
     -- Debug logging
     local logger = require("koassistant_logger")
@@ -6385,7 +6391,10 @@ local function runSmartRetrieval(action, action_id, highlighted_text, ui_instanc
             local n = info and info.tool_calls or 0
             local Notification = require("ui/widget/notification")
             local note
-            if n == 0 then
+            if info and info.whole_text then
+                -- The readable text fit the whole-text budget: sent in full, no lookups.
+                note = _("Read the book text in full")
+            elseif n == 0 then
                 -- Model decided no lookups were needed (zero-gather): the action
                 -- proceeds on AI knowledge with the fallback nudge.
                 note = _("No book lookups needed")
@@ -6863,8 +6872,17 @@ local function showChatGPTDialog(ui_instance, highlighted_text, config, prompt_t
             book_metadata, SafeDocSettings.resolve(document_path, ui_instance))
     end
 
-    -- Determine input context for per-context action ordering
+    -- Determine input context for per-context action ordering. "Open" means
+    -- THIS dialog's book is the open document: a closed book's dialog launched
+    -- while another book is open (a group hub's Book Hub, the artifact
+    -- browser) is the not-open kind — its actions, chips and title must not be
+    -- the open book's (device round 2026-09-07); the extraction side already
+    -- routes that case to sidecar mode (is_file_browser_target)
     local has_open_book = ui_instance and ui_instance.document ~= nil
+    if has_open_book and configuration and configuration.features and configuration.features.is_book_context then
+        local target = configuration.features.book_metadata and configuration.features.book_metadata.file
+        if target and target ~= ui_instance.document.file then has_open_book = false end
+    end
     local input_context
     if is_general_context then
         input_context = "general"  -- Uses existing getGeneralMenuActionObjects()
@@ -6931,8 +6949,11 @@ local function showChatGPTDialog(ui_instance, highlighted_text, config, prompt_t
     local refreshInputDialog
 
     -- Domain target: "book" or "global" — controls where selection is saved
-    -- Default to "book" if any book override exists (domain or research mode), otherwise "global"
-    local domain_target = (doc_settings and (book_domain_id or book_research_id ~= nil)) and "book" or "global"
+    -- Default to "book" whenever the dialog is about a book (2026-09-07: it used
+    -- to need an existing override, so the first visit opened on Global);
+    -- general and library chats keep the global target
+    local domain_target = (doc_settings and input_context ~= "general" and input_context ~= "library")
+        and "book" or "global"
 
     -- Function to show domain selector
     -- Single list with target toggle at top when a book is open
@@ -9823,11 +9844,10 @@ local function showChatGPTDialog(ui_instance, highlighted_text, config, prompt_t
                         executeInputAction(prompt, custom_prompt_type)
                     end,
                     hold_callback = function()
-                        if prompt.description then
-                            UIManager:show(InfoMessage:new{
-                                text = prompt.description,
-                            })
-                        end
+                        require("koassistant_action_hold").show(plugin, prompt, {
+                            surface = "input", ctx = input_context,
+                            on_change = refreshInputDialog,
+                        })
                     end,
                 })
             end
@@ -9900,11 +9920,10 @@ local function showChatGPTDialog(ui_instance, highlighted_text, config, prompt_t
                         executeInputAction(action, action.id)
                     end,
                     hold_callback = function()
-                        if action.description then
-                            UIManager:show(InfoMessage:new{
-                                text = action.description,
-                            })
-                        end
+                        require("koassistant_action_hold").show(plugin, action, {
+                            surface = "input", ctx = input_context,
+                            on_change = refreshInputDialog,
+                        })
                     end,
                 })
             end
@@ -10834,7 +10853,11 @@ end
 -- predecessor results list and the earlier-books sweep.
 -- @param opts table { ui, config, plugin, book_metadata, cleanup_widgets,
 --   document_path (CURRENT book), hit { name, item, category_key,
---   category_label, source_title, pred_file, pred_title, pred_stub } }
+--   category_label, source_title, pred_file, pred_title, pred_stub },
+--   before_open (fn, G2 round 2: run before "Open in <title>'s X-Ray"
+--   switches — the group members popup retires the origin browser there,
+--   the browser being a singleton), return_to (Q16 descriptor for that
+--   switch: the other X-Ray's up-arrow at root reopens the origin) }
 local function showPredecessorEntity(opts)
     local ActionCache = require("koassistant_action_cache")
     local XrayCard = require("koassistant_xray_card")
@@ -10864,6 +10887,13 @@ local function showPredecessorEntity(opts)
                         book_file = hit.pred_file,
                         fallback = true,
                     }
+                end
+                if opts.before_open then opts.before_open() end
+                if opts.return_to then
+                    local rt = {}
+                    for k, v in pairs(opts.return_to) do rt[k] = v end
+                    rt.target = hit.pred_file
+                    require("koassistant_xray_browser")._pending_return_to = rt
                 end
                 opts.plugin:showCacheViewer({ name = _("X-Ray"), key = "_xray_cache",
                     data = pred_entry, book_title = hit.pred_title, file = hit.pred_file })
@@ -11329,7 +11359,8 @@ local function showCrossSectionResults(grouped_results, query, ui, config, plugi
             local captured_sh = sh
             table.insert(items, {
                 text = "  " .. captured_sh.stub.name,
-                mandatory = captured_sh.source_title or "",
+                mandatory = require("koassistant_xray_browser").fitSourceTitle(
+                    "  " .. captured_sh.stub.name, captured_sh.source_title),
                 mandatory_dim = true,
                 callback = function()
                     openCarriedStubDetail(ui, carried.data, config, plugin, book_metadata,
@@ -11754,6 +11785,12 @@ end
 -- @param override_best table|nil Pre-selected X-Ray result (from selection popup callback)
 local function handleLocalXrayLookup(ui, query, document_path, book_metadata, config, plugin, override_best)
     local logger = require("koassistant_logger")
+    -- The same edge trim the selection intercept applies: a CJK selection
+    -- brings its stop along ("name。"), and the stop found nothing (#90)
+    if type(query) == "string" then
+        local trimmed = require("koassistant_xray_parser").trimEdgePunctuation(query)
+        if trimmed ~= "" then query = trimmed end
+    end
     logger.dbg("KOAssistant: Local X-Ray lookup for: " .. tostring(query))
 
     if not document_path then

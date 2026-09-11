@@ -728,7 +728,169 @@ TestRunner:test("shared keys alone still validate, on the pre-existing first-mat
     TestRunner:eq(d.type, "fiction")
 end)
 
-print(string.rep("-", 50))
+print(string.rep("-", 50))print(string.rep("-", 50))
+TestRunner:suite("CJK separators + carried-list fold (#90, 2026-09-09)")
+
+TestRunner:test("repairName: '_' and '-' between kana become the middle dot; Latin and Han untouched", function()
+    TestRunner:eq(XrayParser.repairName("カイ_ロ_サン"), "カイ・ロ・サン", "double underscore")
+    TestRunner:eq(XrayParser.repairName("ミラ_エル-ソーン"), "ミラ・エル・ソーン", "mixed _ and -")
+    TestRunner:eq(XrayParser.repairName("ミラ・エル_ソーン"), "ミラ・エル・ソーン", "mixed dot and _")
+    TestRunner:eq(XrayParser.repairName("snake_case"), "snake_case", "Latin untouched")
+    TestRunner:eq(XrayParser.repairName("Anne-Marie"), "Anne-Marie", "Latin hyphen untouched")
+    TestRunner:eq(XrayParser.repairName("山田_花子"), "山田_花子", "Han-only untouched")
+    TestRunner:eq(XrayParser.repairName("ア_1"), "ア_1", "kana beside a digit untouched")
+    TestRunner:eq(XrayParser.repairName(XrayParser.repairName("ア_イ_ウ")), "ア・イ・ウ", "idempotent")
+    TestRunner:eq(XrayParser.repairName(nil), nil, "nil passes through")
+end)
+
+TestRunner:test("parse repairs names, aliases, connections and carried stubs; aliases dedupe and drop the name", function()
+    local d = XrayParser.parse([[{"type":"fiction","characters":[
+        {"name":"カイ_ロ_サン","aliases":["カイ","カイ・ロ・サン","カイ_ロ_サン","カイ"],
+         "connections":["ミラ_エル_ソーン (friend)"]}],
+        "__dormant":[{"name":"ナオ_ハル_ケイン","aliases":["ナオ","ナオ_ハル_ケイン"],"category":"characters"}]}]])
+    TestRunner:ok(d and not d.error, "parsed")
+    local c = d.characters[1]
+    TestRunner:eq(c.name, "カイ・ロ・サン", "name repaired")
+    TestRunner:eq(#c.aliases, 1, "repaired duplicates and the name itself dropped")
+    TestRunner:eq(c.aliases[1], "カイ", "bare alias kept")
+    TestRunner:eq(c.connections[1], "ミラ・エル・ソーン (friend)", "connection repaired")
+    local s = d.__dormant[1]
+    TestRunner:eq(s.name, "ナオ・ハル・ケイン", "stub name repaired")
+    TestRunner:eq(#s.aliases, 1, "stub alias equal to its name dropped")
+    TestRunner:eq(s.aliases[1], "ナオ", "stub bare alias kept")
+end)
+
+TestRunner:test("foldLedger: name-in-alias folds either way, same family only, never-merge honored, idempotent", function()
+    local d = { type = "fiction", characters = {}, __dormant = {
+        { name = "ミラ", aliases = { "ミラ・エル・ソーン" }, category = "characters", source = "Vol 3a",
+          file = "/a", description = "young mage", role = "Supporting",
+          background = { { source = "Vol 1", text = "first seen", file = "/1" } } },
+        { name = "ナオ", category = "characters", source = "Vol 3a" },
+        { name = "ミラ・エル・ソーン", aliases = { "ミラ" }, category = "characters", source = "Vol 3b",
+          file = "/b", description = "now a master" },
+        { name = "リオ", aliases = { "リー" }, category = "characters", source = "Vol 3a" },
+        { name = "リオ・マーク", aliases = { "リオ" }, category = "key_figures", source = "Vol 3b" },
+        { name = "ミラ", category = "lexicon", source = "Vol 3a" },
+        { name = "ナオ・ハル・ケイン", aliases = { "ナオ" }, category = "characters", source = "Vol 3b" },
+    } }
+    local folded = XrayParser.foldLedger(d, { { "リオ", "リオ・マーク" } })
+    TestRunner:eq(folded, 2, "two pairs folded; the never pair and the term stay")
+    local L = d.__dormant
+    TestRunner:eq(#L, 5, "five rows remain")
+    TestRunner:eq(L[1].name, "ミラ", "earlier row keeps its name")
+    TestRunner:eq(L[1].source, "Vol 3a", "earlier row keeps its source")
+    TestRunner:eq(L[1].description, "young mage", "earlier row keeps its description")
+    TestRunner:eq(#L[1].aliases, 1, "alias list not duplicated")
+    TestRunner:eq(#L[1].background, 2, "dropped description became a carried line")
+    TestRunner:eq(L[1].background[2].source, "Vol 3b", "under its own source")
+    TestRunner:eq(L[1].background[2].text, "now a master", "with its text")
+    TestRunner:eq(L[2].name, "ナオ", "second entity kept its position")
+    TestRunner:eq(L[2].aliases[1], "ナオ・ハル・ケイン", "full name joined the aliases")
+    TestRunner:eq(L[3].name, "リオ", "never-merge pair untouched")
+    TestRunner:eq(L[4].name, "リオ・マーク", "never-merge pair untouched (2)")
+    TestRunner:eq(L[5].category, "lexicon", "the term with the same name stays")
+    TestRunner:eq(XrayParser.foldLedger(d, { { "リオ", "リオ・マーク" } }), 0, "idempotent")
+    TestRunner:eq(XrayParser.foldLedger(d), 1, "without the never list the held pair folds too")
+end)
+
+TestRunner:test("foldLedger: a chain folds to one across a family bridge; fewer than two stubs is a no-op", function()
+    local d = { type = "fiction", characters = {}, __dormant = {
+        { name = "A", aliases = { "B" }, category = "characters" },
+        { name = "B", aliases = { "C" }, category = "characters" },
+        { name = "C", category = "key_figures" },
+    } }
+    TestRunner:eq(XrayParser.foldLedger(d), 2, "A~B, then C matches B's alias now on A")
+    TestRunner:eq(#d.__dormant, 1, "one row")
+    TestRunner:eq(d.__dormant[1].aliases[2], "C", "C joined the aliases")
+    TestRunner:eq(XrayParser.foldLedger({ __dormant = { { name = "X" } } }), 0, "single stub no-op")
+    TestRunner:eq(XrayParser.foldLedger(nil), 0, "nil no-op")
+end)
+
+TestRunner:test("foldLedger: with a rank the nearer book's row leads and keeps the earlier slot", function()
+    local d = { type = "fiction", characters = {}, __dormant = {
+        { name = "ミラ", aliases = { "ミラ・エル・ソーン" }, category = "characters", source = "Vol 1", file = "/1",
+          description = "young mage" },
+        { name = "ナオ", category = "characters", source = "Vol 1", file = "/1" },
+        { name = "ミラ・エル・ソーン", aliases = { "ミラ" }, category = "characters", source = "Vol 2", file = "/2",
+          description = "now a master" },
+    } }
+    local rank = { ["/1"] = 1, ["/2"] = 2 }
+    XrayParser.setStubRankResolver(function(stub) return rank[stub.file] end)
+    local folded = XrayParser.foldLedger(d)
+    XrayParser.setStubRankResolver(nil)
+    TestRunner:eq(folded, 1, "one fold")
+    local L = d.__dormant
+    TestRunner:eq(L[1].name, "ミラ・エル・ソーン", "the nearer book's name leads, in the earlier slot")
+    TestRunner:eq(L[1].source, "Vol 2", "its source")
+    TestRunner:eq(L[1].description, "now a master", "its description")
+    TestRunner:eq(L[1].aliases[1], "ミラ", "the short name is an alias")
+    TestRunner:eq(L[1].background[1].source, "Vol 1", "the farther book's description became a line")
+    TestRunner:eq(L[2].name, "ナオ", "the other row keeps its slot")
+end)
+
+TestRunner:test("parse folds the carried list on read: two stored rows show as one, ranked when a resolver is installed", function()
+    local json = [[{"type":"fiction","characters":[{"name":"Hero"}],"__dormant":[
+        {"name":"ミラ","aliases":["ミラ・エル・ソーン"],"category":"characters","source":"Vol 1","file":"/1","description":"young mage"},
+        {"name":"ナオ","category":"characters","source":"Vol 1","file":"/1"},
+        {"name":"ミラ_エル_ソーン","aliases":["ミラ"],"category":"characters","source":"Vol 2","file":"/2","description":"now a master"}]}]]
+    local d = XrayParser.parse(json)
+    TestRunner:eq(#d.__dormant, 2, "one row per person without a resolver")
+    TestRunner:eq(d.__dormant[1].name, "ミラ", "earlier row wins without a resolver")
+    local rank = { ["/1"] = 1, ["/2"] = 2 }
+    XrayParser.setStubRankResolver(function(stub) return rank[stub.file] end)
+    local d2 = XrayParser.parse(json)
+    XrayParser.setStubRankResolver(nil)
+    TestRunner:eq(#d2.__dormant, 2, "one row per person with a resolver")
+    TestRunner:eq(d2.__dormant[1].name, "ミラ・エル・ソーン", "the nearer book's dotted name leads, repaired")
+    TestRunner:eq(d2.__dormant[1].source, "Vol 2", "carried from the nearer book")
+    TestRunner:eq(d2.__dormant[1].background[1].text, "young mage", "the farther book's description is its line")
+end)
+
+TestRunner:test("wakeDormant folds first: one entity under two carried names wakes once", function()
+    local d = { type = "fiction",
+        characters = { { name = "ミラ", description = "here" } },
+        __dormant = {
+            { name = "ミラ", aliases = { "ミラ・エル・ソーン" }, category = "characters", source = "Vol 3a",
+              background = { { source = "Vol 1", text = "seen", file = "/1" } } },
+            { name = "ミラ・エル・ソーン", aliases = { "ミラ" }, category = "characters", source = "Vol 3b",
+              description = "master" },
+        } }
+    local woken = XrayParser.wakeDormant(d)
+    TestRunner:eq(#woken, 1, "woke once")
+    TestRunner:ok(d.__dormant == nil, "ledger emptied")
+    local c = d.characters[1]
+    TestRunner:eq(c.aliases[1], "ミラ・エル・ソーン", "full name rides in as an alias")
+    TestRunner:eq(#c.background, 2, "both carried lines arrived")
+end)
+
+TestRunner:test("search: a query in the underscore spelling finds the dotted entry, live and carried", function()
+    local d = XrayParser.parse([[{"type":"fiction","characters":[{"name":"カイ・ロ・サン"}],
+        "__dormant":[{"name":"ナオ・ハル・ケイン","category":"characters"}]}]])
+    TestRunner:eq(#XrayParser.searchAll(d, "カイ_ロ_サン", { exact = true }), 1, "live exact")
+    TestRunner:eq(#XrayParser.searchAll(d, "カイ_ロ", { skip_description = true }), 1, "live substring")
+    TestRunner:eq(#XrayParser.searchLedger(d, "ナオ_ハル_ケイン", { exact = true }), 1, "carried exact")
+    local set = {}
+    XrayParser.foldLedgerHandles(d, set)
+    TestRunner:ok(XrayParser.matchExactHandle(set, "ナオ_ハル_ケイン"), "exact handle route")
+end)
+
+TestRunner:test("trimEdgePunctuation: ASCII and CJK stops, quotes and brackets fall off both edges; the dot inside stays", function()
+    TestRunner:eq(XrayParser.trimEdgePunctuation("リオ."), "リオ", "ASCII period")
+    TestRunner:eq(XrayParser.trimEdgePunctuation("リオ。"), "リオ", "CJK full stop")
+    TestRunner:eq(XrayParser.trimEdgePunctuation("「カイ・ロ・サン」、"), "カイ・ロ・サン", "brackets and comma; inner dot kept")
+    TestRunner:eq(XrayParser.trimEdgePunctuation("  Jack  Torrance's, "), "Jack Torrance's", "collapsed, inner apostrophe kept")
+    TestRunner:eq(XrayParser.trimEdgePunctuation("(Jack)"), "Jack", "ASCII brackets")
+    TestRunner:eq(XrayParser.trimEdgePunctuation("…"), "", "only marks becomes empty")
+    TestRunner:eq(XrayParser.trimEdgePunctuation(nil), nil, "nil passes through")
+end)
+
+TestRunner:test("merge: a dotted full-name alias bridges a rename (CJK rename fold)", function()
+    local old = { type = "fiction", characters = { { name = "ミラ・エル・ソーン", description = "d" } } }
+    local new = { type = "fiction", characters = { { name = "ソーン導師", aliases = { "ミラ・エル・ソーン" }, description = "d2" } } }
+    XrayParser.merge(old, new)
+    TestRunner:eq(#old.characters, 1, "folded, not duplicated")
+    TestRunner:eq(old.characters[1].name, "ソーン導師", "new name is primary")
+end)
+
 print(string.format("  Results: %d passed, %d failed", TestRunner.passed, TestRunner.failed))
-print(string.rep("-", 50))
 return TestRunner.failed == 0

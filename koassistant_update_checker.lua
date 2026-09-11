@@ -510,35 +510,77 @@ local UpdateChecker = {}
 -- Pending update info (deferred if streaming is active)
 UpdateChecker.pending_update = nil
 
+--- Parse a version string: 1 to 3 numeric components (missing ones read as 0),
+--- an optional pre-release after "-", build metadata after "+" ignored, an
+--- optional leading v. "1.0.0-rc.11", "2.0", "v0.22.0" all parse; "1.2.3.4" and
+--- "abc" do not. (2026-09-07: two-part tags used to be dropped from the candidate
+--- list and rc.11 sorted below rc.9, parity audit F098.)
+--- @param versionString string
+--- @return table|nil {major, minor, patch, prerelease, original}
 local function parseVersion(versionString)
-    -- Parse semantic version like "0.1.0-beta" or "1.0.0"
     if type(versionString) ~= "string" then
         logger.err("parseVersion: expected string, got " .. type(versionString))
         return nil
     end
-    local major, minor, patch, prerelease = versionString:match("^(%d+)%.(%d+)%.(%d+)%-?(.*)$")
-    if not major then
+    local body = versionString:gsub("^[vV]%.?", ""):gsub("%+.*$", "")
+    local core, prerelease = body:match("^([%d%.]+)%-(.*)$")
+    if not core then
+        core, prerelease = body, nil
+    end
+    local nums = {}
+    for part in core:gmatch("[^%.]+") do
+        if not part:match("^%d+$") then return nil end
+        table.insert(nums, tonumber(part))
+    end
+    if #nums < 1 or #nums > 3 or core:match("%.%.") or core:match("^%.") or core:match("%.$") then
         return nil
     end
-    
+    if prerelease == "" then prerelease = nil end
     return {
-        major = tonumber(major),
-        minor = tonumber(minor),
-        patch = tonumber(patch),
-        prerelease = prerelease ~= "" and prerelease or nil,
+        major = nums[1],
+        minor = nums[2] or 0,
+        patch = nums[3] or 0,
+        prerelease = prerelease,
         original = versionString
     }
 end
 
+--- SemVer pre-release order: dot-separated identifiers compared one by one,
+--- numbers numerically, a number below any word, words by text (so alpha <
+--- beta < rc), and when one list is a prefix of the other the shorter is older.
+local function comparePrerelease(a, b)
+    local pa, pb = {}, {}
+    for id in a:gmatch("[^%.]+") do table.insert(pa, id) end
+    for id in b:gmatch("[^%.]+") do table.insert(pb, id) end
+    for i = 1, math.max(#pa, #pb) do
+        local x, y = pa[i], pb[i]
+        if x == nil then return -1 end
+        if y == nil then return 1 end
+        local nx = x:match("^%d+$") and tonumber(x)
+        local ny = y:match("^%d+$") and tonumber(y)
+        if nx and ny then
+            if nx ~= ny then return nx < ny and -1 or 1 end
+        elseif nx then
+            return -1
+        elseif ny then
+            return 1
+        elseif x ~= y then
+            return x < y and -1 or 1
+        end
+    end
+    return 0
+end
+
+--- Compare two version strings.
+--- @return number -1 if v1 < v2, 0 if equal or unparseable, 1 if v1 > v2
 local function compareVersions(v1, v2)
-    -- Returns: -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2
     local ver1 = parseVersion(v1)
     local ver2 = parseVersion(v2)
-    
+
     if not ver1 or not ver2 then
         return 0
     end
-    
+
     -- Compare major.minor.patch
     if ver1.major ~= ver2.major then
         return ver1.major < ver2.major and -1 or 1
@@ -549,38 +591,20 @@ local function compareVersions(v1, v2)
     if ver1.patch ~= ver2.patch then
         return ver1.patch < ver2.patch and -1 or 1
     end
-    
-    -- Handle prerelease versions
-    -- No prerelease > prerelease (1.0.0 > 1.0.0-beta)
+
+    -- A release is newer than any of its pre-releases (1.0.0 > 1.0.0-rc.1)
     if not ver1.prerelease and ver2.prerelease then
         return 1
     elseif ver1.prerelease and not ver2.prerelease then
         return -1
     elseif ver1.prerelease and ver2.prerelease then
-        -- Compare prerelease strings (beta < rc < release)
-        local prereleaseOrder = {
-            alpha = 1,
-            beta = 2,
-            rc = 3,
-            release = 4
-        }
-        
-        local pre1Type = ver1.prerelease:match("^(%a+)")
-        local pre2Type = ver2.prerelease:match("^(%a+)")
-        
-        local order1 = prereleaseOrder[pre1Type] or 0
-        local order2 = prereleaseOrder[pre2Type] or 0
-        
-        if order1 ~= order2 then
-            return order1 < order2 and -1 or 1
-        end
-        
-        -- If same type, compare full strings
-        return ver1.prerelease < ver2.prerelease and -1 or (ver1.prerelease > ver2.prerelease and 1 or 0)
+        return comparePrerelease(ver1.prerelease, ver2.prerelease)
     end
-    
+
     return 0
 end
+UpdateChecker.parseVersion = parseVersion
+UpdateChecker.compareVersions = compareVersions
 
 --- Get non-English interaction languages for the translate picker
 --- @return table: Array of language IDs (filtered, no English)

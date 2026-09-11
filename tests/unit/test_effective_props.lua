@@ -132,6 +132,90 @@ TestRunner:test("missing KOReader modules degrade to raw, never throw", function
 end)
 
 -- ------------------------------------------------------------
+-- effectiveProps: never-opened books fall back to KOReader's getDocProps chain
+-- ------------------------------------------------------------
+print("\n  -- effectiveProps --")
+
+local chain = {}        -- path -> props the mocked getDocProps chain returns
+local chain_calls = {}  -- { {path, no_open}, ... }
+local existing = {}     -- path -> true (mock lfs sees a file)
+local saved_lfs = package.loaded["libs/libkoreader-lfs"]
+package.loaded["libs/libkoreader-lfs"] = {
+    attributes = function(path, what) return existing[path] and "file" or nil end,
+}
+package.loaded["apps/filemanager/filemanagerbookinfo"].getDocProps = function(self, file, _props, no_open)
+    chain_calls[#chain_calls + 1] = { file, no_open }
+    local p = chain[file]
+    if type(p) == "function" then return p() end
+    return p
+end
+
+TestRunner:test("sidecar doc_props present: returned as-is, the chain never runs", function()
+    existing["/books/e.epub"] = true
+    chain["/books/e.epub"] = { title = "Chain", authors = "Chain author" }
+    local props = SafeDocSettings.effectiveProps({ title = "Sidecar" }, "/books/e.epub", nil)
+    TestRunner:assertEqual(props.title, "Sidecar", "sidecar title")
+    TestRunner:assertEqual(#chain_calls, 0, "no chain call")
+end)
+
+TestRunner:test("no doc_props: the chain fills title + author, memoized per path", function()
+    existing["/books/f.epub"] = true
+    chain["/books/f.epub"] = { title = "Derived", authors = "Derived author" }
+    local props = SafeDocSettings.effectiveProps(nil, "/books/f.epub", nil)
+    TestRunner:assertEqual(props.title, "Derived", "derived title")
+    TestRunner:assertEqual(props.authors, "Derived author", "derived author")
+    TestRunner:assertEqual(chain_calls[#chain_calls][2], false, "open allowed by default")
+    local n = #chain_calls
+    chain["/books/f.epub"] = function() error("must not run again") end
+    local again = SafeDocSettings.effectiveProps(nil, "/books/f.epub", nil)
+    TestRunner:assertEqual(again.title, "Derived", "memo hit")
+    TestRunner:assertEqual(#chain_calls, n, "memoized: no second chain call")
+end)
+
+TestRunner:test("no_open passes through; a cheap miss is not memoized, an allowed miss is", function()
+    existing["/books/g.epub"] = true
+    chain["/books/g.epub"] = { display_title = "g" }  -- chain found no title/author
+    TestRunner:assertEqual(SafeDocSettings.effectiveProps(nil, "/books/g.epub", nil, { no_open = true }), nil,
+        "cheap miss = nil props")
+    TestRunner:assertEqual(chain_calls[#chain_calls][2], true, "no_open forwarded")
+    local n = #chain_calls
+    chain["/books/g.epub"] = { title = "Found on open" }
+    local props = SafeDocSettings.effectiveProps(nil, "/books/g.epub", nil)
+    TestRunner:assertEqual(props and props.title, "Found on open", "an allowed open still runs after a cheap miss")
+    TestRunner:assertEqual(#chain_calls, n + 1, "one more chain call")
+    existing["/books/h.epub"] = true
+    chain["/books/h.epub"] = nil
+    TestRunner:assertEqual(SafeDocSettings.effectiveProps(nil, "/books/h.epub", nil), nil, "allowed miss = nil")
+    n = #chain_calls
+    chain["/books/h.epub"] = { title = "Late" }
+    TestRunner:assertEqual(SafeDocSettings.effectiveProps(nil, "/books/h.epub", nil), nil, "allowed miss memoized")
+    TestRunner:assertEqual(#chain_calls, n, "no chain call after a memoized miss")
+end)
+
+TestRunner:test("missing file or chain error: never opens, never throws", function()
+    chain["/books/gone.epub"] = { title = "Ghost" }
+    TestRunner:assertEqual(SafeDocSettings.effectiveProps(nil, "/books/gone.epub", nil), nil, "missing file = nil")
+    local n = #chain_calls
+    TestRunner:assertEqual(n, #chain_calls, "no chain call for a missing file")
+    existing["/books/i.epub"] = true
+    chain["/books/i.epub"] = function() error("boom") end
+    TestRunner:assertEqual(SafeDocSettings.effectiveProps({ title = "" }, "/books/i.epub", nil).title, "",
+        "chain error degrades to the overlay result")
+end)
+
+TestRunner:test("caller's ui.bookinfo is used when present", function()
+    existing["/books/j.epub"] = true
+    local seen
+    local ui = { bookinfo = { getDocProps = function(self, file) seen = self; return { title = "Via ui" } end } }
+    local props = SafeDocSettings.effectiveProps(nil, "/books/j.epub", ui)
+    TestRunner:assertEqual(props.title, "Via ui", "ui chain result")
+    TestRunner:assertEqual(seen, ui.bookinfo, "called on the instance")
+end)
+
+package.loaded["libs/libkoreader-lfs"] = saved_lfs
+package.loaded["apps/filemanager/filemanagerbookinfo"].getDocProps = nil
+
+-- ------------------------------------------------------------
 -- Structural gate over the plugin sources
 -- ------------------------------------------------------------
 print("\n  -- structural gate: no raw doc_props title reads --")
@@ -161,6 +245,7 @@ TestRunner:test("every readSetting(\"doc_props\") line is overlaid, index-fed, o
                 n = n + 1
                 if line:find('readSetting("doc_props")', 1, true)
                     and not line:find("overlayCustomProps(", 1, true)
+                    and not line:find("effectiveProps(", 1, true)
                     and not line:find("has_props = true", 1, true)
                     and not line:find("indexTitleAuthor(", 1, true)
                     and not line:find("-- raw-props:", 1, true) then

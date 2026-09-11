@@ -531,7 +531,9 @@ local ModelLists = {
         -- exist but generation is credit/card-gated, so still unverified.)
         -- (qwen + kimi promoted 2026-08-15 evening: keyed, validated, batteries
         -- on the defaults, both native web-search wires probed working.)
-        groq = true, together = true, sambanova = true,
+        -- (groq PROMOTED 2026-09-07: keyed with a reader's free key (#106),
+        -- discovery + the full battery green on all 4 seed ids; tier rows kept.)
+        together = true, sambanova = true,
         requesty = true, doubao = true,
         -- M1 additions (ex hosted presets)
         cerebras = true, minimax = true, deepinfra = true, novita = true,

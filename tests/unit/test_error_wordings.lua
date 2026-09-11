@@ -655,6 +655,49 @@ local CORPUS = {
         hint = "burst",
         ladder = { kind = "rate_limited", transient = true },
     },
+    -- Groq's per-organization OUTPUT bucket (docs: "some organizations are subject
+    -- to separate per-minute limits on input tokens (ITPM) and output tokens
+    -- (OTPM)"). Seen live 2026-09-07 on a free key, OTPM 1000 on the qwen preview
+    -- ids: "Requested" is Groq's EXPECTED output (max_tokens, or its own estimate
+    -- from recent answers: 821 against a 16384 budget), never prompt + budget, so
+    -- promptTokensFromRefusal must stay nil here and the resend is limit - margin.
+    {
+        id = "groq_429_otpm_admission",
+        provider = "groq",
+        status = 429,
+        source = "live probe 2026-09-07 (a reader's free key; organization id redacted)",
+        envelope = '{"error":{"message":"...","type":"tokens","code":"rate_limit_exceeded"}}',
+        text = "Request too large for model `qwen/qwen3.6-27b` in organization `...` service tier "
+            .. "`on_demand` on output tokens per minute (OTPM): Limit 1000, Requested 1024. The "
+            .. "request's expected output tokens exceed the enforced limit; reduce max_tokens (or the "
+            .. "request's expected output) and try again. Need more tokens? Upgrade to Dev Tier today "
+            .. "at https://console.groq.com/settings/billing",
+        -- 1024 asked of a 1000 bucket can never fit: admission by the numbers,
+        -- resent once at limit - MARGIN (744); the bucket itself is not learned
+        -- (1000 sits under saneTokenCount's floor, and a header-stated TPM wins).
+        expect = { kind = "admission", limit = 1000, requested = 1024, used = nil, rate_limit = true },
+        retry_after = nil,
+        refusal_kind = "admission",
+        hint = "admission",
+        ladder = { kind = "too_large", transient = false },
+    },
+    {
+        id = "groq_429_otpm_burst",
+        provider = "groq",
+        status = 429,
+        source = "live probe 2026-09-07 (a reader's free key; organization id redacted); "
+            .. "retry-after: 34 rode as a header too",
+        envelope = '{"error":{"message":"...","type":"tokens","code":"rate_limit_exceeded"}}',
+        text = "Rate limit reached for model `qwen/qwen3.8-27b` in organization `...` service tier "
+            .. "`on_demand` on output tokens per minute (OTPM): Limit 1000, Used 739, Requested 821. "
+            .. "Please try again in 33.6s. Need more tokens? Upgrade to Dev Tier today at "
+            .. "https://console.groq.com/settings/billing",
+        expect = { kind = "burst", limit = 1000, requested = 821, used = 739, rate_limit = true },
+        retry_after = 33.6,
+        refusal_kind = "burst",
+        hint = "burst",
+        ladder = { kind = "rate_limited", transient = true },
+    },
     {
         id = "openai_429_tpm_burst",
         provider = "openai",

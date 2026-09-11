@@ -41,6 +41,48 @@ function ResponseParser.isIncomplete(text)
     if type(text) ~= "string" then return false end
     return text:find(ResponseParser.TRUNCATION_NOTICE, 1, true) ~= nil
         or text:find(ResponseParser.INTERRUPTED_PREFIX, 1, true) ~= nil
+        or text:find(ResponseParser.STOP_PREFIX, 1, true) ~= nil
+end
+
+-- Every way a response ends normally, per provider wire. Anything else (Gemini
+-- SAFETY/RECITATION/PROHIBITED_CONTENT, OpenAI content_filter, Anthropic refusal)
+-- is a stop the reader should see NAMED: with no text it used to surface as
+-- "Unexpected response format", with partial text as a silently shortened answer
+-- (parity audit F059/F276, 2026-09-07).
+local NORMAL_STOPS = {
+    stop = true, length = true, tool_calls = true, function_call = true,      -- OpenAI wire
+    end_turn = true, max_tokens = true, stop_sequence = true, tool_use = true,  -- Anthropic
+    pause_turn = true,
+    STOP = true, MAX_TOKENS = true,                                            -- Gemini
+}
+ResponseParser.STOP_PREFIX = "\n\n---\n⚠ *Response stopped early by the provider: "
+
+--- The finish reason when it is abnormal, else nil (nil/non-string = the json
+--- null sentinel or a missing field, never a reason).
+--- @param reason any
+--- @return string|nil
+function ResponseParser.abnormalStop(reason)
+    if type(reason) ~= "string" or reason == "" or NORMAL_STOPS[reason] then return nil end
+    return reason
+end
+
+--- Notice appended to a partial answer the provider stopped for an abnormal reason.
+function ResponseParser.stopNotice(reason)
+    return ResponseParser.STOP_PREFIX .. reason .. "*"
+end
+
+--- Error text when the provider stopped before producing any text.
+function ResponseParser.stopError(reason)
+    return "The provider stopped the response before any text was produced (reason: " .. reason .. ")."
+end
+
+--- Append the stop notice when the reason is abnormal; content unchanged otherwise.
+function ResponseParser.withStopNotice(content, reason)
+    local ab = ResponseParser.abnormalStop(reason)
+    if ab and type(content) == "string" and content ~= "" then
+        return content .. ResponseParser.stopNotice(ab)
+    end
+    return content
 end
 
 -- Inline marker inserted where a web search ran mid-answer (report 3(b) decision,
@@ -366,10 +408,15 @@ local RESPONSE_TRANSFORMERS = {
             if text_content and response.stop_reason == "max_tokens" then
                 text_content = text_content .. ResponseParser.TRUNCATION_NOTICE
             end
+            text_content = ResponseParser.withStopNotice(text_content, response.stop_reason)
 
             if text_content then
                 return true, text_content, thinking_content, web_search_used
             end
+        end
+        local abnormal = ResponseParser.abnormalStop(response.stop_reason)
+        if abnormal then
+            return false, ResponseParser.stopError(abnormal)
         end
         return false, "Unexpected response format"
     end,
@@ -404,6 +451,13 @@ local RESPONSE_TRANSFORMERS = {
             local finish_reason = response.choices[1].finish_reason
             if content and content ~= "" and finish_reason == "length" then
                 content = content .. ResponseParser.TRUNCATION_NOTICE
+            end
+            content = ResponseParser.withStopNotice(content, finish_reason)
+            -- content_filter with nothing generated: name it (an empty answer used
+            -- to come back as a successful blank)
+            local abnormal = ResponseParser.abnormalStop(finish_reason)
+            if abnormal and (not content or content == "") and type(message.tool_calls) ~= "table" then
+                return false, ResponseParser.stopError(abnormal)
             end
 
             -- Check for web search tool usage in tool_calls
@@ -444,6 +498,11 @@ local RESPONSE_TRANSFORMERS = {
             end
 
             return true, content, reasoning, web_search_used
+        end
+        local choice = type(response.choices) == "table" and response.choices[1]
+        local abnormal = ResponseParser.abnormalStop(type(choice) == "table" and choice.finish_reason)
+        if abnormal then
+            return false, ResponseParser.stopError(abnormal)
         end
         return false, "Unexpected response format"
     end,
@@ -655,11 +714,27 @@ local RESPONSE_TRANSFORMERS = {
                 if content ~= "" and finish_reason == "MAX_TOKENS" then
                     content = content .. ResponseParser.TRUNCATION_NOTICE
                 end
+                content = ResponseParser.withStopNotice(content, finish_reason)
 
                 if content ~= "" then
                     return true, content, thinking, web_search_used
                 end
             end
+            -- SAFETY / RECITATION / PROHIBITED_CONTENT ... arrive with no parts at all
+            local abnormal = ResponseParser.abnormalStop(finish_reason)
+            if abnormal then
+                local msg = ResponseParser.stopError(abnormal)
+                if abnormal == "SAFETY" or abnormal == "PROHIBITED_CONTENT" or abnormal == "BLOCKLIST" then
+                    msg = msg .. " Google's content filter blocked the answer (Settings > Advanced > Provider Settings > Gemini Content Filter)."
+                end
+                return false, msg
+            end
+        end
+        -- The PROMPT itself was blocked: no candidates, only promptFeedback
+        local feedback = response.promptFeedback
+        if type(feedback) == "table" and type(feedback.blockReason) == "string" and feedback.blockReason ~= "" then
+            return false, ResponseParser.stopError("prompt blocked: " .. feedback.blockReason)
+                .. " Google's content filter rejected the request itself."
         end
 
         return false, "Unexpected response format"
@@ -696,6 +771,7 @@ local RESPONSE_TRANSFORMERS = {
             if content and content ~= "" and finish_reason == "length" then
                 content = content .. ResponseParser.TRUNCATION_NOTICE
             end
+            content = ResponseParser.withStopNotice(content, finish_reason)
             return true, content, reasoning
         end
         return false, "Unexpected response format"
@@ -1112,6 +1188,7 @@ local RESPONSE_TRANSFORMERS = {
             if finish_reason == "length" then
                 content = content .. ResponseParser.TRUNCATION_NOTICE
             end
+            content = ResponseParser.withStopNotice(content, finish_reason)
 
             local clean_content, think_reasoning = extractThinkTags(content)
             return true, clean_content, reasoning or think_reasoning

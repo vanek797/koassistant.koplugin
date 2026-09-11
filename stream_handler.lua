@@ -462,6 +462,7 @@ end
 --- @param on_complete function: Callback with (success, content, error) when stream completes
 function StreamHandler:showStreamDialog(backgroundQueryFunc, provider_name, model, settings, on_complete)
     self.user_interrupted = false
+    self.abnormal_stop = nil  -- an abnormal finish reason seen on the wire (SAFETY, content_filter ...)
     local streamDialog
     local animation_task = nil
     -- Holds the FUNCTION that is scheduled (pollForData / drainTick): KOReader's
@@ -793,7 +794,7 @@ The provider read about %1% of it (%2 tokens) and answered from that part. The r
         if result == "" then
             -- Log partial_data which might contain error info
             if partial_data and #partial_data > 0 then
-                logger.warn("Stream ended with no content but partial_data:", partial_data:sub(1, 500))
+                logger.dbg("Stream ended with no content but partial_data:", partial_data:sub(1, 500))
                 -- Try to extract error from partial data
                 if partial_data:sub(1, 1) == "{" then
                     local ok, j = pcall(json.decode, partial_data)
@@ -816,6 +817,13 @@ The provider read about %1% of it (%2 tokens) and answered from that part. The r
                     err = _("The model produced only reasoning and no answer text. Try again.")
                 end
                 if on_complete then on_complete(false, nil, err) end
+                return
+            end
+            if self.abnormal_stop then
+                -- The provider stopped before any text (Gemini SAFETY, OpenAI content_filter):
+                -- name the reason instead of "No response received"
+                local ResponseParser = require("koassistant_api.response_parser")
+                if on_complete then on_complete(false, nil, ResponseParser.stopError(self.abnormal_stop)) end
                 return
             end
             local raw = partial_data and partial_data:match("^%s*(.-)%s*$") or ""
@@ -873,6 +881,9 @@ The provider read about %1% of it (%2 tokens) and answered from that part. The r
         elseif was_truncated then
             local ResponseParser = require("koassistant_api.response_parser")
             result = result .. ResponseParser.TRUNCATION_NOTICE
+        elseif self.abnormal_stop then
+            local ResponseParser = require("koassistant_api.response_parser")
+            result = result .. ResponseParser.stopNotice(self.abnormal_stop)
         end
 
         -- Append Perplexity citation footnotes (captured during streaming)
@@ -1720,6 +1731,7 @@ The provider read about %1% of it (%2 tokens) and answered from that part. The r
                             if self:checkIfTruncated(event) then
                                 was_truncated = true
                             end
+                            self.abnormal_stop = self:abnormalStopReason(event) or self.abnormal_stop
 
                             -- Capture token usage from SSE events (provider-specific)
                             local DebugUtils = require("koassistant_debug_utils")
@@ -1918,6 +1930,7 @@ The provider read about %1% of it (%2 tokens) and answered from that part. The r
                             if self:checkIfTruncated(event) then
                                 was_truncated = true
                             end
+                            self.abnormal_stop = self:abnormalStopReason(event) or self.abnormal_stop
 
                             -- Capture token usage from NDJSON events
                             local DebugUtils = require("koassistant_debug_utils")
@@ -2110,6 +2123,31 @@ function StreamHandler:checkIfTruncated(event)
     end
 
     return false
+end
+
+--- The abnormal finish reason an event carries, if any (parity audit F059/F276):
+--- OpenAI choices[].finish_reason, Anthropic message_delta.delta.stop_reason,
+--- Gemini candidates[].finishReason, or a Gemini promptFeedback.blockReason
+--- (the prompt itself rejected: no candidates ever arrive).
+--- @param event table Parsed JSON event
+--- @return string|nil
+function StreamHandler:abnormalStopReason(event)
+    local ResponseParser = require("koassistant_api.response_parser")
+    local choice = event.choices and event.choices[1]
+    local reason = type(choice) == "table" and choice.finish_reason or nil
+    if not reason and type(event.delta) == "table"
+            and (event.type == "message_delta" or event.type == "message_stop") then
+        reason = event.delta.stop_reason
+    end
+    local candidate = event.candidates and event.candidates[1]
+    if not reason and type(candidate) == "table" then
+        reason = candidate.finishReason
+    end
+    if not reason and type(event.promptFeedback) == "table"
+            and type(event.promptFeedback.blockReason) == "string" and event.promptFeedback.blockReason ~= "" then
+        reason = "prompt blocked: " .. event.promptFeedback.blockReason
+    end
+    return ResponseParser.abnormalStop(reason)
 end
 
 --- Extract content from SSE event based on provider format

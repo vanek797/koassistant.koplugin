@@ -122,6 +122,24 @@ TestRunner:test("exact / alias / contained-name detection, same category only", 
         and by_key["Wendy Torrance|Jack Torrance"] == nil, "equal-token names not paired")
 end)
 
+TestRunner:test("CJK separators: '_' vs '・' spellings pair as exact; dotted names tokenize for contained-name", function()
+    local found = XrayDedup.findDuplicates({
+        characters = {
+            { name = "カイ・ロ・サン", description = "a" },
+            { name = "カイ_ロ_サン", description = "b" },
+            { name = "カイ", description = "c" },
+            { name = "ミラ・エル・ソーン", description = "d" },
+        },
+    }, nil)
+    local by_key = {}
+    for _idx, pair in ipairs(found) do by_key[pair.name_a .. "|" .. pair.name_b] = pair.reason end
+    TestRunner:assertEqual(by_key["カイ・ロ・サン|カイ_ロ_サン"], "exact", "separator variants are one name")
+    TestRunner:assertEqual(by_key["カイ・ロ・サン|カイ"], "name", "first part contained in the dotted full name")
+    TestRunner:assertTrue(by_key["カイ・ロ・サン|ミラ・エル・ソーン"] == nil, "unrelated dotted names never pair")
+    TestRunner:assertEqual(XrayDedup.pairKey("カイ_ロ_サン", "x"), XrayDedup.pairKey("カイ・ロ・サン", "x"),
+        "never-merge keys are separator-insensitive")
+end)
+
 TestRunner:test("never-merge pairs suppress proposals (order/case-insensitive)", function()
     local never = { { "jack", "JACK TORRANCE" }, { "Tony", "Danny Torrance" } }
     local found = XrayDedup.findDuplicates(fictionData(), never)

@@ -234,6 +234,47 @@ TestRunner:test("plugin keys route to the settings file, KOReader keys pass thro
     eq(ds_flushes[BOOK], nil, "facade flush touches only our file")
 end)
 
+TestRunner:test("follow-group markers: readSetting dereferences, readRaw keeps, writes replace and fire the hook", function()
+    bookFile(BOOK)
+    local values = { g1 = { koassistant_book_domain = "history" } }
+    BookStore._group_value_fn = function(gid, key) return values[gid] and values[gid][key] end
+    local replaced = {}
+    BookStore.on_marker_replaced = function(path, key, gid) replaced[#replaced + 1] = key .. "<-" .. gid end
+    local raw = MockDS:open(BOOK)
+    raw.data.percent_finished = 0.4
+    local f = BookStore.wrap(raw, BOOK)
+    local m = BookStore.marker("g1")
+    truthy(BookStore.isMarker(m), "marker shape")
+    eq(BookStore.isMarker({ follow_group = 3 }), false, "id must be a string")
+    f:saveSetting("koassistant_book_domain", m)
+    eq(f:readSetting("koassistant_book_domain"), "history", "dereferenced to the group's value")
+    truthy(BookStore.isMarker(f:readRaw("koassistant_book_domain")), "raw read keeps the marker")
+    eq(f:readRaw("koassistant_book_domain").follow_group, "g1", "raw names the group")
+    values.g1.koassistant_book_domain = "science"
+    eq(f:readSetting("koassistant_book_domain"), "science", "followers read live")
+    values.g1.koassistant_book_domain = nil
+    eq(f:readSetting("koassistant_book_domain", "dflt"), "dflt", "group not setting it = default (follow global)")
+    eq(#replaced, 0, "no hook so far")
+    f:saveSetting("koassistant_book_domain", BookStore.marker("g1"))
+    eq(#replaced, 0, "re-writing the same group's marker is not a replacement")
+    f:saveSetting("koassistant_book_domain", BookStore.marker("g2"))
+    eq(replaced[1], "koassistant_book_domain<-g1", "another group's marker replaces g1's")
+    f:saveSetting("koassistant_book_domain", "own")
+    eq(replaced[2], "koassistant_book_domain<-g2", "an own value replaces the marker")
+    eq(f:readSetting("koassistant_book_domain"), "own", "own value wins (latest set)")
+    f:saveSetting("koassistant_book_domain", BookStore.marker("g2"))
+    BookStore.suppress_marker_hook = true
+    f:delSetting("koassistant_book_domain")
+    BookStore.suppress_marker_hook = false
+    eq(#replaced, 2, "suppressed during the apply")
+    f:saveSetting("koassistant_book_domain", BookStore.marker("g2"))
+    f:delSetting("koassistant_book_domain")
+    eq(replaced[3], "koassistant_book_domain<-g2", "delete replaces too (follow global)")
+    eq(f:readRaw("percent_finished"), 0.4, "readRaw passes KOReader keys through")
+    BookStore._group_value_fn = nil
+    BookStore.on_marker_replaced = nil
+end)
+
 TestRunner:test("saveSetting(nil) and delSetting remove; has() reflects the store; empty store removes its file", function()
     bookFile(BOOK)
     local f = BookStore.wrap(MockDS:open(BOOK), BOOK)

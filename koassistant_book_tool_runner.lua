@@ -3,6 +3,7 @@ local BookSettings = require("koassistant_book_settings")
 local ConfigHelper = require("koassistant_config_helper")
 local DebugUtils = require("koassistant_debug_utils")
 local ModelConstraints = require("model_constraints")
+local ScopeResolver = require("koassistant_scope_resolver")
 local ToolWire = require("koassistant_api.tool_wire")
 local _ = require("koassistant_gettext")
 local T = require("ffi/util").template
@@ -14,10 +15,14 @@ local BookToolRunner = {}
 -- the phase-2 context bundle (gather only — individual tool caps of 8K/read target and
 -- 180-char snippets bound each call, but nothing else bounds the session total).
 -- "standard" = the former hard constants; unknown/missing values fall back to it.
+-- whole_chars: the whole-text path (wholeReadableText) hands phase 2 the readable text
+-- itself when it is no longer than this, instead of searching it.
+-- Sending a text that fits is the QUICKEST path (one request, no rounds), so quick and
+-- standard share the same limit; only thorough reaches further.
 local EFFORT_BUDGETS = {
-    quick    = { turns = 2, calls = 4,  bundle_chars = 32000 },
-    standard = { turns = 4, calls = 8,  bundle_chars = 32000 },
-    thorough = { turns = 6, calls = 16, bundle_chars = 48000 },
+    quick    = { turns = 2, calls = 4,  bundle_chars = 32000, whole_chars = 64000 },
+    standard = { turns = 4, calls = 8,  bundle_chars = 32000, whole_chars = 64000 },
+    thorough = { turns = 6, calls = 16, bundle_chars = 48000, whole_chars = 128000 },
 }
 local function budgetFor(features)
     return EFFORT_BUDGETS[(features or {}).tool_lookup_effort] or EFFORT_BUDGETS.standard
@@ -32,7 +37,7 @@ local SHOW_TURN_TOKEN_USAGE = true
 
 local TOOL_INSTRUCTIONS = [[
 
-When answering questions about the current book, use the local book tools when you need evidence from the text. Prefer search_book for specific phrases, character names, objects, or events; it returns all matching hit references with short concordance excerpts and page counts. Batch related lookups: pass multiple terms via search_book queries=[...] and multiple targets via read_around hit_ids=[...] / pages=[...] in a single call to avoid extra round trips. Use read_around for surrounding context, and toc for chapter structure.]]
+When answering questions about the current book, use the local book tools when you need evidence from the text. Prefer search_book for specific phrases, character names, objects, or events; it returns all matching hit references with short concordance excerpts and page counts. Batch related lookups: pass multiple terms via search_book queries=[...] and multiple targets via read_around hit_ids=[...] / pages=[...] in a single call to avoid extra round trips. Use read_around for surrounding context, and toc for chapter structure; to find a chapter or essay by its title, call toc with title_contains rather than searching the text for the title. Every tool result carries a notes field stating what it could not search, list or read; a zero-hit result under such a note is inconclusive, not evidence of absence. Mention such a limit in your answer only where it bears on the question; never describe the lookups themselves, their caps or hit counts.]]
 
 -- Reading-scope clause appended to the tool instructions. "current" enforces spoiler safety
 -- (the model is also clamped in BookTools); "full" lets it use the whole document.
@@ -41,7 +46,7 @@ local SCOPE_NOTE_FULL = " The tools can read the entire document."
 
 local FINAL_INSTRUCTIONS = [[
 
-Use the gathered local book tool results to answer the user's question.]]
+Use the gathered local book tool results to answer the user's question. Do not describe the lookups, their caps, hit counts, partial matches or cut passages. If a part of the book was out of reach for this question, say so in one sentence rather than filling the gap from memory.]]
 
 local FINAL_NOTE_CURRENT = " Do not use or reveal any information about events or plot developments beyond the user's current reading position."
 
@@ -50,12 +55,12 @@ local FINAL_NOTE_CURRENT = " Do not use or reveal any information about events o
 -- (streamed, web-search-capable) request with the gathered passages injected.
 local GATHER_INSTRUCTIONS = [[
 
-GATHER PHASE: Do not answer the user's question yet. Use the book tools (search_book, read_around, toc) to collect the passages needed to answer it; batch related lookups in one call. When you have gathered enough evidence — or if the question needs no book lookups — call the done tool. In this phase respond only with tool calls, never with prose.]]
+GATHER PHASE: Do not answer the user's question yet. Use the book tools (search_book, read_around, toc) to collect the passages needed to answer it; batch related lookups in one call. To find a chapter or essay by its title, call toc with title_contains rather than searching the text for the title. When you have gathered enough evidence — or if the question needs no book lookups — call the done tool. In this phase respond only with tool calls, never with prose. Every tool result carries a notes field stating what it could not search, list or read: read it before deciding you are done.]]
 
 local FUNCTION_DECLARATIONS = {
     {
         name = "search_book",
-        description = "Search the readable book text. Pass multiple terms via queries=[...] to batch lookups in one call. Returns per-query blocks with compact hit metadata and short concordance excerpts; hit IDs are namespaced (e.g. q1:p42:3). Call read_around for surrounding context.",
+        description = "Search the readable book text, word by word (no meaning matching: cover synonyms with several queries). Pass multiple terms via queries=[...] to batch lookups in one call. Returns per-query blocks with at most 12 hits each (raise with max_hits, up to 40), best score first and at most 2 per page; total_hits is always the exact count and page_summary lists the pages with hits. Each hit states its match_type: phrase, tokens (every word), substring (the words occur only inside longer words, e.g. anima in animals: weak evidence, ranked below whole-word hits), or partial (a query of 3+ words with most of its words present; the missing words are listed). Spelling must match (no typo tolerance): retry a name with another spelling if it finds nothing. In a long book each query costs one document search per word (at most 6 new words per call, longest first; a very common word does not narrow the search), so prefer few, specific words. Anything left out (hits, pages, hidden sections, spent budget) is stated in notes. Hit IDs are namespaced (e.g. q1:p42:3); call read_around for surrounding context.",
         parameters = {
             type = "object",
             properties = {
@@ -68,20 +73,20 @@ local FUNCTION_DECLARATIONS = {
                     type = "string",
                     description = "Single phrase, name, event, or detail. Use queries=[...] for multiple terms.",
                 },
-                fuzzy = {
-                    type = "boolean",
-                    description = "Use fuzzy matching for likely typos or approximate names. Defaults to true.",
-                },
                 case_sensitive = {
                     type = "boolean",
                     description = "Require exact casing. Defaults to false.",
+                },
+                max_hits = {
+                    type = "integer",
+                    description = "Hits returned per query. Defaults to 12, capped at 40.",
                 },
             },
         },
     },
     {
         name = "read_around",
-        description = "Read surrounding text near one or more search hits or page numbers, capped to a small range within the readable range.",
+        description = "Read surrounding text near one or more search hits or page numbers: up to 5 pages and 8000 characters per target, 4 targets per call, within the readable range. Notes state any target that was moved, skipped or cut.",
         parameters = {
             type = "object",
             properties = {
@@ -127,7 +132,7 @@ local FUNCTION_DECLARATIONS = {
     },
     {
         name = "toc",
-        description = "List table-of-contents entries within the readable range. No snippets are included by default.",
+        description = "List table-of-contents entries within the readable range: at most 120 per call, in document order, out of possibly many more; total_entries is the exact count of matching entries. When the full list exceeds the cap and no max_depth is given, only the levels that fit are listed (depth_shown) so the structure survives; the note says how to go deeper. Narrow with max_depth (1 = volumes or parts) or title_contains; each entry carries its parent path. No snippets by default. Entries left out (cap, hidden sections, past the reader's position) are stated in notes.",
         parameters = {
             type = "object",
             properties = {
@@ -137,7 +142,15 @@ local FUNCTION_DECLARATIONS = {
                 },
                 max_entries = {
                     type = "integer",
-                    description = "Maximum number of TOC entries. Defaults to 120.",
+                    description = "Maximum number of TOC entries. Defaults to 120 (the ceiling).",
+                },
+                max_depth = {
+                    type = "integer",
+                    description = "Only entries at this depth or shallower (1 = top level).",
+                },
+                title_contains = {
+                    type = "string",
+                    description = "Only entries whose title contains this text (case-insensitive).",
                 },
             },
         },
@@ -175,28 +188,86 @@ local function copyMessages(messages)
     return copy
 end
 
+-- Contents outline for the scope message: the levels that fit, one line per entry, and
+-- what was left out. Sent once per session so the model's first query can start from the
+-- book's shape instead of a guess.
+local function outlineLines(outline)
+    local lines = {}
+    if type(outline) ~= "table" then return lines end
+    if not outline.has_toc then
+        table.insert(lines, "This book has no table of contents.")
+        return lines
+    end
+    local shown = #(outline.entries or {})
+    local levels = ""
+    if outline.depth_shown and outline.deepest and outline.depth_shown < outline.deepest then
+        levels = string.format(", levels 1-%d of %d", outline.depth_shown, outline.deepest)
+    end
+    table.insert(lines, string.format("Contents outline (%d of %d entries within the readable range%s; call toc for page ranges, deeper levels or a title filter):",
+        shown, outline.total or shown, levels))
+    for _idx, entry in ipairs(outline.entries or {}) do
+        table.insert(lines, string.format("- %s%s (pp. %d-%d%s)",
+            entry.path and (entry.path .. " > ") or "",
+            entry.title or "",
+            entry.start_page or 0,
+            entry.end_page or 0,
+            entry.continues_past_position and ", continues past the reader's position" or ""))
+    end
+    if (outline.omitted or 0) > 0 then
+        table.insert(lines, string.format("... %d more entries at these levels are not listed here.", outline.omitted))
+    end
+    if (outline.past_position or 0) > 0 and outline.reading_scope ~= "full" then
+        table.insert(lines, string.format("%d entries start after the reader's current position and are not listed (spoiler protection).", outline.past_position))
+    end
+    if (outline.hidden or 0) > 0 then
+        table.insert(lines, string.format("%d entries are in sections the reader has hidden (KOReader hidden flows) and are not listed.", outline.hidden))
+    end
+    return lines
+end
+
 local function appendScopeMessage(messages, scope)
     if type(scope) ~= "table" then return end
-    local content
+    local lines = { "[Book tool scope]" }
     if scope.reading_scope == "full" then
-        content = string.format(
-            "[Book tool scope]\nCurrent page: %s of %s\nYou may read the entire document (pages 1-%s).",
-            tostring(scope.current_page or "?"),
-            tostring(scope.total_pages or "?"),
-            tostring(scope.end_page or scope.total_pages or "?"))
+        table.insert(lines, string.format("Current page: %s of %s",
+            tostring(scope.current_page or "?"), tostring(scope.total_pages or "?")))
+        table.insert(lines, string.format("You may read the entire document (pages 1-%s).",
+            tostring(scope.end_page or scope.total_pages or "?")))
     else
-        content = string.format(
-            "[Book tool scope]\nCurrent page: %s of %s\nReadable page range: 1-%s\nDo not request or infer content after page %s.",
-            tostring(scope.current_page or "?"),
-            tostring(scope.total_pages or "?"),
-            tostring(scope.end_page or "?"),
-            tostring(scope.end_page or "?"))
+        table.insert(lines, string.format("Current page: %s of %s",
+            tostring(scope.current_page or "?"), tostring(scope.total_pages or "?")))
+        table.insert(lines, string.format("Readable page range: 1-%s", tostring(scope.end_page or "?")))
+        table.insert(lines, string.format("Do not request or infer content after page %s.", tostring(scope.end_page or "?")))
+    end
+    -- The book's language decides the search language: an English question about a
+    -- German book still needs German queries, and nothing else tells the model that.
+    if scope.language then
+        table.insert(lines, string.format("Book text language: %s. Write search_book queries in the language of the book text, even when the reader writes in another language.",
+            tostring(scope.language)))
+    else
+        table.insert(lines, "Write search_book queries in the language the book text is in, which may differ from the reader's.")
+    end
+    if scope.outline then
+        table.insert(lines, "")
+        for _idx, line in ipairs(outlineLines(scope.outline)) do
+            table.insert(lines, line)
+        end
     end
     table.insert(messages, {
         role = "user",
-        content = content,
+        content = table.concat(lines, "\n"),
         is_context = true,
     })
+end
+
+-- The scope message's language line follows the "Book text language" setting (global,
+-- default off; per book or group: off / from metadata / a chosen or typed language).
+-- Off or unknown sends only the rule to write queries in the text's language.
+local function scopeForMessage(tools, ui, features)
+    local scope = tools:getScope()
+    scope.language = BookSettings.resolveBookTextLanguage(ui and ui.doc_settings, features,
+        tools:getBookLanguage())
+    return scope
 end
 
 -- mode: "tools" (interactive loop turn), "gather" (gather-phase turn), "final"
@@ -251,7 +322,7 @@ local function buildToolConfig(config, mode, reading_scope)
     if mode ~= "final" then
         local budget = budgetFor(tool_config.features)
         instructions = instructions
-            .. string.format(" You may use at most %d lookups in total.", budget.calls)
+            .. string.format(" You may use at most %d lookups in total, across at most %d rounds.", budget.calls, budget.turns)
     end
     tool_config.system = tool_config.system or {}
     tool_config.system.text = (tool_config.system.text or "") .. instructions
@@ -356,7 +427,7 @@ local function liveSpoilerLine(cfg, ui)
     -- general chat — general/library must never reach here, _spoiler_live
     -- stays nil for them): log every ACTUAL injection so a logged round can
     -- separate our line from the model's own spoiler-awareness.
-    require("koassistant_logger").info("KOAssistant: live spoiler line appended — progress:",
+    require("koassistant_logger").dbg("KOAssistant: live spoiler line appended — progress:",
         progress or "none", "book:", book_file or (book_open and "open") or "?")
     if not progress or progress == "" or progress == "0%" then
         return Templates.SPOILER_FREE_NUDGE_NO_PROGRESS
@@ -411,7 +482,18 @@ local function summarizeToolCall(call, result)
                     table.insert(terms, "...")
                     break
                 end
-                table.insert(terms, string.format("%q(%d)", block.query or "", block.total_hits or 0))
+                -- The pages with hits (first six), so Sources & Lookups shows where the
+                -- model's evidence came from even when it never read around a hit.
+                local pages = {}
+                for p, entry in ipairs(block.page_summary or {}) do
+                    if p > 6 then
+                        table.insert(pages, "...")
+                        break
+                    end
+                    table.insert(pages, tostring(entry.page))
+                end
+                local where = #pages > 0 and (" on pp. " .. table.concat(pages, ", ")) or ""
+                table.insert(terms, string.format("%q(%d%s)", block.query or "", block.total_hits or 0, where))
             end
         end
         local suffix = #terms > 0 and (" [" .. table.concat(terms, ", ") .. "]") or ""
@@ -438,7 +520,16 @@ local function summarizeToolCall(call, result)
             return string.format("read_around: pp. %s-%s", tostring(range.start_page or "?"), tostring(range.end_page or "?"))
         end
     elseif name == "toc" then
-        return string.format("toc: %d entries", result.entry_count or 0)
+        local args = type(call.args) == "table" and call.args or {}
+        local filters = {}
+        if type(args.title_contains) == "string" and args.title_contains ~= "" then
+            table.insert(filters, string.format("title contains %q", args.title_contains))
+        end
+        if tonumber(args.max_depth) then
+            table.insert(filters, string.format("depth <= %d", tonumber(args.max_depth)))
+        end
+        return string.format("toc: %d entries%s", result.entry_count or 0,
+            #filters > 0 and (" (" .. table.concat(filters, ", ") .. ")") or "")
     end
     return name
 end
@@ -452,6 +543,14 @@ local function appendTrace(answer, trace)
     return answer .. "\n" .. table.concat(lines, "\n")
 end
 
+-- Notes ride the result table (the JSON the model sees during the rounds); the bundle
+-- prints them too so phase 2 inherits every disclosure.
+local function noteLines(lines, notes, indent)
+    for _idx, note in ipairs(notes or {}) do
+        table.insert(lines, (indent or "  ") .. "note: " .. tostring(note))
+    end
+end
+
 local function formatToolResultText(name, result)
     result = result or {}  -- defensive, mirrors summarizeToolCall (BookTools:execute always returns a table)
     if result.ok == false then
@@ -462,6 +561,7 @@ local function formatToolResultText(name, result)
     if name == "search_book" then
         local query_count = result.query_count or (result.queries and #result.queries) or 0
         local lines = {}
+        noteLines(lines, result.notes)
         if result.queries then
             for q_index, block in ipairs(result.queries) do
                 table.insert(lines, string.format("  [q%d %q] %d hit(s) across %d page(s)",
@@ -469,6 +569,7 @@ local function formatToolResultText(name, result)
                     block.query or "",
                     block.total_hits or 0,
                     block.matching_pages or 0))
+                noteLines(lines, block.notes, "    ")
                 local page_lines = {}
                 if block.page_summary then
                     for i, page in ipairs(block.page_summary) do
@@ -488,10 +589,15 @@ local function formatToolResultText(name, result)
                             table.insert(lines, string.format("    ... %d more hit(s)", #block.results - 12))
                             break
                         end
-                        table.insert(lines, string.format("    [%s, p%d, %s] %s",
+                        local missing = ""
+                        if type(hit.missing) == "table" and #hit.missing > 0 then
+                            missing = ", missing: " .. table.concat(hit.missing, " ")
+                        end
+                        table.insert(lines, string.format("    [%s, p%d, %s%s] %s",
                             hit.hit_id or "?",
                             hit.page or 0,
                             hit.match_type or "?",
+                            missing,
                             hit.snippet or ""))
                     end
                 end
@@ -508,8 +614,10 @@ local function formatToolResultText(name, result)
     elseif name == "read_around" then
         if result.results then
             local lines = { string.format("read_around: %d targets", result.target_count or #result.results) }
+            noteLines(lines, result.notes)
             for _idx, item in ipairs(result.results) do
                 local range = item.range or {}
+                noteLines(lines, item.notes)
                 table.insert(lines, string.format("  [%s, pp. %s-%s] %s",
                     item.hit_id or ("p" .. tostring(item.page or "?")),
                     tostring(range.start_page or "?"),
@@ -519,20 +627,25 @@ local function formatToolResultText(name, result)
             return table.concat(lines, "\n")
         else
             local range = result.range or {}
-            return string.format("read_around: pp. %s-%s\n  %s",
+            local lines = { string.format("read_around: pp. %s-%s",
                 tostring(range.start_page or "?"),
-                tostring(range.end_page or "?"),
-                result.text or "")
+                tostring(range.end_page or "?")) }
+            noteLines(lines, result.notes)
+            table.insert(lines, "  " .. (result.text or ""))
+            return table.concat(lines, "\n")
         end
     elseif name == "toc" then
         local lines = {}
+        noteLines(lines, result.notes)
         if result.entries then
             for _idx, entry in ipairs(result.entries) do
                 local snippet = entry.snippet and #entry.snippet > 0 and (": " .. entry.snippet) or ""
-                table.insert(lines, string.format("  %s (pp. %d-%d)%s",
+                table.insert(lines, string.format("  %s%s (pp. %d-%d%s)%s",
+                    entry.path and (entry.path .. " > ") or "",
                     entry.title or "",
                     entry.start_page or 0,
                     entry.end_page or 0,
+                    entry.continues_past_position and ", continues past the reader's position" or "",
                     snippet))
             end
         end
@@ -549,8 +662,60 @@ local function truncateSection(text, max_chars)
     if type(text) ~= "string" or max_chars <= 0 or #text <= max_chars then
         return text
     end
-    return text:sub(1, max_chars - 3) .. "..."
+    return ScopeResolver.utf8Head(text, max_chars - 3) .. "..."
 end
+
+-- Every distinct note the session's tool results carried (result, per-query block and
+-- per-target levels), in first-seen order. Phase 2 is a normal request with the original
+-- system prompt, so the notes must ride the context block itself to reach the answer.
+-- The notes worth relaying to the reader: parts of the book a lookup could not reach,
+-- and lookups that could not run (error blocks). Routine caps (BookTools.isRoutineNote)
+-- stay in the tool results the model already read.
+local function collectNotes(tool_outputs)
+    local notes, seen = {}, {}
+    local function take(list)
+        for _idx, note in ipairs(list or {}) do
+            if type(note) == "string" and not seen[note] and not BookTools.isRoutineNote(note) then
+                seen[note] = true
+                table.insert(notes, note)
+            end
+        end
+    end
+    for _idx, output in ipairs(tool_outputs or {}) do
+        for _jdx, item in ipairs(output.executed or {}) do
+            local result = item.result
+            if type(result) == "table" then
+                take(result.notes)
+                if type(result.error) == "string" then take({ result.error }) end
+                for _kdx, block in ipairs(result.queries or {}) do
+                    take(block.notes)
+                    if type(block.error) == "string" then take({ block.error }) end
+                end
+                for _kdx, target in ipairs(result.results or {}) do
+                    if type(target) == "table" then take(target.notes) end
+                end
+            end
+        end
+    end
+    return notes
+end
+BookToolRunner._collectNotes = collectNotes  -- exposed for unit tests
+BookToolRunner._summarizeToolCall = summarizeToolCall  -- exposed for unit tests
+
+local LOOKUP_LIMITS_HEADER = "[Lookup limits]\nParts of the book the lookups above could not reach:"
+local LOOKUP_LIMITS_FOOTER = "Mention this in one plain sentence at the end of your answer only where it could change the answer (a part of the book out of reach, a lookup that could not run); otherwise say nothing about the lookups. Never fill such a gap from memory or the web without saying that the book itself was not consulted for it."
+
+local function lookupLimitsBlock(tool_outputs)
+    local notes = collectNotes(tool_outputs)
+    if #notes == 0 then return nil end
+    local lines = { LOOKUP_LIMITS_HEADER }
+    for _idx, note in ipairs(notes) do
+        table.insert(lines, "- " .. note)
+    end
+    table.insert(lines, LOOKUP_LIMITS_FOOTER)
+    return table.concat(lines, "\n")
+end
+BookToolRunner._lookupLimitsBlock = lookupLimitsBlock  -- exposed for unit tests
 
 -- Gather mode: assemble the phase-2 context bundle from the session's tool results.
 -- Chronological; identical formatted sections deduplicate (repeated identical lookups
@@ -579,7 +744,8 @@ local function buildGatherBundle(tool_outputs, bundle_chars)
                         table.insert(sections, section)
                         total = total + #section
                     elseif remaining > 500 then
-                        table.insert(sections, truncateSection(section, remaining))
+                        table.insert(sections, truncateSection(section, remaining)
+                            .. "\n(this result was cut here to fit the context bundle)")
                         total = bundle_chars
                     else
                         omitted = omitted + 1
@@ -808,6 +974,167 @@ function BookToolRunner.queryWith(query_fn, messages, cfg, callback, plugin, ui)
     return query_fn(send_messages, cfg, wrapped, plugin and plugin.settings)
 end
 
+-- Whole-text path (docs/tool_based_context_plan.md 9.6 step 0, the "if it fits, put it
+-- in the prompt" rule): when the readable text is no longer than the effort's
+-- whole_chars, the gather skips its rounds and phase 2 gets the text itself. A search
+-- over a 20-page range hands the model 12 snippets of a text it could simply read.
+-- Returns nil (search as usual) when the text overflows, is empty, or the setting is off.
+-- Size first, text second. Pages are screens, so bytes per page are roughly constant
+-- within a book: three sampled pages spread through the range give an estimate, and a
+-- range that is clearly over budget is skipped without extracting it. (The first
+-- version asked the extractor for the whole range with a size cap; it extracts the
+-- entire range and truncates afterwards, which froze the device on an 18k-page book.)
+-- A range that plausibly fits is then extracted page by page with an early exit, and
+-- that extraction IS the payload, so nothing is done twice beyond the three samples.
+local WHOLE_TEXT_SAMPLE_PAGES = 3
+local WHOLE_TEXT_ESTIMATE_SLACK = 1.5  -- skip when the estimate exceeds this times the budget
+
+local function estimateReadableBytes(tools, end_page, limit)
+    if end_page <= WHOLE_TEXT_SAMPLE_PAGES * 2 then return 0 end  -- too small to bother
+    local sampled, count = 0, 0
+    for i = 1, WHOLE_TEXT_SAMPLE_PAGES do
+        local page = math.floor(end_page * (i - 0.5) / WHOLE_TEXT_SAMPLE_PAGES)
+        page = math.max(1, math.min(end_page, page))
+        local ok, text = pcall(tools.getPageText, tools, page, limit + 1)
+        if ok and type(text) == "string" then
+            sampled = sampled + #text
+            count = count + 1
+        end
+    end
+    if count == 0 then return 0 end
+    return sampled / count * end_page
+end
+
+local function wholeReadableText(tools, features, budget)
+    if (features or {}).tool_whole_text == false then return nil end
+    local scope = tools:getScope()
+    local end_page = tonumber(scope.end_page)
+    if not end_page or end_page < 1 then return nil end
+    local limit = budget.whole_chars
+    if estimateReadableBytes(tools, end_page, limit) > limit * WHOLE_TEXT_ESTIMATE_SLACK then
+        return nil
+    end
+    local parts = {}
+    local total = 0
+    for page = 1, end_page do
+        -- limit + 1 so an oversized single page is seen as such (the default per-page
+        -- extraction cap would hide it).
+        local ok, text = pcall(tools.getPageText, tools, page, limit + 1)
+        if not ok then return nil end
+        if type(text) == "string" and text ~= "" then
+            total = total + #text + 2
+            if total > limit then return nil end
+            table.insert(parts, text)
+        end
+    end
+    local text = table.concat(parts, "\n\n"):gsub("^%s+", ""):gsub("%s+$", "")
+    if #text == 0 then return nil end
+    return {
+        text = text,
+        chars = #text,
+        end_page = end_page,
+        total_pages = scope.total_pages,
+        reading_scope = scope.reading_scope,
+    }
+end
+
+local function wholeTextRangeLine(whole)
+    if whole.reading_scope ~= "full" and whole.total_pages and whole.end_page < whole.total_pages then
+        return string.format("Pages 1-%d of %d, up to the reader's current position; spoiler protection keeps the later pages out of reach, so say so if the question needs them.",
+            whole.end_page, whole.total_pages)
+    end
+    return string.format("Pages 1-%d, the whole book.", whole.end_page)
+end
+
+local function wholeTextBlock(whole)
+    return "[The book's readable text, in full]\n" .. wholeTextRangeLine(whole) .. "\n\n" .. whole.text
+end
+
+local function wholeTextTraceLine(whole)
+    return string.format("read the readable text in full: pp. 1-%d of %d (%d chars)",
+        whole.end_page, whole.total_pages or whole.end_page, whole.chars)
+end
+
+-- Execute a turn's tool calls in order, then opts.on_done(executed, saw_done). search_book
+-- runs off the UI thread (BookTools.executeAsync); while its child runs the kill sits in
+-- opts.cancel_slot, so the status window's Stop/Skip/Quick keep their semantics, and
+-- opts.on_cancelled stands in for the killed round's callback (it must apply the same
+-- guards). Without a status window an InfoMessage shows the wait; a tap on it cancels.
+-- opts.on_wait(seconds|nil) reports the elapsed search time (nil = the search ended).
+local function runToolCalls(tools, calls, opts)
+    local executed = {}
+    local saw_done = false
+    local index = 0
+    local next_call
+    next_call = function()
+        index = index + 1
+        local call = calls[index]
+        if not call then return opts.on_done(executed, saw_done) end
+        if opts.skip_done and call.name == "done" then
+            saw_done = true
+            return next_call()
+        end
+        if opts.on_call then opts.on_call(call) end
+        local cancelled = false
+        local wait_box = nil
+        local function closeWait()
+            if wait_box then
+                local box = wait_box
+                wait_box = nil
+                box.dismiss_callback = nil  -- fires on any close, programmatic included
+                pcall(function() require("ui/uimanager"):close(box) end)
+            end
+        end
+        local cancel = tools:executeAsync(call.name, call.args or {}, function(result)
+            if cancelled then return end
+            if opts.cancel_slot then opts.cancel_slot.cancel = nil end
+            closeWait()
+            if opts.on_wait then opts.on_wait(nil) end
+            table.insert(executed, { call = call, result = result })
+            if opts.on_result then opts.on_result(call, result) end
+            return next_call()
+        end, function(seconds)
+            if not cancelled and opts.on_wait then opts.on_wait(seconds) end
+        end)
+        if cancel then
+            local function kill()
+                if cancelled then return end
+                cancelled = true
+                pcall(cancel)
+                closeWait()
+                if opts.on_wait then opts.on_wait(nil) end
+                opts.on_cancelled()
+            end
+            if opts.cancel_slot then
+                opts.cancel_slot.cancel = kill
+            end
+            if not opts.has_status then
+                local ok, InfoMessage = pcall(require, "ui/widget/infomessage")
+                if ok and InfoMessage then
+                    local ok2, box = pcall(InfoMessage.new, InfoMessage, {
+                        text = _("Searching the book…\nTap to stop."),
+                        dismiss_callback = function()
+                            wait_box = nil
+                            if opts.cancel_slot and opts.cancel_slot.cancel then
+                                local slot_cancel = opts.cancel_slot.cancel
+                                opts.cancel_slot.cancel = nil
+                                slot_cancel()
+                            else
+                                kill()
+                            end
+                        end,
+                    })
+                    if ok2 and box then
+                        wait_box = box
+                        pcall(function() require("ui/uimanager"):show(box) end)
+                    end
+                end
+            end
+        end
+    end
+    next_call()
+end
+
 function BookToolRunner.run(params)
     params = params or {}
     BookToolRunner._cancelled = false
@@ -826,7 +1153,7 @@ function BookToolRunner.run(params)
     local provider = config.provider or config.default_provider
     local reading_scope = resolveReadingScope(config, params.ui)
     local tools = BookTools:new(params.ui, buildToolSettings(features, reading_scope))
-    appendScopeMessage(messages, tools:getScope())
+    appendScopeMessage(messages, scopeForMessage(tools, params.ui, features))
     local trace = {}
     local tool_outputs = {}
     local token_usage = nil
@@ -835,10 +1162,14 @@ function BookToolRunner.run(params)
     local budget = budgetFor(features)
     local completed = false
     local gather_mode = (features.tool_mode or "gather") == "gather"
+    -- Gather only: the interactive loop has no phase 2 to hand the text to.
+    local whole_text = gather_mode and wholeReadableText(tools, features, budget) or nil
+    if whole_text then trace = { wholeTextTraceLine(whole_text) } end
 
     -- Gather-phase status window (streamed sessions only): one dialog that ticks per
     -- lookup round; closed before phase 2, whose normal stream dialog takes its place.
     local status_handle
+    local search_wait = nil  -- elapsed seconds of the running search child, for the window
     -- Cancel handle for the in-flight non-streaming request while its loading dialog is
     -- suppressed (the status window replaces it). Filled by handleNonStreamingBackground
     -- via config._register_cancel; consumed by the status window's Stop.
@@ -862,6 +1193,10 @@ function BookToolRunner.run(params)
         for _idx, item in ipairs(trace) do
             table.insert(lines, "• " .. item)
         end
+        if search_wait then
+            table.insert(lines, "")
+            table.insert(lines, T(_("Searching the book text… %1 s"), search_wait))
+        end
         status_handle.setText(table.concat(lines, "\n"))
     end
 
@@ -884,11 +1219,12 @@ function BookToolRunner.run(params)
         -- "Searched the book" indicator + the "Show Sources" viewer read it from the
         -- saved message, replacing the old note baked into the answer text.
         local provenance = web_search_used
-        if success and tool_calls > 0 then
+        if success and (tool_calls > 0 or whole_text) then
             if type(provenance) ~= "table" then
                 provenance = provenance and { web_search = true } or {}
             end
-            provenance.book_tools = { lookups = tool_calls, trace = trace }
+            provenance.book_tools = { lookups = tool_calls, trace = trace,
+                whole_text = whole_text and true or nil }
         end
         if on_complete then
             on_complete(success, answer, err, reasoning, provenance)
@@ -916,8 +1252,12 @@ function BookToolRunner.run(params)
         local gen_messages = copyMessages(params.messages)
         local bundle = buildGatherBundle(tool_outputs, budget.bundle_chars)
         local context_text
-        if bundle and #bundle > 0 then
+        local limits = lookupLimitsBlock(tool_outputs)
+        if whole_text then
+            context_text = wholeTextBlock(whole_text)
+        elseif bundle and #bundle > 0 then
             context_text = "[Passages retrieved from the book for this question]\n" .. bundle
+            if limits then context_text = context_text .. "\n\n" .. limits end
         elseif tool_calls > 0 then
             -- Lookups ran but returned nothing usable: say so honestly instead of letting
             -- the model imply it read the text (same spirit as {text_fallback_nudge}).
@@ -936,6 +1276,22 @@ function BookToolRunner.run(params)
             else
                 context_text = "[Book lookup note]\nBook lookups found no relevant passages for this question. Answer from the conversation and general knowledge, and say so when the book text would have been needed."
             end
+            if limits then context_text = context_text .. "\n\n" .. limits end
+        else
+            -- No lookups at all (the model called done at once, or the reader skipped
+            -- them). Phase 2 is a normal request that knows nothing about the tools, so
+            -- an answer about the book's content would read as if the text were checked.
+            -- Say what was within reach and ask for the disclosure only when it applies.
+            local scope = tools:getScope()
+            local range = ""
+            if scope.reading_scope ~= "full" and scope.end_page and scope.total_pages
+                and scope.end_page < scope.total_pages then
+                range = string.format(" Only pages 1-%d of %d were within reach (the reader's current position; spoiler protection).",
+                    scope.end_page, scope.total_pages)
+            end
+            context_text = "[Book lookup note]\nThe book text was not consulted for this question: no lookups were made."
+                .. range
+                .. " If your answer describes what this book says, state that it comes from general knowledge and not from the text; a question that does not concern the book's content needs no such note."
         end
         if context_text then
             local insert_at = #gen_messages + 1
@@ -1023,43 +1379,56 @@ function BookToolRunner.run(params)
 
             tool_turns = tool_turns + 1
 
-            local saw_done = false
-            local executed = {}
-            for _idx, call in ipairs(calls) do
-                if call.name == "done" then
-                    saw_done = true
-                else
-                    tool_calls = tool_calls + 1
-                    local result = tools:execute(call.name, call.args or {})
+            return runToolCalls(tools, calls, {
+                skip_done = true,
+                cancel_slot = cancel_slot,
+                has_status = status_handle ~= nil,
+                on_call = function() tool_calls = tool_calls + 1 end,
+                on_result = function(call, result)
                     table.insert(trace, summarizeToolCall(call, result))
-                    table.insert(executed, { call = call, result = result })
-                end
-            end
-            if #executed > 0 then
-                table.insert(tool_outputs, { executed = executed })
-            end
+                    updateStatus()
+                end,
+                on_wait = function(seconds)
+                    search_wait = seconds
+                    updateStatus()
+                end,
+                on_cancelled = function()
+                    -- Same guards as the round callback above: Skip and Quick set their
+                    -- flags before killing the search and continue on their own.
+                    if completed or BookToolRunner._skip_gather or BookToolRunner._quick_retry_requested then return end
+                    finish(false, nil, _("Request cancelled by user."))
+                end,
+                on_done = function(executed, saw_done)
+                    if completed or BookToolRunner._skip_gather or BookToolRunner._quick_retry_requested then return end
+                    if #executed > 0 then
+                        table.insert(tool_outputs, { executed = executed })
+                    end
 
-            if saw_done then
-                -- done terminates the phase; this turn is never replayed (phase 2 starts
-                -- from the original history), so unanswered echoed calls can't 400.
-                return startGenerate()
-            end
+                    if saw_done then
+                        -- done terminates the phase; this turn is never replayed (phase 2
+                        -- starts from the original history), so unanswered echoed calls
+                        -- can't 400.
+                        return startGenerate()
+                    end
 
-            if #executed > 0 then
-                -- Budget-aware prompt (tools_ux_plan.md §2): the round's last result table
-                -- carries the remaining budget — stringifyResult JSON-encodes the table
-                -- verbatim, so this reaches the model on every provider. The bundle and
-                -- diagnostics formatters read named fields, so it never leaks to the user.
-                local last_result = executed[#executed].result
-                if type(last_result) == "table" then
-                    last_result.lookup_budget = string.format("%d of %d lookups remaining",
-                        math.max(0, budget.calls - tool_calls), budget.calls)
-                end
-                -- Keep the gather conversation going in the provider's native wire shape.
-                ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
-            end
-            updateStatus()
-            return step_gather()
+                    if #executed > 0 then
+                        -- Budget-aware prompt (tools_ux_plan.md §2): the round's last
+                        -- result table carries the remaining budget — stringifyResult
+                        -- JSON-encodes the table verbatim, so this reaches the model on
+                        -- every provider. The bundle and diagnostics formatters read named
+                        -- fields, so it never leaks to the user.
+                        local last_result = executed[#executed].result
+                        if type(last_result) == "table" then
+                            last_result.lookup_budget = string.format("%d of %d lookups remaining",
+                                math.max(0, budget.calls - tool_calls), budget.calls)
+                        end
+                        -- Keep the gather conversation going in the provider's native wire shape.
+                        ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
+                    end
+                    updateStatus()
+                    return step_gather()
+                end,
+            })
         end, params.settings)
     end
 
@@ -1100,34 +1469,41 @@ function BookToolRunner.run(params)
 
             tool_turns = tool_turns + 1
 
-            local executed = {}
-            for _idx, call in ipairs(calls) do
-                -- Execute EVERY call in this turn: each tool_use must get a matching tool_result,
-                -- or strict providers (Anthropic) reject the next request (HTTP 400). MAX_TOOL_CALLS
-                -- caps further TURNS (checked at the top of step()), so a turn may slightly overrun.
-                tool_calls = tool_calls + 1
-                local result = tools:execute(call.name, call.args or {})
-                table.insert(trace, summarizeToolCall(call, result))
-                table.insert(executed, { call = call, result = result })
-            end
-
-            if #executed > 0 then
-                table.insert(tool_outputs, { executed = executed })
-                -- Budget-aware prompt: see the step_gather counterpart above.
-                local last_result = executed[#executed].result
-                if type(last_result) == "table" then
-                    last_result.lookup_budget = string.format("%d of %d lookups remaining",
-                        math.max(0, budget.calls - tool_calls), budget.calls)
-                end
-                -- Serialize the model echo + tool results in the provider's native shape.
-                ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
-            end
-
-            step()
+            -- Execute EVERY call in this turn: each tool_use must get a matching tool_result,
+            -- or strict providers (Anthropic) reject the next request (HTTP 400). MAX_TOOL_CALLS
+            -- caps further TURNS (checked at the top of step()), so a turn may slightly overrun.
+            return runToolCalls(tools, calls, {
+                on_call = function() tool_calls = tool_calls + 1 end,
+                on_result = function(call, result)
+                    table.insert(trace, summarizeToolCall(call, result))
+                end,
+                on_cancelled = function()
+                    if completed then return end
+                    finish(false, nil, _("Request cancelled by user."))
+                end,
+                on_done = function(executed)
+                    if completed then return end
+                    if #executed > 0 then
+                        table.insert(tool_outputs, { executed = executed })
+                        -- Budget-aware prompt: see the step_gather counterpart above.
+                        local last_result = executed[#executed].result
+                        if type(last_result) == "table" then
+                            last_result.lookup_budget = string.format("%d of %d lookups remaining",
+                                math.max(0, budget.calls - tool_calls), budget.calls)
+                        end
+                        -- Serialize the model echo + tool results in the provider's native shape.
+                        ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
+                    end
+                    step()
+                end,
+            })
         end, params.settings)
     end
 
     if gather_mode then
+        -- The readable text fits: no rounds, no status window, straight to phase 2 with
+        -- the text as the passages block.
+        if whole_text then return startGenerate() end
         -- Status window only for streamed sessions; with streaming off, the per-round
         -- loading InfoMessages (and phase 2's own) remain the UI, exactly as interactive.
         if features.enable_streaming ~= false then
@@ -1232,7 +1608,7 @@ function BookToolRunner.gatherForAction(params)
     local tools = BookTools:new(params.ui, buildToolSettings(features, reading_scope))
     local budget = budgetFor(features)
     local messages = { { role = "user", content = params.question or "" } }
-    appendScopeMessage(messages, tools:getScope())
+    appendScopeMessage(messages, scopeForMessage(tools, params.ui, features))
     local trace = {}
     local tool_outputs = {}
     local tool_turns = 0
@@ -1240,6 +1616,7 @@ function BookToolRunner.gatherForAction(params)
     local completed = false
     local cancel_slot = {}
     local status_handle
+    local search_wait = nil
 
     local function closeStatus()
         if status_handle then
@@ -1256,6 +1633,10 @@ function BookToolRunner.gatherForAction(params)
         for _idx, item in ipairs(trace) do
             table.insert(lines, "• " .. item)
         end
+        if search_wait then
+            table.insert(lines, "")
+            table.insert(lines, T(_("Searching the book text… %1 s"), search_wait))
+        end
         status_handle.setText(table.concat(lines, "\n"))
     end
 
@@ -1269,6 +1650,13 @@ function BookToolRunner.gatherForAction(params)
     local function deliver()
         finish(buildGatherBundle(tool_outputs, budget.bundle_chars),
             { tool_calls = tool_calls, trace = trace })
+    end
+
+    -- The readable text fits the whole-text budget: the action gets it in full, no rounds.
+    local whole = wholeReadableText(tools, features, budget)
+    if whole then
+        finish(wholeTextBlock(whole), { tool_calls = 0, trace = { wholeTextTraceLine(whole) }, whole_text = true })
+        return nil
     end
 
     local step
@@ -1310,37 +1698,47 @@ function BookToolRunner.gatherForAction(params)
             end
 
             tool_turns = tool_turns + 1
-            local saw_done = false
-            local executed = {}
-            for _idx, call in ipairs(calls) do
-                if call.name == "done" then
-                    saw_done = true
-                else
-                    tool_calls = tool_calls + 1
-                    local result = tools:execute(call.name, call.args or {})
+            return runToolCalls(tools, calls, {
+                skip_done = true,
+                cancel_slot = cancel_slot,
+                has_status = status_handle ~= nil,
+                on_call = function() tool_calls = tool_calls + 1 end,
+                on_result = function(call, result)
                     table.insert(trace, summarizeToolCall(call, result))
-                    table.insert(executed, { call = call, result = result })
-                end
-            end
-            if #executed > 0 then
-                table.insert(tool_outputs, { executed = executed })
-            end
+                    updateStatus()
+                end,
+                on_wait = function(seconds)
+                    search_wait = seconds
+                    updateStatus()
+                end,
+                on_cancelled = function()
+                    -- Skip sets its flag before killing the search and delivers itself.
+                    if completed or BookToolRunner._skip_gather then return end
+                    finish(nil, { cancelled = true })
+                end,
+                on_done = function(executed, saw_done)
+                    if completed or BookToolRunner._skip_gather then return end
+                    if #executed > 0 then
+                        table.insert(tool_outputs, { executed = executed })
+                    end
 
-            if saw_done then
-                return deliver()
-            end
+                    if saw_done then
+                        return deliver()
+                    end
 
-            if #executed > 0 then
-                -- Budget-aware prompt: see the step_gather counterpart in run().
-                local last_result = executed[#executed].result
-                if type(last_result) == "table" then
-                    last_result.lookup_budget = string.format("%d of %d lookups remaining",
-                        math.max(0, budget.calls - tool_calls), budget.calls)
-                end
-                ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
-            end
-            updateStatus()
-            return step()
+                    if #executed > 0 then
+                        -- Budget-aware prompt: see the step_gather counterpart in run().
+                        local last_result = executed[#executed].result
+                        if type(last_result) == "table" then
+                            last_result.lookup_budget = string.format("%d of %d lookups remaining",
+                                math.max(0, budget.calls - tool_calls), budget.calls)
+                        end
+                        ToolWire.appendToolTurn(provider, messages, answer.raw_assistant_turn, executed)
+                    end
+                    updateStatus()
+                    return step()
+                end,
+            })
         end, params.settings)
     end
 

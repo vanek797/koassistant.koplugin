@@ -1288,6 +1288,17 @@ TestRunner:test("matchAnyXrayExact: carried stubs route without the ahead peek (
         true, "Upcoming Entities off keeps the carried route (Q8)")
 end)
 
+TestRunner:test("skippedBuiltRung (B282): the swing guard fires only past a skipped built rung", function()
+    local function rung(p, ts) return { progress_decimal = p, result = "{}", timestamp = ts } end
+    local ladder = { rung(0.5, 1), rung(0.6, 2), rung(0.7, 3) }
+    TestRunner:assertEqual(XrayAuto.skippedBuiltRung(ladder, 0.4, 0.505), false, "crossing the next rung")
+    TestRunner:assertEqual(XrayAuto.skippedBuiltRung(ladder, 0.4, 0.78), true, "two rungs skipped")
+    TestRunner:assertEqual(XrayAuto.skippedBuiltRung(ladder, 0.6, 0.705), false, "next rung after a later live")
+    TestRunner:assertEqual(XrayAuto.skippedBuiltRung({ rung(0.7, 1) }, 0.4, 0.72), false,
+        "wide spacing: the next rung is still the next rung")
+    TestRunner:assertEqual(XrayAuto.skippedBuiltRung(ladder, 0.4, 0.45), false, "nothing promotable: nothing to guard")
+end)
+
 os.execute(string.format("rm -rf %q", TMP_ROOT))
 
 local ok = TestRunner:summary()

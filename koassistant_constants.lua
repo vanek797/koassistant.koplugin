@@ -147,7 +147,7 @@ function Constants.getQuickActionUtilityText(id, _)
         chat_history = _("Chat History"),
         notebook = _("Notebook"),
         view_caches = _("View Artifacts"),
-        book_group = _("Group"),
+        book_group = _("Group Hub"),
         -- Rename alongside BookPage.pageName()/entryLabel() (can't require
         -- book_page from here — cycle)
         book_overview = _("Book Hub"),
@@ -342,7 +342,8 @@ function Constants.buildUsageIndicator(opts)
         elseif n > 1 then
             table.insert(items, string.format("Book search (%d lookups)", n))
         else
-            table.insert(items, "Book search")
+            -- Zero lookups with book provenance = the readable text was sent in full.
+            table.insert(items, "Book text read in full")
         end
     end
     if #items == 0 then return nil end

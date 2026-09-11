@@ -196,4 +196,30 @@ print("")
 print(string.rep("-", 50))
 print(string.format("  Results: %d passed, %d failed", TestRunner.passed, TestRunner.failed))
 print(string.rep("-", 50))
+TestRunner:suite("collection source (round 7)")
+
+TestRunner:test("collectionBooks lists a collection in ITS order, names sorted, default labelled", function()
+    local saved = package.loaded["readcollection"]
+    package.loaded["readcollection"] = {
+        default_collection_name = "favorites",
+        coll = {
+            favorites = { ["/z.epub"] = { file = "/z.epub", order = 2 }, ["/a.epub"] = { file = "/a.epub", order = 1 } },
+            Series = { ["/vol2.epub"] = { file = "/vol2.epub", order = 5 }, ["/vol1.epub"] = { file = "/vol1.epub", order = 3 },
+                       ["/x.epub"] = { file = "/x.epub" } },
+        },
+    }
+    local names = BookPicker.collectionNames()
+    TestRunner:eq(#names, 2, "two collections")
+    TestRunner:eq(names[1], "Series", "sorted by name")
+    TestRunner:ok(BookPicker.hasCollections(), "has collections")
+    TestRunner:eq(BookPicker.collectionLabel("favorites"), "Favorites", "default collection reads Favorites")
+    TestRunner:eq(BookPicker.collectionLabel("Series"), "Series", "others keep their name")
+    local books = BookPicker.collectionBooks("Series")
+    TestRunner:eq(table.concat(books, ","), "/vol1.epub,/vol2.epub,/x.epub", "collection order, order-less last")
+    TestRunner:eq(#BookPicker.collectionBooks("nope"), 0, "unknown collection is empty")
+    package.loaded["readcollection"] = { coll = {} }
+    TestRunner:ok(not BookPicker.hasCollections(), "no collections")
+    package.loaded["readcollection"] = saved
+end)
+
 return TestRunner.failed == 0

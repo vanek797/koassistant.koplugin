@@ -364,5 +364,130 @@ TestRunner:test("orderBySeriesIndex: numeric index first, index-less tail in nat
     TestRunner:assertEqual(sorted[5].path, "/b/vol 10.epub", "natural order: 2 before 10")
 end)
 
+print("")
+print("  [group list order]")
+
+TestRunner:test("moveGroup / moveGroupTo: list order, clamped, no on_change", function()
+    -- Fresh store: earlier tests may leave groups behind, and this one reads the whole list
+    local saved_mem = mem
+    mem = {}
+    local a = BookGroups.create("A")
+    local b = BookGroups.create("B")
+    local c = BookGroups.create("C")
+    local fired = false
+    BookGroups.on_change = function() fired = true end
+    local function ids()
+        local out = {}
+        for _idx, g in ipairs(BookGroups.all()) do out[#out + 1] = g.id end
+        return table.concat(out, ",")
+    end
+    TestRunner:assertEqual(ids(), a.id .. "," .. b.id .. "," .. c.id, "creation order")
+    local i, n = BookGroups.groupIndex(c.id)
+    TestRunner:assertEqual(i, 3, "index of the third group")
+    TestRunner:assertEqual(n, 3, "count")
+    TestRunner:assertTrue(BookGroups.moveGroup(c.id, -1), "move up")
+    TestRunner:assertEqual(ids(), a.id .. "," .. c.id .. "," .. b.id, "moved up one")
+    TestRunner:assertEqual(BookGroups.moveGroup(a.id, -1), false, "clamped at top")
+    TestRunner:assertTrue(BookGroups.moveGroupTo(b.id, 1), "to the top")
+    TestRunner:assertEqual(ids(), b.id .. "," .. a.id .. "," .. c.id, "moved to position 1")
+    TestRunner:assertEqual(BookGroups.moveGroupTo(b.id, 1), false, "same position rejected")
+    TestRunner:assertEqual(BookGroups.moveGroupTo(b.id, "x"), false, "garbage rejected")
+    TestRunner:assertEqual(BookGroups.moveGroupTo("nope", 2), false, "unknown id rejected")
+    TestRunner:assertTrue(BookGroups.moveGroupTo(b.id, 99), "clamped to the end")
+    TestRunner:assertEqual(ids(), a.id .. "," .. c.id .. "," .. b.id, "moved to the end")
+    TestRunner:assertEqual(fired, false, "display order never notifies")
+    TestRunner:assertEqual(BookGroups.groupIndex("nope"), nil, "unknown id has no index")
+    BookGroups.on_change = nil
+    mem = saved_mem
+end)
+
+TestRunner:test("sortGroups: one-shot, by name or by kind then name, display name canon, no on_change", function()
+    local saved_mem = mem
+    mem = {}
+    local b = BookGroups.create("beta")
+    local q = BookGroups.create("")       -- unnamed: the UI renders "(unnamed)"
+    local a = BookGroups.create("Alpha")
+    local fired = false
+    BookGroups.on_change = function() fired = true end
+    BookGroups.sortGroups("name", function(g) return g.name == "?" and "(unnamed)" or g.name end)
+    local list = BookGroups.all()
+    TestRunner:assertEqual(list[1].id, q.id, "'(unnamed)' sorts first (punctuation before letters)")
+    TestRunner:assertEqual(list[2].id, a.id, "Alpha before beta, case-insensitive")
+    TestRunner:assertEqual(list[3].id, b.id, "beta last")
+    TestRunner:assertTrue(BookGroups.moveGroup(b.id, -2), "still movable by hand afterwards")
+    TestRunner:assertEqual(BookGroups.all()[1].id, b.id, "moved to the top")
+    TestRunner:assertEqual(fired, false, "display order never notifies")
+    -- By kind: series, project, plain, then name within a kind
+    BookGroups.setKind(a.id, BookGroups.KIND_PLAIN)
+    BookGroups.setKind(q.id, BookGroups.KIND_PROJECT)
+    BookGroups.setKind(b.id, BookGroups.KIND_SERIES)
+    fired = false
+    BookGroups.sortGroups("kind")
+    list = BookGroups.all()
+    TestRunner:assertEqual(list[1].id, b.id, "series first")
+    TestRunner:assertEqual(list[2].id, q.id, "project second")
+    TestRunner:assertEqual(list[3].id, a.id, "plain last")
+    TestRunner:assertEqual(fired, false, "sorting by kind never notifies either")
+    BookGroups.on_change = nil
+    mem = saved_mem
+end)
+
+TestRunner:test("group settings: get/set/clear, settingsOf copy, no on_change; leave and delete hooks", function()
+    local g = BookGroups.create("Series")
+    BookGroups.addBook(g.id, "/v1.epub"); BookGroups.addBook(g.id, "/v2.epub")
+    local fired = false
+    BookGroups.on_change = function() fired = true end
+    TestRunner:assertEqual(BookGroups.getSetting(g.id, "koassistant_book_spoiler_free"), nil, "unset")
+    TestRunner:assertTrue(BookGroups.setSetting(g.id, "koassistant_book_spoiler_free", false), "set")
+    TestRunner:assertEqual(BookGroups.getSetting(g.id, "koassistant_book_spoiler_free"), false, "false stored")
+    TestRunner:assertEqual(BookGroups.setSetting(g.id, "koassistant_book_spoiler_free", false), false, "same value = no change")
+    TestRunner:assertTrue(BookGroups.setSetting(g.id, "koassistant_book_domain", "history"), "second key")
+    local copy = BookGroups.settingsOf(g.id)
+    TestRunner:assertEqual(copy.koassistant_book_domain, "history", "copy carries the value")
+    copy.koassistant_book_domain = "x"
+    TestRunner:assertEqual(BookGroups.getSetting(g.id, "koassistant_book_domain"), "history", "copy is a copy")
+    TestRunner:assertTrue(BookGroups.setSetting(g.id, "koassistant_book_domain", nil), "clear")
+    TestRunner:assertEqual(BookGroups.getSetting(g.id, "koassistant_book_domain"), nil, "cleared")
+    TestRunner:assertEqual(BookGroups.setSetting("nope", "k", 1), false, "unknown group")
+    TestRunner:assertEqual(BookGroups.setSetting(g.id, "", 1), false, "empty key refused")
+    TestRunner:assertEqual(BookGroups.getSetting("nope", "k"), nil, "unknown group reads nil")
+    TestRunner:assertEqual(fired, false, "settings never fire on_change")
+    BookGroups.setSetting(g.id, "koassistant_book_spoiler_free", nil)
+    TestRunner:assertEqual(BookGroups.byId(g.id).settings, nil, "emptied settings table dropped")
+    local left, removed = {}, nil
+    BookGroups.on_leave = function(id, path) left[#left + 1] = id .. ":" .. path end
+    BookGroups.on_removed = function(id, books) removed = id .. ":" .. table.concat(books, ",") end
+    BookGroups.removeBook(g.id, "/v1.epub")
+    TestRunner:assertEqual(left[1], g.id .. ":/v1.epub", "on_leave fired with the path")
+    BookGroups.remove(g.id)
+    TestRunner:assertEqual(removed, g.id .. ":/v2.epub", "on_removed fired with the remaining members")
+    BookGroups.on_change = nil; BookGroups.on_leave = nil; BookGroups.on_removed = nil
+end)
+
+TestRunner:test("follow-group helpers: a marker of a group that no longer exists reads as follow-global", function()
+    local BookSettings = require("koassistant_book_settings")
+    local BookStore = require("koassistant_book_store")
+    local GroupSettings = require("koassistant_group_settings")
+    local g = BookGroups.create("Series")
+    local key = "koassistant_book_research_mode"
+    local function fakeDS(marker) return { readRaw = function(_, k) if k == key then return marker end end } end
+    TestRunner:assertEqual(BookSettings.followingGroup(fakeDS(BookStore.marker(g.id)), key), g.id, "live group: following")
+    TestRunner:assertEqual(BookSettings.followingGroup(fakeDS(BookStore.marker("gone")), key), nil, "missing group: not following")
+    TestRunner:assertEqual(BookSettings.followGroupLabel(fakeDS(BookStore.marker("gone")), key, "On"), nil, "missing group: caller keeps its label")
+    TestRunner:assertEqual(BookSettings.followingGroup(fakeDS(true), key), nil, "own value: not following")
+    TestRunner:assertEqual(GroupSettings.replacedNotice(key, "gone"), nil, "missing group: no toast text")
+    BookGroups.remove(g.id)
+end)
+
+TestRunner:test("shortName: UTF-8 safe cap with an ellipsis", function()
+    TestRunner:assertEqual(BookGroups.shortName("short"), "short", "under the cap untouched")
+    TestRunner:assertEqual(BookGroups.shortName("abcdef", 3), "abc\u{2026}", "cut at the cap")
+    TestRunner:assertEqual(BookGroups.shortName("abc def", 4), "abc\u{2026}", "trailing space dropped")
+    TestRunner:assertEqual(BookGroups.shortName("\u{0645}\u{0631}\u{062D}\u{0628}\u{0627}", 3),
+        "\u{0645}\u{0631}\u{062D}\u{2026}", "counts characters, not bytes")
+    TestRunner:assertEqual(BookGroups.shortName("\u{0645}\u{0631}\u{062D}", 3), "\u{0645}\u{0631}\u{062D}", "exactly the cap untouched")
+    TestRunner:assertEqual(BookGroups.shortName(nil), "", "nil is empty")
+end)
+
 local ok = TestRunner:summary()
 return ok

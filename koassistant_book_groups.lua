@@ -204,12 +204,146 @@ function BookGroups.remove(id)
     local data = load()
     for i, group in ipairs(data.groups) do
         if group.id == id then
+            local books = {}
+            for j, p in ipairs(group.books) do books[j] = p end
             table.remove(data.groups, i)
+            save(data)
+            -- G1: the members' follow-group markers for this group die with it
+            if type(BookGroups.on_removed) == "function" then
+                pcall(BookGroups.on_removed, id, books)
+            end
+            return true
+        end
+    end
+    return false
+end
+
+-- ── Group-level settings (G1, docs/group_hub_plan.md §2.1) ──────────────────
+-- `group.settings = { [sidecar key] = value }`: the value every member that
+-- FOLLOWS the group reads (the book side holds a follow-group marker, see
+-- koassistant_book_store.lua). The same keys and values as the per-book
+-- settings — nothing new is defined here. Display order/membership hooks do
+-- not fire for these: nothing about the books changes at write time; the
+-- apply step (koassistant_group_settings.lua) writes the markers.
+
+--- @return any The group's value for the key (nil = not set / unknown group)
+function BookGroups.getSetting(id, key)
+    local group = BookGroups.byId(id)
+    local gs = group and group.settings
+    if type(gs) ~= "table" then return nil end
+    return gs[key]
+end
+
+--- Set (nil = clear) the group's value for a key. @return boolean changed
+function BookGroups.setSetting(id, key, value)
+    if type(key) ~= "string" or key == "" then return false end
+    local data = load()
+    for _idx, group in ipairs(data.groups) do
+        if group.id == id then
+            group.settings = group.settings or {}
+            if group.settings[key] == value and type(value) ~= "table" then return false end
+            group.settings[key] = value
+            if next(group.settings) == nil then group.settings = nil end
             save(data)
             return true
         end
     end
     return false
+end
+
+--- Copy of the group's settings table ({} when none).
+function BookGroups.settingsOf(id)
+    local out = {}
+    local group = BookGroups.byId(id)
+    for k, v in pairs(group and group.settings or {}) do out[k] = v end
+    return out
+end
+
+--- Hooks: on_leave(group_id, path) after a book leaves a group,
+--- on_removed(group_id, books) after a group is deleted — main.lua turns the
+--- book's markers for that group into follow-global.
+BookGroups.on_leave = nil
+BookGroups.on_removed = nil
+
+--- The groups file (a stamp for memos that depend on group values).
+function BookGroups.filePath()
+    local DataStorage = require("datastorage")
+    return DataStorage:getSettingsDir() .. "/koassistant_book_groups.lua"
+end
+
+--- Position of a group in the list (G0 round 3: the Groups list's manual
+--- order). @return integer|nil index, integer count
+function BookGroups.groupIndex(id)
+    local list = load().groups
+    for i, group in ipairs(list) do
+        if group.id == id then return i, #list end
+    end
+    return nil, #list
+end
+
+--- Move a group to an absolute 1-based position in the list, clamped.
+--- Display order only: nothing about the books changes, so no on_change.
+--- @return boolean moved
+function BookGroups.moveGroupTo(id, pos)
+    local n = tonumber(pos)
+    if not n then return false end
+    local data = load()
+    for i, group in ipairs(data.groups) do
+        if group.id == id then
+            local j = math.max(1, math.min(#data.groups, math.floor(n)))
+            if j == i then return false end
+            table.remove(data.groups, i)
+            table.insert(data.groups, j, group)
+            save(data)
+            return true
+        end
+    end
+    return false
+end
+
+--- Move a group by delta positions (-1 = up, 1 = down), clamped.
+--- @return boolean moved
+function BookGroups.moveGroup(id, delta)
+    local i = BookGroups.groupIndex(id)
+    if not i then return false end
+    return BookGroups.moveGroupTo(id, i + (tonumber(delta) or 0))
+end
+
+--- Sort the list once (G0 rounds 4+6, maintainer: sorting is an ACTION on
+--- the stored order, not a second state — groups can still be moved by hand
+--- afterwards). mode "name" = by name; "kind" = series, project, plain, then
+--- name. Case-insensitive, ties by id so the result is stable. name_fn(group)
+--- → the display name (the UI's canon; nil = raw name). Display order only:
+--- no on_change.
+function BookGroups.sortGroups(mode, name_fn)
+    local rank = { [BookGroups.KIND_SERIES] = 1, [BookGroups.KIND_PROJECT] = 2, [BookGroups.KIND_PLAIN] = 3 }
+    local data = load()
+    table.sort(data.groups, function(a, b)
+        if mode == "kind" then
+            local ra, rb = rank[BookGroups.kindOf(a)] or 9, rank[BookGroups.kindOf(b)] or 9
+            if ra ~= rb then return ra < rb end
+        end
+        local na = (name_fn and name_fn(a) or a.name or ""):lower()
+        local nb = (name_fn and name_fn(b) or b.name or ""):lower()
+        if na ~= nb then return na < nb end
+        return tostring(a.id) < tostring(b.id)
+    end)
+    save(data)
+end
+
+--- One line's worth of a name for a dialog title (ButtonDialog titles WRAP,
+--- they never truncate — a long book or group name used to push the buttons
+--- down the screen). UTF-8 safe; trailing spaces dropped before the ellipsis.
+function BookGroups.shortName(text, max_chars)
+    if type(text) ~= "string" then return "" end
+    max_chars = max_chars or 40
+    local n, cut = 0, nil
+    for pos in text:gmatch("()[\1-\127\194-\244][\128-\191]*") do
+        n = n + 1
+        if n > max_chars then cut = pos break end
+    end
+    if not cut then return text end
+    return (text:sub(1, cut - 1):gsub("%s+$", "")) .. "\u{2026}"
 end
 
 local function indexOf(group, path)
@@ -243,6 +377,9 @@ function BookGroups.removeBook(id, path)
             if not i then return false end
             table.remove(group.books, i)
             save(data); notify(id)
+            if type(BookGroups.on_leave) == "function" then
+                pcall(BookGroups.on_leave, id, path)
+            end
             return true
         end
     end
@@ -396,16 +533,21 @@ function BookGroups.fileExists(path)
     return lfs.attributes(path, "mode") == "file"
 end
 
---- Display title for any group member: AI metadata override > doc_props >
---- filename. Same identity rule as the merge picker.
-function BookGroups.displayTitle(path, ui)
-    local title
+--- Display title + authors for any group member (G0 round 2: the Group Hub
+--- names the members' authors in its subtitle): AI metadata override >
+--- doc_props (custom-metadata overlay) > filename for the title; authors
+--- straight from the effective doc_props, nil when unknown. ONE sidecar
+--- read serves both.
+--- @return string title, string|nil authors
+function BookGroups.displayProps(path, ui)
+    local title, authors
     local ok, ds = pcall(function()
         return require("koassistant_doc_settings").resolve(path, ui)
     end)
     if ok and ds then
-        local props = require("koassistant_doc_settings").overlayCustomProps(ds:readSetting("doc_props"), path) or {}
+        local props = require("koassistant_doc_settings").effectiveProps(ds:readSetting("doc_props"), path, ui) or {}
         title = props.display_title or props.title
+        authors = props.authors
         local ok_ov, ov_title = pcall(function()
             return require("koassistant_book_settings").getMetadataOverride(ds)
         end)
@@ -414,7 +556,14 @@ function BookGroups.displayTitle(path, ui)
     if not title or title == "" then
         title = path:match("([^/]+)%.[^.]+$") or path:match("([^/]+)$") or path
     end
-    return title
+    if type(authors) ~= "string" or authors == "" then authors = nil end
+    return title, authors
+end
+
+--- Display title for any group member: AI metadata override > doc_props >
+--- filename. Same identity rule as the merge picker.
+function BookGroups.displayTitle(path, ui)
+    return (BookGroups.displayProps(path, ui))
 end
 
 --- Members as {title, authors, file} rows for the library machinery
@@ -429,7 +578,7 @@ function BookGroups.booksInfoFor(group, ui)
                 return require("koassistant_doc_settings").resolve(path, ui)
             end)
             if ok and ds then
-                local props = require("koassistant_doc_settings").overlayCustomProps(ds:readSetting("doc_props"), path) or {}
+                local props = require("koassistant_doc_settings").effectiveProps(ds:readSetting("doc_props"), path, ui) or {}
                 title = props.display_title or props.title
                 author = props.authors
                 if type(author) == "string" and author:find("\n") then

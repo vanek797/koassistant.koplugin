@@ -159,6 +159,12 @@ TestRunner:check("vLLM context error returns the stated context length, not the 
 TestRunner:check("context window phrasing also matched",
     ModelAudit.parseCeiling("input exceeds the context window of 131072 tokens (you sent 200000)",
         10000000) == 131072)
+-- #106 (2026-09-07): a per-minute admission refusal states the PLAN's
+-- allowance; drafting it as the model's ceiling would bake a plan constant.
+TestRunner:check("per-minute admission refusal is not a ceiling",
+    ModelAudit.parseCeiling(
+        "Request too large for model `openai/gpt-oss-20b` in organization `org_x` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 10000211, please reduce your message size and try again.",
+        10000000) == nil)
 
 --==========================================================================
 TestRunner:suite("real-shape helpers (T7 hardening)")

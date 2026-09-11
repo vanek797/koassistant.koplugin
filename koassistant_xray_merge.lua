@@ -702,6 +702,33 @@ function XrayMerge.populateDormant(base_parsed, delta, source_parsed, source_tit
     end
     local ledger = base_parsed[DK]
     if type(ledger) ~= "table" then ledger = {} end
+    -- Deterministic content fingerprint: the reseed dry-run writes only on a
+    -- real change, and a re-seed of a source whose full-name stub has since
+    -- folded under the short name appends-then-folds to identical content
+    -- (counters alone would report a change every run)
+    local function ledgerFingerprint(list)
+        local parts = {}
+        for _idx, stub in ipairs(list) do
+            if type(stub) == "table" then
+                local aliases = {}
+                for _a, a in ipairs(type(stub.aliases) == "table" and stub.aliases or {}) do
+                    aliases[#aliases + 1] = tostring(a)
+                end
+                local bg = {}
+                for _b, b in ipairs(type(stub.background) == "table" and stub.background or {}) do
+                    if type(b) == "table" then
+                        bg[#bg + 1] = tostring(b.source) .. "\3" .. tostring(b.text) .. "\3" .. tostring(b.file)
+                    end
+                end
+                parts[#parts + 1] = table.concat({ tostring(stub.name), tostring(stub.category),
+                    tostring(stub.source), tostring(stub.file), tostring(stub.role),
+                    tostring(stub.description), table.concat(aliases, "\2"),
+                    table.concat(bg, "\2") }, "\1")
+            end
+        end
+        return table.concat(parts, "\n")
+    end
+    local before = ledgerFingerprint(ledger)
     local by_name = {}
     for i, stub in ipairs(ledger) do
         if type(stub) == "table" and type(stub.name) == "string" then
@@ -815,6 +842,13 @@ function XrayMerge.populateDormant(base_parsed, delta, source_parsed, source_tit
         end
     end
     if #ledger > 0 then base_parsed[DK] = ledger end
+    -- #90 (2026-09-09): two sources naming one entity differently (the short
+    -- name in one volume, the dotted full name in the next, each the other's
+    -- alias) landed as two stubs because the ledger was keyed by exact name. Fold by name identity
+    -- here as well as in the wake-pass: the reseed dry-run only writes when
+    -- this function reports a change, and editLiveXray runs no wake-pass
+    refreshed = refreshed + XrayParser.foldLedger(base_parsed)
+    if ledgerFingerprint(ledger) == before then return 0, 0 end
     return added, refreshed
 end
 

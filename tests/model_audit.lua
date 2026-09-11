@@ -66,6 +66,7 @@ require("mock_koreader")
 local JSON_OK, json = pcall(require, "json")
 local ModelLists = require("koassistant_model_lists")
 local ModelConstraints = require("model_constraints")
+local RateLimits = require("koassistant_rate_limits")
 local Defaults = require("koassistant_api.defaults")
 local TestConfig = require("test_config")
 
@@ -332,6 +333,10 @@ end
 -- parseMaxTokensError; T7 P1 fix 2026-08-14).
 function ModelAudit.parseCeiling(err, sent)
     local text = tostring(err)
+    -- A per-minute admission refusal ("Limit 8000, Requested 10000211") states
+    -- the PLAN's allowance, not the model's ceiling (#106; a strict Groq plan
+    -- answers the oversized request this way): never draft it as a ceiling.
+    if RateLimits.hasPerMinuteSignature(text) then return nil end
     local ctx = text:match("context length[^%d]*(%d+)")
         or text:match("context window[^%d]*(%d+)")
     if ctx then
@@ -527,6 +532,10 @@ local DISCOVERY = {
         end,
     },
     xai = { headers = bearerHeaders, parse = parseOpenAIShapedList },
+    -- Groq (keyed 2026-09-07, #106): the list mixes in speech/guard ids that
+    -- never chat (whisper, tts, prompt-guard) — a "+ NEW" here is a candidate
+    -- only, --probe it before adding to the curated array.
+    groq = { headers = bearerHeaders, parse = parseOpenAIShapedList },
     -- NVIDIA lists ~100 ids of which most are NOT served: probed live 2026-08-20,
     -- 47 of 77 chat ids returned 404 and 9 accepted the connection then never
     -- answered (a silent hang the UI cannot render). Treat every "+ NEW" here as
